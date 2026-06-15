@@ -122,6 +122,18 @@
   .opt.sel .idx{background:var(--lime);border-color:var(--lime);color:#0c0f0b;transform:translateY(-1px);}
   .opt.sel .dot{border-color:var(--lime);}
   .opt.sel .dot::after{transform:scale(1);}
+  /* square checkbox for multi-select add ons */
+  .opt .chk{
+    width:22px;height:22px;flex:none;border-radius:6px;border:2px solid var(--muted-2);
+    position:relative;transition:background .25s var(--ease),border-color .25s var(--ease);
+  }
+  .opt .chk::after{
+    content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;
+    border:solid #0c0f0b;border-width:0 2px 2px 0;
+    transform:rotate(45deg) scale(0);transform-origin:center;transition:transform .25s var(--ease);
+  }
+  .opt.sel .chk{background:var(--lime);border-color:var(--lime);}
+  .opt.sel .chk::after{transform:rotate(45deg) scale(1);}
   .opt.addon .price{margin-right:6px;}
 
   /* segmented (diet) */
@@ -234,17 +246,17 @@
         <button data-key="jain">Jain</button>
       </div>
       <div class="label">Delivery slot</div>
-      <button class="opt" data-group="batch" data-key="b1" data-label="Batch 1 (7:00 to 8:00 AM)">
-        <div class="idx">01</div><div class="txt"><b>7:00 to 8:00 AM</b><span>Early morning</span></div><div class="dot"></div>
+      <button class="opt" data-group="batch" data-key="b1" data-label="Morning, 9:30 AM to 11:30 AM">
+        <div class="idx">01</div><div class="txt"><b>9:30 AM to 11:30 AM</b><span>Morning batch</span></div><div class="dot"></div>
       </button>
-      <button class="opt" data-group="batch" data-key="b2" data-label="Batch 2 (8:00 to 9:00 AM)">
-        <div class="idx">02</div><div class="txt"><b>8:00 to 9:00 AM</b><span>Morning</span></div><div class="dot"></div>
+      <button class="opt" data-group="batch" data-key="b2" data-label="Lunch, 11:30 AM to 1:30 PM">
+        <div class="idx">02</div><div class="txt"><b>11:30 AM to 1:30 PM</b><span>Lunch batch</span></div><div class="dot"></div>
       </button>
-      <button class="opt" data-group="batch" data-key="b3" data-label="Batch 3 (12:00 to 1:00 PM)">
-        <div class="idx">03</div><div class="txt"><b>12:00 to 1:00 PM</b><span>Lunch</span></div><div class="dot"></div>
+      <button class="opt" data-group="batch" data-key="b3" data-label="Evening, 4:30 PM to 6:30 PM">
+        <div class="idx">03</div><div class="txt"><b>4:30 PM to 6:30 PM</b><span>Evening batch</span></div><div class="dot"></div>
       </button>
-      <button class="opt" data-group="batch" data-key="b4" data-label="Batch 4 (6:00 to 7:00 PM)">
-        <div class="idx">04</div><div class="txt"><b>6:00 to 7:00 PM</b><span>Evening</span></div><div class="dot"></div>
+      <button class="opt" data-group="batch" data-key="b4" data-label="Dinner, 6:30 PM to 8:30 PM">
+        <div class="idx">04</div><div class="txt"><b>6:30 PM to 8:30 PM</b><span>Dinner batch</span></div><div class="dot"></div>
       </button>
     </section>
 
@@ -274,15 +286,17 @@
     <section class="step" data-step="4">
       <div class="eyebrow">Add ons</div>
       <h1>Make it yours</h1>
-      <p class="sub">Optional. Tap to add to every delivery.</p>
+      <p class="sub">All optional. Tick what you want in every delivery.</p>
       <button class="opt addon" data-addon="drink" data-label="Drink" data-price="40">
-        <div class="idx">A</div><div class="txt"><b>Drink</b><span>Fresh detox juice with your bowl</span></div>
-        <div class="price">+40</div><div class="dot"></div>
+        <div class="idx">A</div><div class="txt"><b>Drink</b><span>Optional, fresh detox juice with your bowl</span></div>
+        <div class="price">+40</div><div class="chk"></div>
       </button>
       <button class="opt addon" data-addon="paneer" data-label="Extra Paneer" data-price="60">
-        <div class="idx">B</div><div class="txt"><b>Extra Paneer</b><span>Protein boost, freshly tossed</span></div>
-        <div class="price">+60</div><div class="dot"></div>
+        <div class="idx">B</div><div class="txt"><b>Extra Paneer</b><span>Optional, protein boost freshly tossed</span></div>
+        <div class="price">+60</div><div class="chk"></div>
       </button>
+      <div class="label">Delivery instructions (optional)</div>
+      <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact, anything else"></textarea>
     </section>
 
     <!-- STEP 6: REVIEW + PAY -->
@@ -348,7 +362,7 @@ const order = {
   plan:null, planLabel:null, planPrice:0,
   batch:null, batchLabel:null,
   diet:"regular", dietLabel:"Regular",
-  name:"", phone:"", address:"", date:"",
+  name:"", phone:"", address:"", date:"", note:"",
   addons:{}
 };
 
@@ -412,6 +426,7 @@ document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.ta
 document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
 document.getElementById('f-address').addEventListener('input', e=>{ order.address=e.target.value.trim(); validate(); });
 dateInput.addEventListener('change', e=>{ order.date=e.target.value; validate(); });
+document.getElementById('f-note').addEventListener('input', e=>{ order.note=e.target.value.trim(); });
 
 function stepValid(i){
   switch(i){
@@ -439,6 +454,7 @@ function buildSummary(){
   rows.push(['Start', formatDate(order.date), '']);
   rows.push(['Deliver to', order.name+', '+order.phone, '']);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label, '+'+rupee(a.price)]));
+  if(order.note) rows.push(['Instructions', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>
     '<div class="sline"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+(r[2]?' &nbsp;<em>'+r[2]+'</em>':'')+'</span></div>'
   ).join('');
@@ -528,7 +544,7 @@ async function payRazorpay(amt){
     name: CONFIG.BUSINESS_NAME,
     description: "Salad subscription "+orderNo,
     prefill: { name: order.name, contact: order.phone },
-    notes: { order: orderNo, plan: order.planLabel, batch: order.batchLabel, diet: order.dietLabel },
+    notes: { order: orderNo, plan: order.planLabel, batch: order.batchLabel, diet: order.dietLabel, instructions: order.note || "" },
     theme: { color: "#c4f546" },
     modal: { ondismiss: function(){ resetPayBtn(amt); } },
     handler: async function(resp){
@@ -576,6 +592,7 @@ msgBtn.addEventListener('click', ()=>{
     "Start: "+formatDate(order.date),
     "Total: "+rupee(grandTotal())
   ];
+  if(order.note) lines.push("Notes: "+order.note);
   window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');
 });
 

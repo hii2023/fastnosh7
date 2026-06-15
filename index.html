@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0d100c" />
+<title>Nosh7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+  /* ============================================================
+     CONFIG is in the <script> at the bottom (UPI ID, WhatsApp,
+     prices). Edit there to make this live.
+     ============================================================ */
+  :root{
+    --bg:#0c0f0b;
+    --bg-2:#10140e;
+    --surface:#161b13;
+    --surface-2:#1c2218;
+    --line:#272f22;
+    --lime:#c4f546;
+    --lime-dim:#9bc23a;
+    --ink:#f2f6ea;
+    --muted:#8b9683;
+    --muted-2:#5c6657;
+    --shadow:0 18px 40px rgba(0,0,0,.45);
+    --glow:0 0 0 1px var(--lime), 0 12px 34px rgba(196,245,70,.16);
+    --radius:16px;
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100dvh;
+    display:flex;
+    justify-content:center;
+    overscroll-behavior:none;
+  }
+  .app{
+    width:100%;max-width:440px;min-height:100dvh;
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgba(196,245,70,.07), transparent 60%),
+      linear-gradient(180deg,var(--bg-2),var(--bg) 30%);
+    display:flex;flex-direction:column;position:relative;overflow:hidden;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 12px;}
+  .brand{display:flex;align-items:baseline;gap:9px;}
+  .brand .mark{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;
+    letter-spacing:-.5px;color:var(--ink);
+  }
+  .brand .mark b{color:var(--lime);}
+  .brand .tag{font-size:10px;font-weight:600;letter-spacing:2.5px;color:var(--muted-2);text-transform:uppercase;}
+  .counter{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--muted);letter-spacing:1px;}
+  .counter b{color:var(--lime);}
+
+  /* ---------- progress ---------- */
+  .progress{height:2px;background:var(--line);margin:6px 22px 2px;overflow:hidden;}
+  .progress > i{display:block;height:100%;width:0%;background:var(--lime);transition:width .5s var(--ease);}
+
+  /* ---------- steps ---------- */
+  .steps{flex:1;position:relative;}
+  .step{
+    position:absolute;inset:0;padding:18px 22px 160px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    opacity:0;transform:translateY(16px);pointer-events:none;
+    transition:opacity .42s var(--ease),transform .42s var(--ease);
+  }
+  .step.active{opacity:1;transform:none;pointer-events:auto;}
+  .step.leaving{opacity:0;transform:translateY(-16px);}
+
+  .eyebrow{
+    font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--lime);
+    letter-spacing:3px;text-transform:uppercase;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;font-size:30px;line-height:1.06;
+    margin:10px 0 6px;letter-spacing:-1px;font-weight:700;
+  }
+  .sub{color:var(--muted);font-size:14px;margin:0 0 22px;line-height:1.45;}
+
+  /* ---------- option cards ---------- */
+  .opt{
+    width:100%;border:1px solid var(--line);background:var(--surface);
+    border-radius:var(--radius);padding:16px 16px;margin-bottom:11px;
+    display:flex;align-items:center;gap:15px;cursor:pointer;text-align:left;
+    font-family:inherit;color:inherit;position:relative;overflow:hidden;
+    transition:transform .22s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);
+  }
+  .opt:active{transform:scale(.985);}
+  .opt .idx{
+    width:46px;height:46px;flex:none;border-radius:11px;background:var(--surface-2);
+    border:1px solid var(--line);
+    display:grid;place-items:center;color:var(--muted);
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.5px;
+    transition:all .3s var(--ease);
+  }
+  .opt .idx.big{font-size:22px;}
+  .opt .txt{flex:1;min-width:0;}
+  .opt .txt b{display:block;font-size:16px;font-weight:600;font-family:'Space Grotesk',sans-serif;letter-spacing:-.2px;}
+  .opt .txt span{font-size:12.5px;color:var(--muted);}
+  .opt .price{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;
+  }
+  .opt .price.muted{color:var(--muted-2);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+  /* geometric selector dot (no symbols) */
+  .opt .dot{
+    width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--muted-2);
+    position:relative;transition:border-color .25s var(--ease);
+  }
+  .opt .dot::after{
+    content:"";position:absolute;inset:3px;border-radius:50%;background:var(--lime);
+    transform:scale(0);transition:transform .3s var(--ease);
+  }
+  .opt.sel{border-color:var(--lime);background:var(--surface-2);box-shadow:var(--glow);}
+  .opt.sel .idx{background:var(--lime);border-color:var(--lime);color:#0c0f0b;transform:translateY(-1px);}
+  .opt.sel .dot{border-color:var(--lime);}
+  .opt.sel .dot::after{transform:scale(1);}
+  .opt.addon .price{margin-right:6px;}
+
+  /* segmented (diet) */
+  .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:4px;gap:4px;margin:6px 0 6px;}
+  .seg button{
+    flex:1;border:0;background:transparent;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;
+    padding:12px 0;border-radius:9px;color:var(--muted);cursor:pointer;letter-spacing:.3px;
+    transition:background .28s var(--ease),color .28s var(--ease);
+  }
+  .seg button.on{background:var(--lime);color:#0c0f0b;}
+
+  .label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;margin:18px 0 8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;}
+  .field, textarea.field{
+    width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;
+    padding:14px 15px;font-family:inherit;font-size:15px;color:var(--ink);
+    transition:border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);
+  }
+  .field::placeholder,textarea.field::placeholder{color:var(--muted-2);}
+  textarea.field{resize:none;min-height:88px;}
+  .field:focus, textarea.field:focus{outline:0;border-color:var(--lime);background:var(--surface-2);box-shadow:0 0 0 3px rgba(196,245,70,.14);}
+  .field[type=date]{color-scheme:dark;}
+  .row2{display:flex;gap:10px;}
+  .row2 > *{flex:1;}
+
+  /* ---------- review ---------- */
+  .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:4px 16px;}
+  .sline{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;gap:12px;}
+  .sline:last-child{border-bottom:0;}
+  .sline .k{color:var(--muted);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;font-weight:600;}
+  .sline .v{font-weight:600;text-align:right;font-family:'Space Grotesk',sans-serif;}
+  .sline .v em{font-style:normal;color:var(--lime);}
+  .total{display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding:18px;background:var(--lime);color:#0c0f0b;border-radius:14px;}
+  .total span{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;font-size:12px;}
+  .total b{font-family:'Space Grotesk',sans-serif;font-size:26px;letter-spacing:-1px;}
+
+  /* ---------- confirmation ---------- */
+  .confirm{padding-top:34px;}
+  .hero{
+    background:var(--lime);color:#0c0f0b;border-radius:20px;padding:26px 22px;
+    transform:translateY(18px) scale(.97);opacity:0;animation:rise .6s var(--ease) .05s both;
+  }
+  @keyframes rise{to{transform:none;opacity:1;}}
+  .hero .k{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;opacity:.7;}
+  .hero h1{margin:6px 0 18px;color:#0c0f0b;font-size:34px;}
+  .hero .ordlabel{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.6;}
+  .hero .ordno{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;letter-spacing:-.5px;margin-top:2px;}
+  .confirm .note{color:var(--muted);font-size:13px;margin:18px 2px 0;line-height:1.5;}
+
+  /* ---------- footer / cta ---------- */
+  .footer{
+    position:fixed;left:0;right:0;bottom:0;max-width:440px;margin:0 auto;
+    padding:14px 22px calc(18px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,rgba(12,15,11,0),var(--bg) 38%);
+    display:flex;flex-direction:column;gap:9px;
+  }
+  .cta{
+    width:100%;border:0;border-radius:14px;padding:17px;font-family:'Space Grotesk',sans-serif;
+    font-size:16px;font-weight:700;letter-spacing:.2px;color:#0c0f0b;cursor:pointer;background:var(--lime);
+    transition:transform .18s var(--ease),opacity .2s var(--ease),filter .2s var(--ease);
+    display:flex;align-items:center;justify-content:center;gap:9px;
+  }
+  .cta:active{transform:scale(.975);}
+  .cta[disabled]{opacity:.32;filter:grayscale(.5);cursor:not-allowed;}
+  .cta.gpay{background:#ffffff;color:#1c1c1c;}
+  .cta.dark{background:var(--surface-2);color:var(--ink);border:1px solid var(--line);}
+  .cta.ghost{background:transparent;color:var(--lime);border:1px solid var(--lime);}
+  .back{background:none;border:0;color:var(--muted-2);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:6px;cursor:pointer;align-self:center;}
+  .hint{text-align:center;font-size:12px;color:var(--muted-2);margin-top:2px;}
+  .gpay-logo{font-weight:700;font-family:'Space Grotesk',sans-serif;}
+  .gpay-logo b:nth-child(1){color:#4285F4;}
+  .gpay-logo b:nth-child(2){color:#EA4335;}
+  .gpay-logo b:nth-child(3){color:#FBBC04;}
+  .gpay-logo b:nth-child(4){color:#34A853;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><span class="mark">NOSH<b>7</b></span><span class="tag">Salad Co</span></div>
+    <div class="counter"><b id="cstep">01</b> / 06</div>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="steps" id="steps">
+
+    <!-- STEP 1: PLAN -->
+    <section class="step" data-step="0">
+      <div class="eyebrow">Plan</div>
+      <h1>Pick your plan</h1>
+      <p class="sub">Start light or commit to the month. Cancel anytime.</p>
+      <button class="opt" data-group="plan" data-key="trial" data-label="Trial Plan" data-price="1250">
+        <div class="idx">01</div>
+        <div class="txt"><b>Trial Plan</b><span>5 days, code TRIAL saves Rs 150</span></div>
+        <div class="price">1,250</div><div class="dot"></div>
+      </button>
+      <button class="opt" data-group="plan" data-key="monthly" data-label="Monthly Plan" data-price="4999">
+        <div class="idx">02</div>
+        <div class="txt"><b>Monthly Plan</b><span>25 days, Rs 200 per day</span></div>
+        <div class="price">4,999</div><div class="dot"></div>
+      </button>
+    </section>
+
+    <!-- STEP 2: BATCH + DIET -->
+    <section class="step" data-step="1">
+      <div class="eyebrow">Batch</div>
+      <h1>Pick a slot</h1>
+      <p class="sub">Set your preference, then tap a delivery slot.</p>
+      <div class="seg" id="diet">
+        <button data-key="regular" class="on">Regular</button>
+        <button data-key="jain">Jain</button>
+      </div>
+      <div class="label">Delivery slot</div>
+      <button class="opt" data-group="batch" data-key="b1" data-label="Batch 1 (7:00 to 8:00 AM)">
+        <div class="idx">01</div><div class="txt"><b>7:00 to 8:00 AM</b><span>Early morning</span></div><div class="dot"></div>
+      </button>
+      <button class="opt" data-group="batch" data-key="b2" data-label="Batch 2 (8:00 to 9:00 AM)">
+        <div class="idx">02</div><div class="txt"><b>8:00 to 9:00 AM</b><span>Morning</span></div><div class="dot"></div>
+      </button>
+      <button class="opt" data-group="batch" data-key="b3" data-label="Batch 3 (12:00 to 1:00 PM)">
+        <div class="idx">03</div><div class="txt"><b>12:00 to 1:00 PM</b><span>Lunch</span></div><div class="dot"></div>
+      </button>
+      <button class="opt" data-group="batch" data-key="b4" data-label="Batch 4 (6:00 to 7:00 PM)">
+        <div class="idx">04</div><div class="txt"><b>6:00 to 7:00 PM</b><span>Evening</span></div><div class="dot"></div>
+      </button>
+    </section>
+
+    <!-- STEP 3: ADDRESS -->
+    <section class="step" data-step="2">
+      <div class="eyebrow">Delivery</div>
+      <h1>Where it goes</h1>
+      <p class="sub">We deliver fresh to your door.</p>
+      <div class="row2">
+        <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
+        <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
+      </div>
+      <div class="label">Full address</div>
+      <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
+    </section>
+
+    <!-- STEP 4: START DATE -->
+    <section class="step" data-step="3">
+      <div class="eyebrow">Schedule</div>
+      <h1>Start date</h1>
+      <p class="sub">Pick the day your subscription begins.</p>
+      <div class="label">First delivery on</div>
+      <input class="field" id="f-date" type="date" />
+    </section>
+
+    <!-- STEP 5: ADD ONS -->
+    <section class="step" data-step="4">
+      <div class="eyebrow">Add ons</div>
+      <h1>Make it yours</h1>
+      <p class="sub">Optional. Tap to add to every delivery.</p>
+      <button class="opt addon" data-addon="drink" data-label="Drink" data-price="40">
+        <div class="idx">A</div><div class="txt"><b>Drink</b><span>Fresh detox juice with your bowl</span></div>
+        <div class="price">+40</div><div class="dot"></div>
+      </button>
+      <button class="opt addon" data-addon="paneer" data-label="Extra Paneer" data-price="60">
+        <div class="idx">B</div><div class="txt"><b>Extra Paneer</b><span>Protein boost, freshly tossed</span></div>
+        <div class="price">+60</div><div class="dot"></div>
+      </button>
+    </section>
+
+    <!-- STEP 6: REVIEW + PAY -->
+    <section class="step" data-step="5">
+      <div class="eyebrow">Review</div>
+      <h1>Confirm and pay</h1>
+      <p class="sub">Check your order, then pay securely over UPI.</p>
+      <div class="summary" id="summary"></div>
+      <div class="total"><span>Total</span><b id="grandtotal">0</b></div>
+    </section>
+
+    <!-- STEP 7: CONFIRMATION -->
+    <section class="step" data-step="6">
+      <div class="confirm">
+        <div class="hero">
+          <div class="k">You are in</div>
+          <h1 id="c-name">Welcome</h1>
+          <div class="ordlabel">Order number</div>
+          <div class="ordno" id="c-orderno">NOSH-000000</div>
+        </div>
+        <p class="note">Keep this number safe. We will send a WhatsApp confirmation shortly. Tap below if you need anything.</p>
+      </div>
+    </section>
+
+  </div><!-- /steps -->
+
+  <!-- FOOTER CTA -->
+  <div class="footer" id="footer">
+    <button class="cta" id="next" disabled>Continue</button>
+    <button class="cta" id="pay" style="display:none">Pay over UPI</button>
+    <div class="hint" id="payhint" style="display:none">GPay, PhonePe, Paytm, any UPI app</div>
+    <button class="cta" id="msg" style="display:none">Message us on WhatsApp</button>
+    <button class="cta ghost" id="restart" style="display:none">Place another order</button>
+    <button class="back" id="back" style="display:none">Back</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   NOSH7 CONFIG  -  edit these 3 lines to go live
+   ============================================================ */
+const CONFIG = {
+  // Choose how customers pay: "upi" (opens any UPI app) or "razorpay" (hosted checkout)
+  PAYMENT_METHOD: "upi",
+
+  // UPI method (works on a phone, opens GPay / PhonePe / Paytm / any UPI app)
+  UPI_ID: "sapnakm71@okicici",
+
+  // Razorpay method (only used when PAYMENT_METHOD is "razorpay")
+  // 1. Key id from Razorpay Dashboard > Settings > API Keys (rzp_live_xxx or rzp_test_xxx).
+  // 2. Deploy the worker in ./razorpay-worker (see its README) and paste its URL below.
+  //    The worker creates the order id and verifies the signature, so payments are trusted.
+  RAZORPAY_KEY_ID: "",
+  RAZORPAY_ORDER_ENDPOINT: "",   // e.g. https://nosh7-pay.<you>.workers.dev/create-order
+  RAZORPAY_VERIFY_ENDPOINT: "",  // e.g. https://nosh7-pay.<you>.workers.dev/verify
+
+  BUSINESS_NAME: "Nosh7",
+  WHATSAPP_NUMBER: "919712989498"      // Nosh7 WhatsApp, country code + number, no plus, no spaces
+};
+/* ============================================================ */
+
+const order = {
+  plan:null, planLabel:null, planPrice:0,
+  batch:null, batchLabel:null,
+  diet:"regular", dietLabel:"Regular",
+  name:"", phone:"", address:"", date:"",
+  addons:{}
+};
+
+const steps = [...document.querySelectorAll('.step')];
+const bar = document.getElementById('bar');
+const cstep = document.getElementById('cstep');
+const nextBtn = document.getElementById('next');
+const backBtn = document.getElementById('back');
+const payBtn = document.getElementById('pay');
+const payHint = document.getElementById('payhint');
+const msgBtn = document.getElementById('msg');
+const restartBtn = document.getElementById('restart');
+let cur = 0;
+let orderNo = "";
+
+const dateInput = document.getElementById('f-date');
+(function(){
+  const t = new Date(); t.setDate(t.getDate()+1);
+  const iso = t.toISOString().split('T')[0];
+  dateInput.min = iso; dateInput.value = iso; order.date = iso;
+})();
+
+document.querySelectorAll('.opt[data-group]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const group = btn.dataset.group;
+    document.querySelectorAll('.opt[data-group="'+group+'"]').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+    if(group==='plan'){ order.plan=btn.dataset.key; order.planLabel=btn.dataset.label; order.planPrice=+btn.dataset.price; }
+    if(group==='batch'){ order.batch=btn.dataset.key; order.batchLabel=btn.dataset.label; }
+    haptic(); validate();
+    maybeAutoAdvance();   // selection done, glide to next step
+  });
+});
+
+// After a single choice, advance automatically. Back button stays available.
+let advanceTimer = null;
+function maybeAutoAdvance(){
+  clearTimeout(advanceTimer);
+  advanceTimer = setTimeout(()=>{ if(stepValid(cur) && cur<REVIEW) go(cur+1); }, 320);
+}
+
+document.querySelectorAll('#diet button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#diet button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    order.diet = b.dataset.key; order.dietLabel = b.textContent;
+    haptic();
+  });
+});
+
+document.querySelectorAll('.opt.addon').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const k = btn.dataset.addon;
+    if(order.addons[k]){ delete order.addons[k]; btn.classList.remove('sel'); }
+    else { order.addons[k] = {label:btn.dataset.label, price:+btn.dataset.price}; btn.classList.add('sel'); }
+    haptic();
+  });
+});
+
+document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); });
+document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
+document.getElementById('f-address').addEventListener('input', e=>{ order.address=e.target.value.trim(); validate(); });
+dateInput.addEventListener('change', e=>{ order.date=e.target.value; validate(); });
+
+function stepValid(i){
+  switch(i){
+    case 0: return !!order.plan;
+    case 1: return !!order.batch;
+    case 2: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
+    case 3: return !!order.date;
+    default: return true;
+  }
+}
+function validate(){ nextBtn.disabled = !stepValid(cur); }
+
+function grandTotal(){
+  let t = order.planPrice;
+  Object.values(order.addons).forEach(a=> t += a.price);
+  return t;
+}
+const rupee = n => "Rs "+n.toLocaleString('en-IN');
+
+function buildSummary(){
+  const rows = [];
+  rows.push(['Plan', order.planLabel, rupee(order.planPrice)]);
+  rows.push(['Batch', order.batchLabel, '']);
+  rows.push(['Preference', order.dietLabel, '']);
+  rows.push(['Start', formatDate(order.date), '']);
+  rows.push(['Deliver to', order.name+', '+order.phone, '']);
+  Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label, '+'+rupee(a.price)]));
+  document.getElementById('summary').innerHTML = rows.map(r=>
+    '<div class="sline"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+(r[2]?' &nbsp;<em>'+r[2]+'</em>':'')+'</span></div>'
+  ).join('');
+  document.getElementById('grandtotal').textContent = rupee(grandTotal());
+}
+
+function go(to){
+  if(to===cur) return;
+  const out = steps[cur], inn = steps[to];
+  out.classList.add('leaving'); out.classList.remove('active');
+  setTimeout(()=>out.classList.remove('leaving'),440);
+  inn.classList.add('active'); inn.scrollTop = 0;
+  cur = to;
+  bar.style.width = ((cur)/(steps.length-1))*100 + '%';
+  cstep.textContent = String(Math.min(cur+1,6)).padStart(2,'0');
+  refreshFooter();
+}
+
+const REVIEW = 5, CONFIRM = 6, LAST_INPUT = 4;
+
+function refreshFooter(){
+  nextBtn.style.display='none'; payBtn.style.display='none'; payHint.style.display='none';
+  msgBtn.style.display='none'; restartBtn.style.display='none';
+  backBtn.style.display = (cur>0 && cur<CONFIRM) ? 'block':'none';
+  if(cur===REVIEW){
+    buildSummary();
+    payBtn.textContent = 'Pay '+rupee(grandTotal());
+    payBtn.style.display='flex';
+    payHint.textContent = (CONFIG.PAYMENT_METHOD==='razorpay') ? 'Cards, UPI, wallets, netbanking' : 'GPay, PhonePe, Paytm, any UPI app';
+    payHint.style.display='block';
+  } else if(cur===CONFIRM){
+    msgBtn.style.display='flex'; restartBtn.style.display='flex'; backBtn.style.display='none';
+  } else {
+    nextBtn.style.display='flex';
+    nextBtn.textContent = (cur===LAST_INPUT)?'Review order':'Continue';
+    validate();
+  }
+}
+
+nextBtn.addEventListener('click', ()=>{ if(stepValid(cur)) go(cur+1); });
+backBtn.addEventListener('click', ()=> go(Math.max(0,cur-1)) );
+
+payBtn.addEventListener('click', ()=>{
+  const amt = grandTotal();
+  orderNo = "NOSH-" + Math.floor(100000 + Math.random()*900000);
+  if(CONFIG.PAYMENT_METHOD==='razorpay' && CONFIG.RAZORPAY_KEY_ID && window.Razorpay){
+    payRazorpay(amt);
+  } else {
+    payUPI(amt);
+  }
+});
+
+// UPI deep link. Opens GPay / PhonePe / Paytm / any UPI app on a phone.
+// Web cannot read the result back, so we move to confirmation after handoff.
+function payUPI(amt){
+  const note = encodeURIComponent(CONFIG.BUSINESS_NAME+" "+orderNo);
+  const upi = "upi://pay?pa="+encodeURIComponent(CONFIG.UPI_ID)
+            + "&pn="+encodeURIComponent(CONFIG.BUSINESS_NAME)
+            + "&am="+amt+"&cu=INR&tn="+note;
+  try { window.location.href = upi; } catch(e){}
+  saveOrder();
+  setTimeout(showConfirm, 800);
+}
+
+// Razorpay hosted checkout. Confirmation only fires on a verified payment.
+async function payRazorpay(amt){
+  payBtn.disabled = true; payBtn.textContent = 'Starting payment...';
+  let rzpOrderId = null;
+  // 1) Ask the backend to create a Razorpay order (server holds the secret).
+  if(CONFIG.RAZORPAY_ORDER_ENDPOINT){
+    try{
+      const r = await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ amount: amt, receipt: orderNo, name: order.name, phone: order.phone })
+      });
+      const d = await r.json();
+      rzpOrderId = d.id;
+      if(!rzpOrderId) throw new Error('no order id');
+    }catch(e){
+      resetPayBtn(amt); alert('Could not start payment. Please try again.'); return;
+    }
+  }
+  // 2) Open Razorpay checkout.
+  const opts = {
+    key: CONFIG.RAZORPAY_KEY_ID,
+    amount: amt*100, currency: "INR",
+    name: CONFIG.BUSINESS_NAME,
+    description: "Salad subscription "+orderNo,
+    prefill: { name: order.name, contact: order.phone },
+    notes: { order: orderNo, plan: order.planLabel, batch: order.batchLabel, diet: order.dietLabel },
+    theme: { color: "#c4f546" },
+    modal: { ondismiss: function(){ resetPayBtn(amt); } },
+    handler: async function(resp){
+      // 3) Verify the signature on the backend before confirming.
+      if(CONFIG.RAZORPAY_VERIFY_ENDPOINT && rzpOrderId){
+        try{
+          const v = await fetch(CONFIG.RAZORPAY_VERIFY_ENDPOINT, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+              razorpay_order_id: resp.razorpay_order_id,
+              razorpay_payment_id: resp.razorpay_payment_id,
+              razorpay_signature: resp.razorpay_signature,
+              orderNo
+            })
+          });
+          const vd = await v.json();
+          if(!vd.valid){ resetPayBtn(amt); alert('Payment could not be verified. Please contact us on WhatsApp.'); return; }
+        }catch(e){ resetPayBtn(amt); alert('Verification error. Please contact us on WhatsApp.'); return; }
+      }
+      order.paymentId = resp.razorpay_payment_id;
+      saveOrder(); showConfirm();
+    }
+  };
+  if(rzpOrderId) opts.order_id = rzpOrderId;
+  const rzp = new Razorpay(opts);
+  rzp.on('payment.failed', function(){ resetPayBtn(amt); alert('Payment failed or cancelled. You can try again.'); });
+  rzp.open();
+}
+function resetPayBtn(amt){ payBtn.disabled=false; payBtn.textContent='Pay '+rupee(amt); }
+
+function showConfirm(){
+  document.getElementById('c-name').textContent = (order.name? order.name+',':'')+' you are set';
+  document.getElementById('c-orderno').textContent = orderNo;
+  go(CONFIRM);
+}
+
+msgBtn.addEventListener('click', ()=>{
+  const lines = [
+    "Hi Nosh7, I just placed an order.",
+    "Order: "+orderNo,
+    "Name: "+order.name,
+    "Plan: "+order.planLabel,
+    "Batch: "+order.batchLabel,
+    "Preference: "+order.dietLabel,
+    "Start: "+formatDate(order.date),
+    "Total: "+rupee(grandTotal())
+  ];
+  window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');
+});
+
+restartBtn.addEventListener('click', ()=> location.reload());
+
+function saveOrder(){
+  try{
+    const all = JSON.parse(localStorage.getItem('nosh7_orders')||'[]');
+    all.push({orderNo, total:grandTotal(), at:new Date().toISOString(), ...order});
+    localStorage.setItem('nosh7_orders', JSON.stringify(all));
+  }catch(e){}
+}
+function formatDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00');
+  return d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+}
+function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
+
+steps[0].classList.add('active');
+bar.style.width='0%';
+refreshFooter();
+</script>
+</body>
+</html>

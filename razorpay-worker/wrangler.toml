@@ -7,6 +7,5 @@ compatibility_date = "2024-11-01"
 # on the right side). It is not a secret. Then run `wrangler deploy` again.
 # account_id = "your_account_id_here"
 
-# Restrict this to your site origin once it is live, e.g.
-# [vars]
-# ALLOW_ORIGIN = "https://start.nosh7.in"
+[vars]
+ALLOW_ORIGIN = "https://start.nosh7.in"

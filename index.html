@@ -4,7 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0d100c" />
-<title>Nosh7</title>
+<title>Nosh7 Healthy Meals, Subscribe</title>
+<meta name="description" content="Subscribe to Nosh7 fresh healthy meals. Pick a plan, slot and start date, then pay over UPI or card." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -126,6 +127,11 @@
   .opt .idx.big{font-size:22px;}
   .opt .txt{flex:1;min-width:0;}
   .opt .txt b{display:block;font-size:16px;font-weight:600;font-family:'Space Grotesk',sans-serif;letter-spacing:-.2px;}
+  .badge{
+    display:inline-block;vertical-align:middle;margin-left:6px;background:var(--lime);color:#0c0f0b;
+    font-family:'Space Grotesk',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+    padding:3px 7px;border-radius:6px;
+  }
   .opt .txt span{font-size:12.5px;color:var(--muted);}
   .opt .price{
     font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;
@@ -234,7 +240,7 @@
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="brand"><span class="mark">NOSH<b>7</b></span><span class="tag">Salad Co</span></div>
+    <div class="brand"><span class="mark">NOSH<b>7</b></span><span class="tag">Healthy Meals</span></div>
     <div class="rightbar">
       <button class="themebtn" id="themebtn" type="button">Dark</button>
       <div class="counter"><b id="cstep">01</b> / 06</div>
@@ -248,15 +254,15 @@
     <section class="step" data-step="0">
       <div class="eyebrow">Plan</div>
       <h1>Pick your plan</h1>
-      <p class="sub">Start light or commit to the month. Cancel anytime.</p>
+      <p class="sub">Fresh healthy meals, delivered daily. Cancel anytime.</p>
       <button class="opt" data-group="plan" data-key="trial" data-label="Trial Plan" data-price="1250" data-units="5">
         <div class="idx">01</div>
-        <div class="txt"><b>Trial Plan</b><span>5 days, code TRIAL saves Rs 150</span></div>
+        <div class="txt"><b>Trial Plan</b><span>5 meals, Rs 250 per delivery</span></div>
         <div class="price">1,250</div><div class="dot"></div>
       </button>
       <button class="opt" data-group="plan" data-key="monthly" data-label="Monthly Plan" data-price="4999" data-units="25">
         <div class="idx">02</div>
-        <div class="txt"><b>Monthly Plan</b><span>25 days, Rs 200 per day</span></div>
+        <div class="txt"><b>Monthly Plan <span class="badge">Lowest price</span></b><span>25 meals, just Rs 200 per delivery</span></div>
         <div class="price">4,999</div><div class="dot"></div>
       </button>
     </section>
@@ -285,21 +291,8 @@
       </button>
     </section>
 
-    <!-- STEP 3: ADDRESS -->
+    <!-- STEP 3: START DATE -->
     <section class="step" data-step="2">
-      <div class="eyebrow">Delivery</div>
-      <h1>Where it goes</h1>
-      <p class="sub">We deliver fresh to your door.</p>
-      <div class="row2">
-        <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
-        <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
-      </div>
-      <div class="label">Full address</div>
-      <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
-    </section>
-
-    <!-- STEP 4: START DATE -->
-    <section class="step" data-step="3">
       <div class="eyebrow">Schedule</div>
       <h1>Start date</h1>
       <p class="sub">Pick the day your subscription begins.</p>
@@ -307,13 +300,13 @@
       <input class="field" id="f-date" type="date" />
     </section>
 
-    <!-- STEP 5: ADD ONS -->
-    <section class="step" data-step="4">
+    <!-- STEP 4: ADD ONS -->
+    <section class="step" data-step="3">
       <div class="eyebrow">Add ons</div>
       <h1>Make it yours</h1>
       <p class="sub">All optional. Charged per delivery, your plan has <b id="ao-n">5</b> deliveries.</p>
       <button class="opt addon" data-addon="drink" data-label="Drink" data-price="40">
-        <div class="idx">A</div><div class="txt"><b>Drink</b><span>Optional, fresh detox juice with your bowl</span></div>
+        <div class="idx">A</div><div class="txt"><b>Drink</b><span>Optional, fresh detox juice with your meal</span></div>
         <div class="price">+40 each</div><div class="chk"></div>
       </button>
       <button class="opt addon" data-addon="paneer" data-label="Extra Paneer" data-price="60">
@@ -322,6 +315,19 @@
       </button>
       <div class="label">Delivery instructions (optional)</div>
       <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact, anything else"></textarea>
+    </section>
+
+    <!-- STEP 5: MEMBER DETAILS -->
+    <section class="step" data-step="4">
+      <div class="eyebrow">Member</div>
+      <h1>Your details</h1>
+      <p class="sub">Who we deliver to, and where. We will reach you here.</p>
+      <div class="row2">
+        <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
+        <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
+      </div>
+      <div class="label">Full address</div>
+      <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
     </section>
 
     <!-- STEP 6: REVIEW + PAY -->
@@ -365,18 +371,22 @@
    ============================================================ */
 const CONFIG = {
   // Choose how customers pay: "upi" (opens any UPI app) or "razorpay" (hosted checkout)
-  PAYMENT_METHOD: "upi",
+  PAYMENT_METHOD: "razorpay",
 
   // UPI method (works on a phone, opens GPay / PhonePe / Paytm / any UPI app)
   UPI_ID: "sapnakm71@okicici",
 
-  // Razorpay method (only used when PAYMENT_METHOD is "razorpay")
-  // 1. Key id from Razorpay Dashboard > Settings > API Keys (rzp_live_xxx or rzp_test_xxx).
-  // 2. Deploy the worker in ./razorpay-worker (see its README) and paste its URL below.
-  //    The worker creates the order id and verifies the signature, so payments are trusted.
-  RAZORPAY_KEY_ID: "",
+  // Razorpay method. Currently TEST mode (rzp_test key), so only test cards work.
+  // Key id is public and safe in the browser. The SECRET never goes here, it lives in the worker.
+  // Before real customers: deploy ./razorpay-worker (with the secret), fill the two endpoints
+  // below, and swap to a LIVE key id. See razorpay-worker/README.md.
+  RAZORPAY_KEY_ID: "rzp_test_T2CP3CABEgpJSe",
   RAZORPAY_ORDER_ENDPOINT: "",   // e.g. https://nosh7-pay.<you>.workers.dev/create-order
   RAZORPAY_VERIFY_ENDPOINT: "",  // e.g. https://nosh7-pay.<you>.workers.dev/verify
+
+  // Where each completed order is sent so you can automate it into your system.
+  // Paste your Google Sheet web app URL (see order-collector.gs) or the worker /order URL.
+  ORDER_WEBHOOK: "",
 
   BUSINESS_NAME: "Nosh7",
   WHATSAPP_NUMBER: "919712989498"      // Nosh7 WhatsApp, country code + number, no plus, no spaces
@@ -457,8 +467,9 @@ function stepValid(i){
   switch(i){
     case 0: return !!order.plan;
     case 1: return !!order.batch;
-    case 2: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
-    case 3: return !!order.date;
+    case 2: return !!order.date;
+    case 3: return true; // add ons optional
+    case 4: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
     default: return true;
   }
 }
@@ -476,6 +487,7 @@ const rupee = n => "Rs "+n.toLocaleString('en-IN');
 function buildSummary(){
   const rows = [];
   rows.push(['Plan', order.planLabel, rupee(order.planPrice)]);
+  if(order.deliveries) rows.push(['Per delivery', rupee(Math.round(order.planPrice/order.deliveries))+' x '+order.deliveries, '']);
   rows.push(['Batch', order.batchLabel, '']);
   rows.push(['Preference', order.dietLabel, '']);
   rows.push(['Start', formatDate(order.date), '']);
@@ -497,7 +509,7 @@ function go(to){
   cur = to;
   bar.style.width = ((cur)/(steps.length-1))*100 + '%';
   cstep.textContent = String(Math.min(cur+1,6)).padStart(2,'0');
-  if(cur===4) document.getElementById('ao-n').textContent = order.deliveries;
+  if(cur===3) document.getElementById('ao-n').textContent = order.deliveries;
   refreshFooter();
 }
 
@@ -606,7 +618,38 @@ function resetPayBtn(amt){ payBtn.disabled=false; payBtn.textContent='Pay '+rupe
 function showConfirm(){
   document.getElementById('c-name').textContent = (order.name? order.name+',':'')+' you are set';
   document.getElementById('c-orderno').textContent = orderNo;
+  sendOrder();
   go(CONFIRM);
+}
+
+// Send the full order to your collector (Google Sheet web app or worker), so you can
+// automate it into your system. Fire and forget, never blocks the confirmation.
+function sendOrder(){
+  if(!CONFIG.ORDER_WEBHOOK) return;
+  const payload = {
+    orderNo,
+    paymentId: order.paymentId || "",
+    payment: CONFIG.PAYMENT_METHOD,
+    plan: order.planLabel,
+    deliveries: order.deliveries,
+    batch: order.batchLabel,
+    preference: order.dietLabel,
+    startDate: order.date,
+    name: order.name,
+    phone: order.phone,
+    address: order.address,
+    addons: Object.values(order.addons).map(a=>a.label).join(", "),
+    instructions: order.note || "",
+    total: grandTotal(),
+    placedAt: new Date().toISOString()
+  };
+  try{
+    fetch(CONFIG.ORDER_WEBHOOK, {
+      method:'POST', mode:'no-cors', keepalive:true,
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, // text/plain avoids a CORS preflight to Apps Script
+      body: JSON.stringify(payload)
+    });
+  }catch(e){}
 }
 
 msgBtn.addEventListener('click', ()=>{

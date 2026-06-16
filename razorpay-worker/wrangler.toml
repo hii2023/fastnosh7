@@ -4,4 +4,4 @@ compatibility_date = "2024-11-01"
 
 # Restrict this to your site origin once it is live, e.g.
 # [vars]
-# ALLOW_ORIGIN = "https://order.nosh7.in"
+# ALLOW_ORIGIN = "https://start.nosh7.in"

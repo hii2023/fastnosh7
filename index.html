@@ -8,7 +8,7 @@
 <meta name="description" content="Subscribe to Nosh7 fresh healthy meals. High protein, low carb, high fiber. Pick a plan, slot and start date, then pay over UPI or card." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Great+Vibes&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
   /* ============================================================
@@ -71,7 +71,7 @@
   .step.leaving{opacity:0;transform:translateY(-14px);}
 
   .eyebrow{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:var(--accent-text);letter-spacing:3px;text-transform:uppercase;flex:none;}
-  h1{font-family:'Great Vibes',cursive;font-size:48px;line-height:1.0;margin:2px 0 4px;letter-spacing:0;font-weight:400;flex:none;}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:30px;line-height:1.05;margin:7px 0 3px;letter-spacing:-1px;font-weight:700;flex:none;}
   h1 .accent{color:var(--accent-text);}
   .sub{color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.4;flex:none;}
   .body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:11px;}
@@ -162,7 +162,7 @@
 
   /* review */
   .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px 14px;overflow-y:auto;min-height:0;}
-  .sline{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;gap:12px;}
+  .sline{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;gap:12px;}
   .sline:last-child{border-bottom:0;}
   .sline .k{color:var(--muted);font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;font-weight:600;}
   .sline .v{font-weight:600;text-align:right;font-family:'Space Grotesk',sans-serif;}
@@ -318,20 +318,13 @@
         </div>
         <div class="opt addon" data-addon="drink">
           <div class="idx">B</div>
-          <div class="txt"><b>Healthy Drink</b><span>Rs 49 per meal, pick your drink</span>
-            <div class="subseg" id="drink-choice">
-              <button type="button" data-drink="Mint Lemonade" class="on">Mint Lemonade</button>
-              <button type="button" data-drink="ABC Juice">ABC Juice</button>
-              <button type="button" data-drink="Nimbu Sharbat">Nimbu Sharbat</button>
-            </div>
-          </div>
+          <div class="txt"><b>Healthy Drink</b><span>Mint Lemonade, ABC Juice and Nimbu Sharbat in the pack</span></div>
           <div class="price">+49 / meal</div><div class="chk"></div>
         </div>
         <div>
           <div class="label">Delivery instructions (optional)</div>
           <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact"></textarea>
         </div>
-        <div class="notebox">Within <b>5 KM free</b>. Beyond 5 KM, <b>Rs 10 / KM</b>. Our team will call you if a distance fee applies.</div>
       </div>
     </section>
 
@@ -349,7 +342,6 @@
           <div class="label">Full address</div>
           <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
         </div>
-        <div class="notebox">Delivery within <b>5 KM is free</b>. Beyond 5 KM, <b>Rs 10 / KM</b> applies. Our team will call you if a distance fee is needed.</div>
       </div>
     </section>
 
@@ -359,8 +351,7 @@
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
       <div class="body" style="justify-content:flex-start;gap:0;">
         <div class="summary" id="summary"></div>
-        <div class="total"><span>Total</span><b id="grandtotal">0</b></div>
-        <div class="notebox" style="margin-top:9px;">Total is for delivery within <b>5 KM</b>. Beyond 5 KM, <b>Rs 10 / KM</b>, our team will call you if a distance fee applies.</div>
+        <div class="notebox" style="margin-top:11px;">Amount below is for delivery within <b>5 KM</b>. Beyond 5 KM, <b>Rs 10 / KM</b>, our team will call you if a distance fee applies.</div>
       </div>
     </section>
 
@@ -373,7 +364,7 @@
           <div class="ordlabel">Order number</div>
           <div class="ordno" id="c-orderno">NOSH-000000</div>
         </div>
-        <p class="note">Keep this number safe. We will WhatsApp you shortly. If your address is beyond 5 KM, our team will call about a small distance fee (Rs 10 / KM).</p>
+        <p class="note">Keep this number safe. We will WhatsApp you shortly. If your address is beyond 5 KM, our team will call about a small distance fee (Rs 10 / KM).<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
       </div>
     </section>
 
@@ -510,13 +501,12 @@ document.querySelectorAll('#diet button').forEach(b=>{
 
 /* ---- add ons ---- */
 function paneerSel(){ const b=document.querySelector('#paneer-size button.on'); return {label:'Paneer ('+b.dataset.size+')', price:+b.dataset.price}; }
-function drinkSel(){ const b=document.querySelector('#drink-choice button.on'); return {label:'Healthy Drink ('+b.dataset.drink+')', price:49}; }
 
 document.querySelectorAll('.opt.addon').forEach(card=>{
   card.addEventListener('click', ()=>{
     const k=card.dataset.addon;
     if(order.addons[k]){ delete order.addons[k]; card.classList.remove('sel'); }
-    else { order.addons[k]=(k==='paneer'? paneerSel() : drinkSel()); card.classList.add('sel'); }
+    else { order.addons[k]=(k==='paneer'? paneerSel() : {label:'Healthy Drink', price:49}); card.classList.add('sel'); }
     haptic();
   });
 });
@@ -528,16 +518,6 @@ document.querySelectorAll('#paneer-size button').forEach(b=>{
     document.getElementById('paneer-price').textContent='+'+b.dataset.price+' / meal';
     order.addons.paneer=paneerSel();
     document.querySelector('.opt.addon[data-addon="paneer"]').classList.add('sel');
-    haptic();
-  });
-});
-document.querySelectorAll('#drink-choice button').forEach(b=>{
-  b.addEventListener('click', e=>{
-    e.stopPropagation();
-    document.querySelectorAll('#drink-choice button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');
-    order.addons.drink=drinkSel();
-    document.querySelector('.opt.addon[data-addon="drink"]').classList.add('sel');
     haptic();
   });
 });
@@ -568,8 +548,7 @@ function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.jo
 
 function buildSummary(){
   const rows=[];
-  rows.push(['Plan', order.planLabel, rupee(order.planPrice)]);
-  if(order.deliveries) rows.push(['Per delivery', rupee(Math.round(order.planPrice/order.deliveries))+' x '+order.deliveries, '']);
+  rows.push(['Plan', order.planLabel + (order.deliveries? ', '+rupee(Math.round(order.planPrice/order.deliveries))+' x '+order.deliveries : ''), rupee(order.planPrice)]);
   rows.push(['Slot', order.batchLabel, '']);
   rows.push(['Days', daysText(), '']);
   rows.push(['Preference', order.dietLabel, '']);
@@ -581,7 +560,6 @@ function buildSummary(){
   document.getElementById('summary').innerHTML = rows.map(r=>
     '<div class="sline"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+(r[2]?' &nbsp;<em>'+r[2]+'</em>':'')+'</span></div>'
   ).join('');
-  document.getElementById('grandtotal').textContent = rupee(grandTotal());
 }
 
 function go(to){

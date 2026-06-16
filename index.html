@@ -8,7 +8,7 @@
 <meta name="description" content="Subscribe to Nosh7 fresh healthy meals. High protein, low carb, high fiber. Pick a plan, slot and start date, then pay over UPI or card." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,600;1,9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Great+Vibes&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
   /* ============================================================
@@ -71,7 +71,7 @@
   .step.leaving{opacity:0;transform:translateY(-14px);}
 
   .eyebrow{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:var(--accent-text);letter-spacing:3px;text-transform:uppercase;flex:none;}
-  h1{font-family:'Fraunces',serif;font-style:italic;font-size:35px;line-height:1.0;margin:6px 0 3px;letter-spacing:-.5px;font-weight:700;flex:none;}
+  h1{font-family:'Great Vibes',cursive;font-size:48px;line-height:1.0;margin:2px 0 4px;letter-spacing:0;font-weight:400;flex:none;}
   h1 .accent{color:var(--accent-text);}
   .sub{color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.4;flex:none;}
   .body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:11px;}
@@ -189,6 +189,13 @@
   .cta.ghost{background:transparent;color:var(--accent-text);border:1px solid var(--accent-text);}
   .back{background:none;border:0;color:var(--muted-2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px;cursor:pointer;align-self:center;}
   .hint{text-align:center;font-size:11.5px;color:var(--muted-2);}
+  /* sub choices inside an add-on card (size / drink) */
+  .subseg{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+  .subseg button{border:1px solid var(--line);background:var(--bg);color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:11px;padding:5px 9px;border-radius:7px;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease);}
+  .subseg button.on{background:var(--lime);color:#0c0f0b;border-color:var(--lime);}
+  /* distance fee note */
+  .notebox{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:11.5px;color:var(--muted);line-height:1.45;}
+  .notebox b{color:var(--accent-text);}
 
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;}}
 </style>
@@ -299,18 +306,32 @@
       <h1>Add <span class="accent">ons</span></h1>
       <p class="sub">All optional. Charged per meal, your plan has <b id="ao-n">5</b> meals.</p>
       <div class="body">
-        <button class="opt addon" data-addon="protein" data-label="Extra Protein" data-price="79">
-          <div class="idx">A</div><div class="txt"><b>Extra Protein</b><span>Optional, extra protein in every meal</span></div>
-          <div class="price">+79 / meal</div><div class="chk"></div>
-        </button>
-        <button class="opt addon" data-addon="drink" data-label="Healthy Drink" data-price="49">
-          <div class="idx">B</div><div class="txt"><b>Healthy Drink</b><span>Optional, fresh detox drink with meal</span></div>
+        <div class="opt addon" data-addon="paneer">
+          <div class="idx">A</div>
+          <div class="txt"><b>Paneer</b><span>Extra paneer in every meal</span>
+            <div class="subseg" id="paneer-size">
+              <button type="button" data-size="50g" data-price="40" class="on">50g, Rs 40</button>
+              <button type="button" data-size="100g" data-price="79">100g, Rs 79</button>
+            </div>
+          </div>
+          <div class="price" id="paneer-price">+40 / meal</div><div class="chk"></div>
+        </div>
+        <div class="opt addon" data-addon="drink">
+          <div class="idx">B</div>
+          <div class="txt"><b>Healthy Drink</b><span>Rs 49 per meal, pick your drink</span>
+            <div class="subseg" id="drink-choice">
+              <button type="button" data-drink="Mint Lemonade" class="on">Mint Lemonade</button>
+              <button type="button" data-drink="ABC Juice">ABC Juice</button>
+              <button type="button" data-drink="Nimbu Sharbat">Nimbu Sharbat</button>
+            </div>
+          </div>
           <div class="price">+49 / meal</div><div class="chk"></div>
-        </button>
+        </div>
         <div>
           <div class="label">Delivery instructions (optional)</div>
           <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact"></textarea>
         </div>
+        <div class="notebox">Within <b>5 KM free</b>. Beyond 5 KM, <b>Rs 10 / KM</b>. Our team will call you if a distance fee applies.</div>
       </div>
     </section>
 
@@ -328,6 +349,7 @@
           <div class="label">Full address</div>
           <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
         </div>
+        <div class="notebox">Delivery within <b>5 KM is free</b>. Beyond 5 KM, <b>Rs 10 / KM</b> applies. Our team will call you if a distance fee is needed.</div>
       </div>
     </section>
 
@@ -338,6 +360,7 @@
       <div class="body" style="justify-content:flex-start;gap:0;">
         <div class="summary" id="summary"></div>
         <div class="total"><span>Total</span><b id="grandtotal">0</b></div>
+        <div class="notebox" style="margin-top:9px;">Total is for delivery within <b>5 KM</b>. Beyond 5 KM, <b>Rs 10 / KM</b>, our team will call you if a distance fee applies.</div>
       </div>
     </section>
 
@@ -350,7 +373,7 @@
           <div class="ordlabel">Order number</div>
           <div class="ordno" id="c-orderno">NOSH-000000</div>
         </div>
-        <p class="note">Keep this number safe. We will send a WhatsApp confirmation shortly.</p>
+        <p class="note">Keep this number safe. We will WhatsApp you shortly. If your address is beyond 5 KM, our team will call about a small distance fee (Rs 10 / KM).</p>
       </div>
     </section>
 
@@ -486,11 +509,35 @@ document.querySelectorAll('#diet button').forEach(b=>{
 });
 
 /* ---- add ons ---- */
-document.querySelectorAll('.opt.addon').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const k=btn.dataset.addon;
-    if(order.addons[k]){ delete order.addons[k]; btn.classList.remove('sel'); }
-    else { order.addons[k]={label:btn.dataset.label, price:+btn.dataset.price}; btn.classList.add('sel'); }
+function paneerSel(){ const b=document.querySelector('#paneer-size button.on'); return {label:'Paneer ('+b.dataset.size+')', price:+b.dataset.price}; }
+function drinkSel(){ const b=document.querySelector('#drink-choice button.on'); return {label:'Healthy Drink ('+b.dataset.drink+')', price:49}; }
+
+document.querySelectorAll('.opt.addon').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    const k=card.dataset.addon;
+    if(order.addons[k]){ delete order.addons[k]; card.classList.remove('sel'); }
+    else { order.addons[k]=(k==='paneer'? paneerSel() : drinkSel()); card.classList.add('sel'); }
+    haptic();
+  });
+});
+document.querySelectorAll('#paneer-size button').forEach(b=>{
+  b.addEventListener('click', e=>{
+    e.stopPropagation();
+    document.querySelectorAll('#paneer-size button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById('paneer-price').textContent='+'+b.dataset.price+' / meal';
+    order.addons.paneer=paneerSel();
+    document.querySelector('.opt.addon[data-addon="paneer"]').classList.add('sel');
+    haptic();
+  });
+});
+document.querySelectorAll('#drink-choice button').forEach(b=>{
+  b.addEventListener('click', e=>{
+    e.stopPropagation();
+    document.querySelectorAll('#drink-choice button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    order.addons.drink=drinkSel();
+    document.querySelector('.opt.addon[data-addon="drink"]').classList.add('sel');
     haptic();
   });
 });

@@ -85,18 +85,18 @@
 
   /* plan cards (graphic) */
   .plan{
-    width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:18px;
-    padding:16px 18px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
-    display:flex;flex-direction:column;gap:8px;
+    width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:20px;
+    padding:22px 20px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
+    display:flex;flex-direction:column;gap:12px;
     transition:transform .2s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);
   }
   .plan:active{transform:scale(.99);}
   .plan-top{display:flex;align-items:center;justify-content:space-between;}
-  .plan-name{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:8px;}
-  .plan-meals{font-size:12px;color:var(--muted);margin-top:2px;}
-  .plan-price{font-family:'Space Grotesk',sans-serif;font-size:33px;font-weight:700;letter-spacing:-1.5px;line-height:1;}
-  .plan-price em{font-size:16px;font-style:normal;color:var(--muted);font-weight:600;margin-right:3px;}
-  .plan-foot{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);}
+  .plan-name{font-family:'Syne',sans-serif;font-size:23px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:9px;}
+  .plan-meals{font-size:13px;color:var(--muted);margin-top:3px;}
+  .plan-price{font-family:'Space Grotesk',sans-serif;font-size:46px;font-weight:700;letter-spacing:-2px;line-height:1;}
+  .plan-price em{font-size:19px;font-style:normal;color:var(--muted);font-weight:600;margin-right:4px;}
+  .plan-foot{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted);}
   .plan .dot{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--muted-2);position:relative;transition:border-color .25s var(--ease);}
   .plan .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent-text);transform:scale(0);transition:transform .3s var(--ease);}
   .plan.sel{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
@@ -324,13 +324,9 @@
           <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
           <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
         </div>
-        <div class="row2">
-          <div><div class="label">House / Office no</div><input class="field" id="f-house" type="text" placeholder="e.g. 5A" /></div>
-          <div><div class="label">Building name</div><input class="field" id="f-building" type="text" placeholder="e.g. Akshat Avenue" /></div>
-        </div>
         <div>
-          <div class="label">Rest of address</div>
-          <textarea class="field" id="f-address" placeholder="Road, area, landmark, pincode"></textarea>
+          <div class="label">Full address</div>
+          <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
         </div>
       </div>
     </section>
@@ -406,7 +402,7 @@ const order = {
   diet:"regular", dietLabel:"Regular",
   days: WEEK.map(d=>d[0]),     // all of Mon..Sat by default
   date:"", dateLabel:"", note:"",
-  name:"", phone:"", house:"", building:"", address:"",
+  name:"", phone:"", address:"",
   addons:{}
 };
 
@@ -502,8 +498,6 @@ document.querySelectorAll('.opt.addon').forEach(btn=>{
 /* ---- inputs ---- */
 document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); });
 document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
-document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); });
-document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); });
 document.getElementById('f-address').addEventListener('input', e=>{ order.address=e.target.value.trim(); validate(); });
 document.getElementById('f-note').addEventListener('input', e=>{ order.note=e.target.value.trim(); });
 
@@ -514,7 +508,7 @@ function stepValid(i){
     case 2: return order.days.length>=1;
     case 3: return !!order.date;
     case 4: return true;
-    case 5: return order.name.length>1 && order.phone.length===10 && order.house.length>0 && order.address.length>2;
+    case 5: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
     default: return true;
   }
 }
@@ -524,7 +518,6 @@ function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.
 function grandTotal(){ return order.planPrice + addonsPerMeal()*order.deliveries; }
 const rupee = n => "Rs "+n.toLocaleString('en-IN');
 function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.join(", "); }
-function fullAddress(){ return [order.house, order.building, order.address].filter(Boolean).join(", "); }
 
 function buildSummary(){
   const rows=[];
@@ -534,8 +527,8 @@ function buildSummary(){
   rows.push(['Days', daysText(), '']);
   rows.push(['Preference', order.dietLabel, '']);
   rows.push(['Start', order.dateLabel, '']);
-  rows.push(['Member', order.name+', '+order.phone, '']);
-  rows.push(['Address', fullAddress(), '']);
+  rows.push(['Deliver to', order.name+', '+order.phone, '']);
+  rows.push(['Address', order.address, '']);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
   if(order.note) rows.push(['Notes', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>
@@ -640,7 +633,7 @@ function sendOrder(){
     orderNo, paymentId:order.paymentId||"", payment:CONFIG.PAYMENT_METHOD,
     plan:order.planLabel, deliveries:order.deliveries, slot:order.batchLabel,
     preference:order.dietLabel, days:daysText(), startDate:order.dateLabel||order.date,
-    name:order.name, phone:order.phone, house:order.house, building:order.building, address:fullAddress(),
+    name:order.name, phone:order.phone, address:order.address,
     addons:Object.values(order.addons).map(a=>a.label).join(", "),
     instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
   };
@@ -650,7 +643,7 @@ function sendOrder(){
 msgBtn.addEventListener('click', ()=>{
   const lines=["Hi Nosh7, I just placed an order.","Order: "+orderNo,"Name: "+order.name,
     "Plan: "+order.planLabel,"Slot: "+order.batchLabel,"Days: "+daysText(),
-    "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+fullAddress(),"Total: "+rupee(grandTotal())];
+    "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+order.address,"Total: "+rupee(grandTotal())];
   if(order.note) lines.push("Notes: "+order.note);
   window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');
 });

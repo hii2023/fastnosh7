@@ -14,21 +14,36 @@
      CONFIG is in the <script> at the bottom (UPI ID, WhatsApp,
      prices). Edit there to make this live.
      ============================================================ */
+  /* LIGHT theme is the default */
   :root{
+    --bg:#f4f7ee;
+    --bg-2:#eaf1de;
+    --surface:#ffffff;
+    --surface-2:#f2f8e6;
+    --line:#e2e9d5;
+    --lime:#bdec4f;            /* bright fill (buttons, total, toggles) */
+    --accent-text:#4d7c16;     /* readable green for text, borders, thin lines */
+    --ink:#1a2414;
+    --muted:#637058;
+    --muted-2:#a7b399;
+    --shadow:0 14px 34px rgba(70,90,30,.10);
+    --glow:0 0 0 1px var(--accent-text), 0 12px 30px rgba(120,180,40,.18);
+    --radius:16px;
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html[data-theme="dark"]{
     --bg:#0c0f0b;
     --bg-2:#10140e;
     --surface:#161b13;
     --surface-2:#1c2218;
     --line:#272f22;
     --lime:#c4f546;
-    --lime-dim:#9bc23a;
+    --accent-text:#c4f546;
     --ink:#f2f6ea;
     --muted:#8b9683;
     --muted-2:#5c6657;
     --shadow:0 18px 40px rgba(0,0,0,.45);
     --glow:0 0 0 1px var(--lime), 0 12px 34px rgba(196,245,70,.16);
-    --radius:16px;
-    --ease:cubic-bezier(.22,1,.36,1);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
@@ -56,14 +71,21 @@
     font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;
     letter-spacing:-.5px;color:var(--ink);
   }
-  .brand .mark b{color:var(--lime);}
+  .brand .mark b{color:var(--accent-text);}
   .brand .tag{font-size:10px;font-weight:600;letter-spacing:2.5px;color:var(--muted-2);text-transform:uppercase;}
+  .rightbar{display:flex;align-items:center;gap:11px;}
+  .themebtn{
+    background:var(--surface-2);border:1px solid var(--line);color:var(--muted);
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+    padding:7px 11px;border-radius:9px;cursor:pointer;transition:background .25s var(--ease),color .25s var(--ease);
+  }
+  .themebtn:active{transform:scale(.96);}
   .counter{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--muted);letter-spacing:1px;}
-  .counter b{color:var(--lime);}
+  .counter b{color:var(--accent-text);}
 
   /* ---------- progress ---------- */
   .progress{height:2px;background:var(--line);margin:6px 22px 2px;overflow:hidden;}
-  .progress > i{display:block;height:100%;width:0%;background:var(--lime);transition:width .5s var(--ease);}
+  .progress > i{display:block;height:100%;width:0%;background:var(--accent-text);transition:width .5s var(--ease);}
 
   /* ---------- steps ---------- */
   .steps{flex:1;position:relative;}
@@ -76,7 +98,7 @@
   .step.leaving{opacity:0;transform:translateY(-16px);}
 
   .eyebrow{
-    font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--lime);
+    font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--accent-text);
     letter-spacing:3px;text-transform:uppercase;
   }
   h1{
@@ -115,12 +137,12 @@
     position:relative;transition:border-color .25s var(--ease);
   }
   .opt .dot::after{
-    content:"";position:absolute;inset:3px;border-radius:50%;background:var(--lime);
+    content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent-text);
     transform:scale(0);transition:transform .3s var(--ease);
   }
-  .opt.sel{border-color:var(--lime);background:var(--surface-2);box-shadow:var(--glow);}
+  .opt.sel{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
   .opt.sel .idx{background:var(--lime);border-color:var(--lime);color:#0c0f0b;transform:translateY(-1px);}
-  .opt.sel .dot{border-color:var(--lime);}
+  .opt.sel .dot{border-color:var(--accent-text);}
   .opt.sel .dot::after{transform:scale(1);}
   /* square checkbox for multi-select add ons */
   .opt .chk{
@@ -132,7 +154,7 @@
     border:solid #0c0f0b;border-width:0 2px 2px 0;
     transform:rotate(45deg) scale(0);transform-origin:center;transition:transform .25s var(--ease);
   }
-  .opt.sel .chk{background:var(--lime);border-color:var(--lime);}
+  .opt.sel .chk{background:var(--lime);border-color:var(--accent-text);}
   .opt.sel .chk::after{transform:rotate(45deg) scale(1);}
   .opt.addon .price{margin-right:6px;}
 
@@ -153,7 +175,7 @@
   }
   .field::placeholder,textarea.field::placeholder{color:var(--muted-2);}
   textarea.field{resize:none;min-height:88px;}
-  .field:focus, textarea.field:focus{outline:0;border-color:var(--lime);background:var(--surface-2);box-shadow:0 0 0 3px rgba(196,245,70,.14);}
+  .field:focus, textarea.field:focus{outline:0;border-color:var(--accent-text);background:var(--surface-2);box-shadow:0 0 0 3px rgba(120,180,40,.18);}
   .field[type=date]{color-scheme:dark;}
   .row2{display:flex;gap:10px;}
   .row2 > *{flex:1;}
@@ -164,7 +186,7 @@
   .sline:last-child{border-bottom:0;}
   .sline .k{color:var(--muted);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;font-weight:600;}
   .sline .v{font-weight:600;text-align:right;font-family:'Space Grotesk',sans-serif;}
-  .sline .v em{font-style:normal;color:var(--lime);}
+  .sline .v em{font-style:normal;color:var(--accent-text);}
   .total{display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding:18px;background:var(--lime);color:#0c0f0b;border-radius:14px;}
   .total span{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;font-size:12px;}
   .total b{font-family:'Space Grotesk',sans-serif;font-size:26px;letter-spacing:-1px;}
@@ -199,7 +221,7 @@
   .cta[disabled]{opacity:.32;filter:grayscale(.5);cursor:not-allowed;}
   .cta.gpay{background:#ffffff;color:#1c1c1c;}
   .cta.dark{background:var(--surface-2);color:var(--ink);border:1px solid var(--line);}
-  .cta.ghost{background:transparent;color:var(--lime);border:1px solid var(--lime);}
+  .cta.ghost{background:transparent;color:var(--accent-text);border:1px solid var(--accent-text);}
   .back{background:none;border:0;color:var(--muted-2);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:6px;cursor:pointer;align-self:center;}
   .hint{text-align:center;font-size:12px;color:var(--muted-2);margin-top:2px;}
   .gpay-logo{font-weight:700;font-family:'Space Grotesk',sans-serif;}
@@ -213,7 +235,10 @@
 <div class="app">
   <div class="topbar">
     <div class="brand"><span class="mark">NOSH<b>7</b></span><span class="tag">Salad Co</span></div>
-    <div class="counter"><b id="cstep">01</b> / 06</div>
+    <div class="rightbar">
+      <button class="themebtn" id="themebtn" type="button">Dark</button>
+      <div class="counter"><b id="cstep">01</b> / 06</div>
+    </div>
   </div>
   <div class="progress"><i id="bar"></i></div>
 
@@ -224,12 +249,12 @@
       <div class="eyebrow">Plan</div>
       <h1>Pick your plan</h1>
       <p class="sub">Start light or commit to the month. Cancel anytime.</p>
-      <button class="opt" data-group="plan" data-key="trial" data-label="Trial Plan" data-price="1250">
+      <button class="opt" data-group="plan" data-key="trial" data-label="Trial Plan" data-price="1250" data-units="5">
         <div class="idx">01</div>
         <div class="txt"><b>Trial Plan</b><span>5 days, code TRIAL saves Rs 150</span></div>
         <div class="price">1,250</div><div class="dot"></div>
       </button>
-      <button class="opt" data-group="plan" data-key="monthly" data-label="Monthly Plan" data-price="4999">
+      <button class="opt" data-group="plan" data-key="monthly" data-label="Monthly Plan" data-price="4999" data-units="25">
         <div class="idx">02</div>
         <div class="txt"><b>Monthly Plan</b><span>25 days, Rs 200 per day</span></div>
         <div class="price">4,999</div><div class="dot"></div>
@@ -286,14 +311,14 @@
     <section class="step" data-step="4">
       <div class="eyebrow">Add ons</div>
       <h1>Make it yours</h1>
-      <p class="sub">All optional. Tick what you want in every delivery.</p>
+      <p class="sub">All optional. Charged per delivery, your plan has <b id="ao-n">5</b> deliveries.</p>
       <button class="opt addon" data-addon="drink" data-label="Drink" data-price="40">
         <div class="idx">A</div><div class="txt"><b>Drink</b><span>Optional, fresh detox juice with your bowl</span></div>
-        <div class="price">+40</div><div class="chk"></div>
+        <div class="price">+40 each</div><div class="chk"></div>
       </button>
       <button class="opt addon" data-addon="paneer" data-label="Extra Paneer" data-price="60">
         <div class="idx">B</div><div class="txt"><b>Extra Paneer</b><span>Optional, protein boost freshly tossed</span></div>
-        <div class="price">+60</div><div class="chk"></div>
+        <div class="price">+60 each</div><div class="chk"></div>
       </button>
       <div class="label">Delivery instructions (optional)</div>
       <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact, anything else"></textarea>
@@ -359,7 +384,7 @@ const CONFIG = {
 /* ============================================================ */
 
 const order = {
-  plan:null, planLabel:null, planPrice:0,
+  plan:null, planLabel:null, planPrice:0, deliveries:0,
   batch:null, batchLabel:null,
   diet:"regular", dietLabel:"Regular",
   name:"", phone:"", address:"", date:"", note:"",
@@ -390,7 +415,7 @@ document.querySelectorAll('.opt[data-group]').forEach(btn=>{
     const group = btn.dataset.group;
     document.querySelectorAll('.opt[data-group="'+group+'"]').forEach(b=>b.classList.remove('sel'));
     btn.classList.add('sel');
-    if(group==='plan'){ order.plan=btn.dataset.key; order.planLabel=btn.dataset.label; order.planPrice=+btn.dataset.price; }
+    if(group==='plan'){ order.plan=btn.dataset.key; order.planLabel=btn.dataset.label; order.planPrice=+btn.dataset.price; order.deliveries=+btn.dataset.units; }
     if(group==='batch'){ order.batch=btn.dataset.key; order.batchLabel=btn.dataset.label; }
     haptic(); validate();
     maybeAutoAdvance();   // selection done, glide to next step
@@ -439,10 +464,12 @@ function stepValid(i){
 }
 function validate(){ nextBtn.disabled = !stepValid(cur); }
 
+function addonsPerDelivery(){
+  let s = 0; Object.values(order.addons).forEach(a=> s += a.price); return s;
+}
 function grandTotal(){
-  let t = order.planPrice;
-  Object.values(order.addons).forEach(a=> t += a.price);
-  return t;
+  // Add ons are priced per delivery, so multiply by the plan's delivery count.
+  return order.planPrice + addonsPerDelivery() * order.deliveries;
 }
 const rupee = n => "Rs "+n.toLocaleString('en-IN');
 
@@ -453,7 +480,7 @@ function buildSummary(){
   rows.push(['Preference', order.dietLabel, '']);
   rows.push(['Start', formatDate(order.date), '']);
   rows.push(['Deliver to', order.name+', '+order.phone, '']);
-  Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label, '+'+rupee(a.price)]));
+  Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
   if(order.note) rows.push(['Instructions', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>
     '<div class="sline"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+(r[2]?' &nbsp;<em>'+r[2]+'</em>':'')+'</span></div>'
@@ -470,6 +497,7 @@ function go(to){
   cur = to;
   bar.style.width = ((cur)/(steps.length-1))*100 + '%';
   cstep.textContent = String(Math.min(cur+1,6)).padStart(2,'0');
+  if(cur===4) document.getElementById('ao-n').textContent = order.deliveries;
   refreshFooter();
 }
 
@@ -612,6 +640,17 @@ function formatDate(iso){
 }
 function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
+
+// Theme: light is default, choice is remembered.
+const themeBtn = document.getElementById('themebtn');
+const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+function setTheme(t){
+  if(t==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeBtn.textContent='Light'; themeColorMeta.setAttribute('content','#0c0f0b'); }
+  else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent='Dark'; themeColorMeta.setAttribute('content','#f4f7ee'); }
+  localStorage.setItem('nosh7_theme', t);
+}
+setTheme(localStorage.getItem('nosh7_theme') || 'light');
+themeBtn.addEventListener('click', ()=> setTheme(document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark'));
 
 steps[0].classList.add('active');
 bar.style.width='0%';

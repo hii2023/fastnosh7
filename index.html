@@ -8,7 +8,7 @@
 <meta name="description" content="Subscribe to Nosh7 fresh healthy meals. High protein, low carb, high fiber. Pick a plan, slot and start date, then pay over UPI or card." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
   /* ============================================================
@@ -43,11 +43,14 @@
   }
 
   /* top bar */
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px;flex:none;}
-  .brand{display:flex;align-items:baseline;gap:8px;}
-  .brand .mark{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.5px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 6px;flex:none;}
+  .brand{display:flex;align-items:center;gap:9px;}
+  .brand .logo{width:40px;height:40px;flex:none;display:block;}
+  .brand .logo svg{width:100%;height:100%;display:block;}
+  .brand .bx{display:flex;flex-direction:column;line-height:1.05;}
+  .brand .mark{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.5px;}
   .brand .mark b{color:var(--accent-text);}
-  .brand .tag{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--muted-2);text-transform:uppercase;}
+  .brand .tag{font-size:8.5px;font-weight:600;letter-spacing:1.4px;color:var(--muted-2);text-transform:uppercase;margin-top:2px;}
   .rightbar{display:flex;align-items:center;gap:10px;}
   .themebtn{background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:8px;cursor:pointer;}
   .themebtn:active{transform:scale(.96);}
@@ -68,31 +71,35 @@
   .step.leaving{opacity:0;transform:translateY(-14px);}
 
   .eyebrow{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:var(--accent-text);letter-spacing:3px;text-transform:uppercase;flex:none;}
-  h1{font-family:'Space Grotesk',sans-serif;font-size:25px;line-height:1.05;margin:7px 0 3px;letter-spacing:-.8px;font-weight:700;flex:none;}
-  .sub{color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.4;flex:none;}
+  h1{font-family:'Syne',sans-serif;font-size:38px;line-height:.95;margin:8px 0 4px;letter-spacing:-1.4px;font-weight:800;flex:none;}
+  h1 .accent{color:var(--accent-text);}
+  .sub{color:var(--muted);font-size:13.5px;margin:0 0 10px;line-height:1.4;flex:none;}
   .body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:11px;}
+  .body.fill{justify-content:stretch;}
 
   /* benefits strip (plan page) */
-  .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex:none;margin-bottom:4px;}
-  .benefit{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:11px 4px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;}
-  .benefit .bi{width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--accent-text);}
-  .benefit .bi svg{width:19px;height:19px;}
-  .benefit small{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;line-height:1.15;color:var(--ink);letter-spacing:.2px;}
+  .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex:none;}
+  .benefit{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 4px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;}
+  .benefit .bi{width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;color:var(--accent-text);}
+  .benefit .bi svg{width:21px;height:21px;}
+  .benefit small{font-family:'Space Grotesk',sans-serif;font-size:10.5px;font-weight:600;line-height:1.15;color:var(--ink);letter-spacing:.2px;}
 
-  /* plan cards (graphic) */
+  /* plan cards (graphic, grow to fill) */
+  .body.fill .benefits{flex:none;}
+  .body.fill .plan{flex:1;}
   .plan{
     width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:18px;
-    padding:16px 17px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
-    display:flex;flex-direction:column;gap:6px;
+    padding:18px 18px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
+    display:flex;flex-direction:column;justify-content:space-between;gap:6px;min-height:118px;
     transition:transform .2s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);
   }
   .plan:active{transform:scale(.99);}
   .plan-top{display:flex;align-items:center;justify-content:space-between;}
-  .plan-name{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;}
-  .plan-meals{font-size:12px;color:var(--muted);margin-top:1px;}
-  .plan-price{font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;letter-spacing:-1.5px;line-height:1;}
-  .plan-price em{font-size:16px;font-style:normal;color:var(--muted);font-weight:600;margin-right:3px;}
-  .plan-foot{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);}
+  .plan-name{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:8px;}
+  .plan-meals{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .plan-price{font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:700;letter-spacing:-2px;line-height:1;}
+  .plan-price em{font-size:18px;font-style:normal;color:var(--muted);font-weight:600;margin-right:3px;}
+  .plan-foot{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);}
   .plan .dot{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--muted-2);position:relative;transition:border-color .25s var(--ease);}
   .plan .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent-text);transform:scale(0);transition:transform .3s var(--ease);}
   .plan.sel{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
@@ -131,20 +138,28 @@
   .label{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;margin:0 0 4px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;flex:none;}
 
   /* day of week chips */
-  .days{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
-  .day{border:1.5px solid var(--line);background:var(--surface);border-radius:13px;padding:15px 0;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s var(--ease);}
-  .day small{font-size:10px;font-weight:500;letter-spacing:.5px;color:var(--muted-2);text-transform:uppercase;}
+  .days{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .body.fill .days{flex:1;grid-template-rows:repeat(2,1fr);}
+  .day{border:1.5px solid var(--line);background:var(--surface);border-radius:15px;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .2s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);}
+  .day:active{transform:scale(.98);}
+  .day small{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;letter-spacing:.5px;color:var(--muted-2);text-transform:uppercase;}
   .day.on{border-color:var(--accent-text);background:var(--surface-2);color:var(--ink);box-shadow:var(--glow);}
   .day.on small{color:var(--accent-text);}
 
-  /* 7 day date strip */
-  .datestrip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-  .dcard{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all .2s var(--ease);}
-  .dcard .dow{font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted-2);}
-  .dcard .dnum{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.5px;color:var(--ink);}
-  .dcard .dmon{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  /* next-7-days list */
+  .datestrip{display:flex;flex-direction:column;gap:9px;}
+  .body.fill .datestrip{flex:1;}
+  .dcard{flex:1;display:flex;align-items:center;gap:16px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:0 18px;cursor:pointer;transition:transform .2s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);}
+  .dcard:active{transform:scale(.99);}
+  .dcard .dnum{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;letter-spacing:-1px;color:var(--ink);min-width:40px;text-align:center;}
+  .dcard .dinfo{flex:1;display:flex;flex-direction:column;}
+  .dcard .dinfo b{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;letter-spacing:-.2px;}
+  .dcard .dinfo small{font-size:12px;color:var(--muted);}
+  .dcard .dot{width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--muted-2);position:relative;}
+  .dcard .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent-text);transform:scale(0);transition:transform .3s var(--ease);}
   .dcard.sel{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
-  .dcard.sel .dow,.dcard.sel .dmon{color:var(--accent-text);}
+  .dcard.sel .dot{border-color:var(--accent-text);}
+  .dcard.sel .dot::after{transform:scale(1);}
 
   /* inputs */
   .field, textarea.field{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:13px 14px;font-family:inherit;font-size:15px;color:var(--ink);transition:border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);}
@@ -190,7 +205,17 @@
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="brand"><span class="mark">NOSH<b>7</b></span><span class="tag">Healthy Meals</span></div>
+    <div class="brand">
+      <span class="logo" aria-label="Nosh7 logo"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2fb6a3"/><stop offset=".55" stop-color="#5cbf57"/><stop offset="1" stop-color="#9ad13f"/></linearGradient></defs>
+        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#lg)" stroke-width="7"/>
+        <path d="M50 26c-7 7-9 17-3 26 7-7 9-17 3-26z" fill="#7cc242"/>
+        <path d="M47 54c-5-9-14-13-24-11 4 10 14 15 24 11z" fill="#3aa94a"/>
+        <path d="M53 54c5-9 14-13 24-11-4 10-14 15-24 11z" fill="#9ad13f"/>
+        <path d="M50 50v18" stroke="#3aa94a" stroke-width="4" stroke-linecap="round"/>
+      </svg></span>
+      <span class="bx"><span class="mark">NOSH<b>7</b></span><span class="tag">Eat healthy, feel great</span></span>
+    </div>
     <div class="rightbar">
       <button class="themebtn" id="themebtn" type="button">Dark</button>
       <div class="counter"><b id="cstep">01</b> / 07</div>
@@ -203,15 +228,15 @@
     <!-- STEP 1: PLAN (graphic) -->
     <section class="step" data-step="0">
       <div class="eyebrow">Plan</div>
-      <h1>Eat clean, every day</h1>
+      <h1>Choose your <span class="accent">plan</span></h1>
       <p class="sub">High protein, low carb, freshly made healthy meals.</p>
-      <div class="benefits">
-        <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12"/></svg></span><small>High<br>Protein</small></div>
-        <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 11l4 4 4-4"/></svg></span><small>Low<br>Carbs</small></div>
-        <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6Z"/><path d="M12 14c0-2.5-2-4.5-5-4.5 0 2.5 2 4.5 5 4.5Z"/></svg></span><small>High<br>Fiber</small></div>
-        <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21S4 16.5 4 10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16.5 12 21 12 21Z"/></svg></span><small>Nutri<br>tious</small></div>
-      </div>
-      <div class="body">
+      <div class="body fill">
+        <div class="benefits">
+          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12"/></svg></span><small>High<br>Protein</small></div>
+          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 11l4 4 4-4"/></svg></span><small>Low<br>Carbs</small></div>
+          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6Z"/><path d="M12 14c0-2.5-2-4.5-5-4.5 0 2.5 2 4.5 5 4.5Z"/></svg></span><small>High<br>Fiber</small></div>
+          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21S4 16.5 4 10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16.5 12 21 12 21Z"/></svg></span><small>Nutri<br>tious</small></div>
+        </div>
         <button class="plan" data-group="plan" data-key="trial" data-label="Trial Plan" data-price="1250" data-units="5">
           <div class="plan-top">
             <div><div class="plan-name">Trial Plan</div><div class="plan-meals">5 fresh meals</div></div>
@@ -234,7 +259,7 @@
     <!-- STEP 2: SLOT + DIET -->
     <section class="step" data-step="1">
       <div class="eyebrow">Batch</div>
-      <h1>Pick a slot</h1>
+      <h1>Pick a <span class="accent">slot</span></h1>
       <p class="sub">Set your preference, then tap a delivery slot.</p>
       <div class="body">
         <div class="seg" id="diet">
@@ -259,9 +284,9 @@
     <!-- STEP 3: DELIVERY DAYS -->
     <section class="step" data-step="2">
       <div class="eyebrow">Days</div>
-      <h1>Delivery days</h1>
+      <h1>Delivery <span class="accent">days</span></h1>
       <p class="sub">Monday to Saturday by default. Uncheck any day you skip.</p>
-      <div class="body">
+      <div class="body fill">
         <div class="days" id="days"></div>
       </div>
     </section>
@@ -269,10 +294,9 @@
     <!-- STEP 4: START DATE -->
     <section class="step" data-step="3">
       <div class="eyebrow">Schedule</div>
-      <h1>Start date</h1>
-      <p class="sub">Tap the day your subscription begins.</p>
-      <div class="body">
-        <div class="label">Next 7 days</div>
+      <h1>Start <span class="accent">date</span></h1>
+      <p class="sub">Tap the day your subscription begins. Sundays are off.</p>
+      <div class="body fill">
         <div class="datestrip" id="datestrip"></div>
       </div>
     </section>
@@ -280,7 +304,7 @@
     <!-- STEP 5: ADD ONS -->
     <section class="step" data-step="4">
       <div class="eyebrow">Add ons</div>
-      <h1>Make it yours</h1>
+      <h1>Add <span class="accent">ons</span></h1>
       <p class="sub">All optional. Charged per meal, your plan has <b id="ao-n">5</b> meals.</p>
       <div class="body">
         <button class="opt addon" data-addon="protein" data-label="Extra Protein" data-price="79">
@@ -301,16 +325,20 @@
     <!-- STEP 6: MEMBER DETAILS -->
     <section class="step" data-step="5">
       <div class="eyebrow">Member</div>
-      <h1>Your details</h1>
-      <p class="sub">Who we deliver to, and where. We will reach you here.</p>
+      <h1>Your <span class="accent">details</span></h1>
+      <p class="sub">Who we deliver to, and where.</p>
       <div class="body">
         <div class="row2">
           <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
           <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
         </div>
+        <div class="row2">
+          <div><div class="label">House / Office no</div><input class="field" id="f-house" type="text" placeholder="e.g. 5A" /></div>
+          <div><div class="label">Building name</div><input class="field" id="f-building" type="text" placeholder="e.g. Akshat Avenue" /></div>
+        </div>
         <div>
-          <div class="label">Full address</div>
-          <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
+          <div class="label">Rest of address</div>
+          <textarea class="field" id="f-address" placeholder="Road, area, landmark, pincode"></textarea>
         </div>
       </div>
     </section>
@@ -318,7 +346,7 @@
     <!-- STEP 7: REVIEW + PAY -->
     <section class="step" data-step="6">
       <div class="eyebrow">Review</div>
-      <h1>Confirm and pay</h1>
+      <h1>Confirm &amp; <span class="accent">pay</span></h1>
       <div class="body" style="justify-content:flex-start;gap:0;">
         <div class="summary" id="summary"></div>
         <div class="total"><span>Total</span><b id="grandtotal">0</b></div>
@@ -370,8 +398,8 @@ const CONFIG = {
   RAZORPAY_VERIFY_ENDPOINT: "",  // e.g. https://nosh7-pay.<you>.workers.dev/verify
 
   // Where each completed order is sent so you can automate it into your system.
-  // Paste your Google Sheet web app URL (see order-collector.gs) or the worker /order URL.
-  ORDER_WEBHOOK: "",
+  // Google Sheet web app (Apps Script) from order-collector.gs.
+  ORDER_WEBHOOK: "https://script.google.com/macros/s/AKfycbyLqKXtSX2xqBmMDtzY8AUkCzLIPaFZKVKEGolgJjfUwmZ644Gu4f0FTa243G5YxuDj/exec",
 
   BUSINESS_NAME: "Nosh7",
   WHATSAPP_NUMBER: "919712989498"
@@ -386,7 +414,7 @@ const order = {
   diet:"regular", dietLabel:"Regular",
   days: WEEK.map(d=>d[0]),     // all of Mon..Sat by default
   date:"", dateLabel:"", note:"",
-  name:"", phone:"", address:"",
+  name:"", phone:"", house:"", building:"", address:"",
   addons:{}
 };
 
@@ -420,14 +448,18 @@ WEEK.forEach(([sh,full])=>{
 /* ---- build next 7 day cards ---- */
 const stripEl = document.getElementById('datestrip');
 (function(){
-  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  for(let i=1;i<=7;i++){
-    const d=new Date(); d.setDate(d.getDate()+i);
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dowsFull=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let added=0, i=1;
+  while(added<7 && i<20){
+    const d=new Date(); d.setDate(d.getDate()+i); i++;
+    if(d.getDay()===0) continue;                 // skip Sundays (and today is already excluded)
     const iso=d.toISOString().split('T')[0];
     const label=dows[d.getDay()]+', '+d.getDate()+' '+mons[d.getMonth()];
     const c=document.createElement('button');
     c.type='button'; c.className='dcard'; c.dataset.iso=iso; c.dataset.label=label;
-    c.innerHTML='<div class="dow">'+dows[d.getDay()]+'</div><div class="dnum">'+d.getDate()+'</div><div class="dmon">'+mons[d.getMonth()]+'</div>';
+    c.innerHTML='<span class="dnum">'+d.getDate()+'</span><span class="dinfo"><b>'+dowsFull[d.getDay()]+'</b><small>'+mons[d.getMonth()]+' '+d.getFullYear()+'</small></span><span class="dot"></span>';
     c.addEventListener('click', ()=>{
       stripEl.querySelectorAll('.dcard').forEach(x=>x.classList.remove('sel'));
       c.classList.add('sel');
@@ -435,6 +467,7 @@ const stripEl = document.getElementById('datestrip');
       haptic(); validate(); maybeAutoAdvance();
     });
     stripEl.appendChild(c);
+    added++;
   }
 })();
 
@@ -477,6 +510,8 @@ document.querySelectorAll('.opt.addon').forEach(btn=>{
 /* ---- inputs ---- */
 document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); });
 document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
+document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); });
+document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); });
 document.getElementById('f-address').addEventListener('input', e=>{ order.address=e.target.value.trim(); validate(); });
 document.getElementById('f-note').addEventListener('input', e=>{ order.note=e.target.value.trim(); });
 
@@ -487,7 +522,7 @@ function stepValid(i){
     case 2: return order.days.length>=1;
     case 3: return !!order.date;
     case 4: return true;
-    case 5: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
+    case 5: return order.name.length>1 && order.phone.length===10 && order.house.length>0 && order.address.length>2;
     default: return true;
   }
 }
@@ -497,6 +532,7 @@ function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.
 function grandTotal(){ return order.planPrice + addonsPerMeal()*order.deliveries; }
 const rupee = n => "Rs "+n.toLocaleString('en-IN');
 function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.join(", "); }
+function fullAddress(){ return [order.house, order.building, order.address].filter(Boolean).join(", "); }
 
 function buildSummary(){
   const rows=[];
@@ -506,7 +542,8 @@ function buildSummary(){
   rows.push(['Days', daysText(), '']);
   rows.push(['Preference', order.dietLabel, '']);
   rows.push(['Start', order.dateLabel, '']);
-  rows.push(['Deliver to', order.name+', '+order.phone, '']);
+  rows.push(['Member', order.name+', '+order.phone, '']);
+  rows.push(['Address', fullAddress(), '']);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
   if(order.note) rows.push(['Notes', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>
@@ -611,7 +648,7 @@ function sendOrder(){
     orderNo, paymentId:order.paymentId||"", payment:CONFIG.PAYMENT_METHOD,
     plan:order.planLabel, deliveries:order.deliveries, slot:order.batchLabel,
     preference:order.dietLabel, days:daysText(), startDate:order.dateLabel||order.date,
-    name:order.name, phone:order.phone, address:order.address,
+    name:order.name, phone:order.phone, house:order.house, building:order.building, address:fullAddress(),
     addons:Object.values(order.addons).map(a=>a.label).join(", "),
     instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
   };
@@ -621,7 +658,7 @@ function sendOrder(){
 msgBtn.addEventListener('click', ()=>{
   const lines=["Hi Nosh7, I just placed an order.","Order: "+orderNo,"Name: "+order.name,
     "Plan: "+order.planLabel,"Slot: "+order.batchLabel,"Days: "+daysText(),
-    "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Total: "+rupee(grandTotal())];
+    "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+fullAddress(),"Total: "+rupee(grandTotal())];
   if(order.note) lines.push("Notes: "+order.note);
   window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');
 });

@@ -19,8 +19,8 @@
  */
 
 var HEADERS = [
-  "placedAt", "orderNo", "name", "phone", "address",
-  "plan", "deliveries", "batch", "preference", "startDate",
+  "placedAt", "orderNo", "name", "phone", "house", "building", "address",
+  "plan", "deliveries", "slot", "preference", "days", "startDate",
   "addons", "instructions", "total", "payment", "paymentId"
 ];
 

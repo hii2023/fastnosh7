@@ -584,7 +584,7 @@ function payUPI(amt){
   const upi="upi://pay?pa="+encodeURIComponent(CONFIG.UPI_ID)+"&pn="+encodeURIComponent(CONFIG.BUSINESS_NAME)+"&am="+amt+"&cu=INR&tn="+note;
   try{ window.location.href=upi; }catch(e){}
   saveOrder();
-  setTimeout(showConfirm, 800);
+  setTimeout(()=>showConfirm('submitted'), 800);
 }
 
 async function payRazorpay(amt){
@@ -611,26 +611,31 @@ async function payRazorpay(amt){
           if(!vd.valid){ resetPayBtn(amt); alert('Payment could not be verified. Please contact us on WhatsApp.'); return; }
         }catch(e){ resetPayBtn(amt); alert('Verification error. Please contact us on WhatsApp.'); return; }
       }
-      order.paymentId=resp.razorpay_payment_id; saveOrder(); showConfirm();
+      order.paymentId=resp.razorpay_payment_id; saveOrder(); showConfirm('paid');
     }
   };
   if(rzpOrderId) opts.order_id=rzpOrderId;
   const rzp=new Razorpay(opts);
-  rzp.on('payment.failed', function(){ resetPayBtn(amt); alert('Payment failed or cancelled. You can try again.'); });
+  rzp.on('payment.failed', function(resp){
+    const reason=(resp && resp.error && resp.error.description) || "payment failed or cancelled";
+    sendOrder('failed', reason);
+    resetPayBtn(amt);
+    alert('Payment failed or cancelled. You can try again.');
+  });
   rzp.open();
 }
 function resetPayBtn(amt){ payBtn.disabled=false; payBtn.textContent='Pay '+rupee(amt); }
 
-function showConfirm(){
+function showConfirm(status){
   document.getElementById('c-name').textContent=(order.name? order.name+',':'')+' you are set';
   document.getElementById('c-orderno').textContent=orderNo;
-  sendOrder(); go(CONFIRM);
+  sendOrder(status||'paid'); go(CONFIRM);
 }
 
-function sendOrder(){
-  if(!CONFIG.ORDER_WEBHOOK) return;
+function sendOrder(status, reason){
+  if(!CONFIG.ORDER_WEBHOOK || !orderNo) return;
   const payload={
-    orderNo, paymentId:order.paymentId||"", payment:CONFIG.PAYMENT_METHOD,
+    orderNo, status:status||"paid", reason:reason||"", paymentId:order.paymentId||"", payment:CONFIG.PAYMENT_METHOD,
     plan:order.planLabel, deliveries:order.deliveries, slot:order.batchLabel,
     preference:order.dietLabel, days:daysText(), startDate:order.dateLabel||order.date,
     name:order.name, phone:order.phone, address:order.address,

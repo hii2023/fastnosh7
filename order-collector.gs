@@ -18,10 +18,20 @@
 
 // Preferred column order for a fresh sheet. Any extra keys are appended after these.
 var PREFERRED = [
-  "placedAt", "orderNo", "name", "phone", "address",
+  "placedAt", "orderNo", "status", "name", "phone", "address",
   "plan", "deliveries", "slot", "preference", "days", "startDate",
-  "addons", "instructions", "total", "payment", "paymentId"
+  "addons", "instructions", "total", "payment", "paymentId", "reason"
 ];
+
+// Run this ONCE from the editor to clean up: pick "resetSheet" in the function
+// dropdown at the top, then click Run. It wipes all rows and writes a fresh,
+// correctly ordered header row. (status = paid / failed / submitted.)
+function resetSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Orders") || ss.insertSheet("Orders");
+  sheet.clear();
+  sheet.getRange(1, 1, 1, PREFERRED.length).setValues([PREFERRED]);
+}
 
 function doPost(e) {
   var lock = LockService.getScriptLock();

@@ -68,6 +68,10 @@
     transition:opacity .4s var(--ease),transform .4s var(--ease);
   }
   .step.top{justify-content:flex-start;}
+  /* split layout: title floats in the upper middle, content sits in the lower area */
+  .step.split{justify-content:flex-start;}
+  .step.split .headerwrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:6px;}
+  .step.split .body{flex:1 1 auto;justify-content:center;}
   /* bigger cards on the Pick a slot step */
   section[data-step="1"] .opt{padding:17px 16px;gap:16px;}
   section[data-step="1"] .opt .idx{width:48px;height:48px;font-size:18px;border-radius:13px;}
@@ -288,20 +292,24 @@
     </section>
 
     <!-- STEP 3: DELIVERY DAYS -->
-    <section class="step" data-step="2">
-      <div class="eyebrow">Days</div>
-      <h1>Delivery <span class="accent">days</span></h1>
-      <p class="sub">Monday to Saturday by default. Uncheck any day you skip.</p>
+    <section class="step split" data-step="2">
+      <div class="headerwrap">
+        <div class="eyebrow">Days</div>
+        <h1>Delivery <span class="accent">days</span></h1>
+        <p class="sub">Monday to Saturday by default. Uncheck any day you skip.</p>
+      </div>
       <div class="body">
         <div class="days" id="days"></div>
       </div>
     </section>
 
     <!-- STEP 4: START DATE -->
-    <section class="step" data-step="3">
-      <div class="eyebrow">Schedule</div>
-      <h1>Start <span class="accent">date</span></h1>
-      <p class="sub">Tap the day your subscription begins. Sundays are off.</p>
+    <section class="step split" data-step="3">
+      <div class="headerwrap">
+        <div class="eyebrow">Schedule</div>
+        <h1>Start <span class="accent">date</span></h1>
+        <p class="sub">Tap the day your subscription begins. Sundays are off.</p>
+      </div>
       <div class="body">
         <div class="label">Next 7 delivery days</div>
         <div class="datestrip" id="datestrip"></div>

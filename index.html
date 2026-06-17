@@ -63,10 +63,17 @@
   /* steps fill remaining height, no scroll */
   .steps{flex:1;position:relative;min-height:0;}
   .step{
-    position:absolute;inset:0;padding:14px 20px 10px;display:flex;flex-direction:column;overflow:hidden;
+    position:absolute;inset:0;padding:14px 20px 10px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;
     opacity:0;transform:translateY(14px);pointer-events:none;
     transition:opacity .4s var(--ease),transform .4s var(--ease);
   }
+  .step.top{justify-content:flex-start;}
+  /* bigger cards on the Pick a slot step */
+  section[data-step="1"] .opt{padding:17px 16px;gap:16px;}
+  section[data-step="1"] .opt .idx{width:48px;height:48px;font-size:18px;border-radius:13px;}
+  section[data-step="1"] .opt .txt b{font-size:18px;}
+  section[data-step="1"] .opt .txt span{font-size:13px;}
+  section[data-step="1"] .seg button{font-size:15px;padding:13px 0;}
   .step.active{opacity:1;transform:none;pointer-events:auto;}
   .step.leaving{opacity:0;transform:translateY(-14px);}
 
@@ -74,7 +81,8 @@
   h1{font-family:'Space Grotesk',sans-serif;font-size:30px;line-height:1.05;margin:7px 0 3px;letter-spacing:-1px;font-weight:700;flex:none;}
   h1 .accent{color:var(--accent-text);}
   .sub{color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.4;flex:none;}
-  .body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:11px;}
+  .body{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-start;gap:11px;}
+  .step.top .body{flex:1 1 auto;}
 
   /* benefits strip (plan page) */
   .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex:none;}
@@ -346,7 +354,7 @@
     </section>
 
     <!-- STEP 7: REVIEW + PAY -->
-    <section class="step" data-step="6">
+    <section class="step top" data-step="6">
       <div class="eyebrow">Review</div>
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
       <div class="body" style="justify-content:flex-start;gap:0;">
@@ -356,7 +364,7 @@
     </section>
 
     <!-- STEP 8: CONFIRMATION -->
-    <section class="step" data-step="7">
+    <section class="step top" data-step="7">
       <div class="body" style="justify-content:flex-start;">
         <div class="hero">
           <div class="k">You are in</div>

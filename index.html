@@ -402,11 +402,11 @@ const CONFIG = {
   // UPI method (works on a phone, opens GPay / PhonePe / Paytm / any UPI app)
   UPI_ID: "sapnakm71@okicici",
 
-  // Razorpay method. Currently TEST mode (rzp_test key), so only test cards work.
-  // Key id is public and safe in the browser. The SECRET never goes here, it lives in the worker.
-  // Before real customers: deploy ./razorpay-worker (with the secret), fill the two endpoints
-  // below, and swap to a LIVE key id. See razorpay-worker/README.md.
-  RAZORPAY_KEY_ID: "rzp_test_T2CP3CABEgpJSe",
+  // Razorpay method. LIVE mode (rzp_live key) - real payments. Test cards no longer work.
+  // Key id is public and safe in the browser. The SECRET only lives in the worker.
+  // To go back to test: set this to the rzp_test key id AND set the worker's two secrets
+  // back to test via `wrangler secret put`. See razorpay-worker/README.md.
+  RAZORPAY_KEY_ID: "rzp_live_SSzAwKJApRwiFY",
   RAZORPAY_ORDER_ENDPOINT: "https://nosh7-pay.altafsimavatwala1991.workers.dev/create-order",
   RAZORPAY_VERIFY_ENDPOINT: "https://nosh7-pay.altafsimavatwala1991.workers.dev/verify",
 

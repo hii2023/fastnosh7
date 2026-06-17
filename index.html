@@ -68,6 +68,7 @@
     transition:opacity .4s var(--ease),transform .4s var(--ease);
   }
   .step.top{justify-content:flex-start;}
+  .step.center{justify-content:center;}
   /* bigger cards on the Pick a slot step */
   section[data-step="1"] .opt{padding:17px 16px;gap:16px;}
   section[data-step="1"] .opt .idx{width:48px;height:48px;font-size:18px;border-radius:13px;}
@@ -227,7 +228,7 @@
     </div>
     <div class="rightbar">
       <button class="themebtn" id="themebtn" type="button">Dark</button>
-      <div class="counter"><b id="cstep">01</b> / 07</div>
+      <div class="counter"><b id="cstep">01</b> / 05</div>
     </div>
   </div>
   <div class="progress"><i id="bar"></i></div>
@@ -291,7 +292,7 @@
     </section>
 
     <!-- STEP 3: DELIVERY DAYS -->
-    <section class="step" data-step="2">
+    <section class="step center" data-step="2">
       <div class="eyebrow">Days</div>
       <h1>Delivery <span class="accent">days</span></h1>
       <p class="sub">Monday to Saturday by default. Uncheck any day you skip.</p>
@@ -300,50 +301,11 @@
       </div>
     </section>
 
-    <!-- STEP 4: START DATE -->
+    <!-- STEP 4: MEMBER DETAILS -->
     <section class="step" data-step="3">
-      <div class="eyebrow">Schedule</div>
-      <h1>Start <span class="accent">date</span></h1>
-      <p class="sub">Tap the day your subscription begins. Sundays are off.</p>
-      <div class="body">
-        <div class="label">Next 7 delivery days</div>
-        <div class="datestrip" id="datestrip"></div>
-      </div>
-    </section>
-
-    <!-- STEP 5: ADD ONS -->
-    <section class="step" data-step="4">
-      <div class="eyebrow">Add ons</div>
-      <h1>Add <span class="accent">ons</span></h1>
-      <p class="sub">All optional. Charged per meal, your plan has <b id="ao-n">5</b> meals.</p>
-      <div class="body">
-        <div class="opt addon" data-addon="paneer">
-          <div class="idx">A</div>
-          <div class="txt"><b>Paneer</b><span>Extra paneer in every meal</span>
-            <div class="subseg" id="paneer-size">
-              <button type="button" data-size="50g" data-price="39" class="on">50g, Rs 39</button>
-              <button type="button" data-size="100g" data-price="79">100g, Rs 79</button>
-            </div>
-          </div>
-          <div class="price" id="paneer-price">+39 / meal</div><div class="chk"></div>
-        </div>
-        <div class="opt addon" data-addon="drink">
-          <div class="idx">B</div>
-          <div class="txt"><b>Healthy Drink</b><span>Mint Lemonade, ABC Juice and Nimbu Sharbat in the pack</span></div>
-          <div class="price">+49 / meal</div><div class="chk"></div>
-        </div>
-        <div>
-          <div class="label">Delivery instructions (optional)</div>
-          <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact"></textarea>
-        </div>
-      </div>
-    </section>
-
-    <!-- STEP 6: MEMBER DETAILS -->
-    <section class="step" data-step="5">
       <div class="eyebrow">Member</div>
       <h1>Your <span class="accent">details</span></h1>
-      <p class="sub">Who we deliver to, and where.</p>
+      <p class="sub">Who we deliver to, and where. Meals start tomorrow.</p>
       <div class="body">
         <div class="row2">
           <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
@@ -353,11 +315,15 @@
           <div class="label">Full address</div>
           <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
         </div>
+        <div>
+          <div class="label">Delivery instructions (optional)</div>
+          <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact"></textarea>
+        </div>
       </div>
     </section>
 
-    <!-- STEP 7: REVIEW + PAY -->
-    <section class="step top" data-step="6">
+    <!-- STEP 5: REVIEW + PAY -->
+    <section class="step top" data-step="4">
       <div class="eyebrow">Review</div>
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
       <div class="body" style="justify-content:flex-start;gap:0;">
@@ -366,8 +332,8 @@
       </div>
     </section>
 
-    <!-- STEP 8: CONFIRMATION -->
-    <section class="step top" data-step="7">
+    <!-- STEP 6: CONFIRMATION -->
+    <section class="step top" data-step="5">
       <div class="body" style="justify-content:flex-start;">
         <div class="hero">
           <div class="k">You are in</div>
@@ -375,7 +341,7 @@
           <div class="ordlabel">Order number</div>
           <div class="ordno" id="c-orderno">NOSH-000000</div>
         </div>
-        <p class="note">Keep this number safe. We will WhatsApp you shortly. If your address is beyond 5 KM, our team will call about a small distance fee (Rs 10 / KM).<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
+        <p class="note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly. If your address is beyond 5 KM, our team will call about a small distance fee (Rs 10 / KM).<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
       </div>
     </section>
 
@@ -442,7 +408,7 @@ const msgBtn = document.getElementById('msg');
 const restartBtn = document.getElementById('restart');
 let cur = 0, orderNo = "";
 
-const REVIEW = 6, CONFIRM = 7, LAST_INPUT = 5;
+const REVIEW = 4, CONFIRM = 5, LAST_INPUT = 3;
 
 /* ---- build day-of-week chips (Mon..Sat, all on) ---- */
 const daysEl = document.getElementById('days');
@@ -458,30 +424,14 @@ WEEK.forEach(([sh,full])=>{
   daysEl.appendChild(b);
 });
 
-/* ---- build next 7 day cards ---- */
-const stripEl = document.getElementById('datestrip');
+/* ---- start date = next day after payment (skip Sunday), set automatically ---- */
 (function(){
   const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const dowsFull=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let added=0, i=1;
-  while(added<7 && i<20){
-    const d=new Date(); d.setDate(d.getDate()+i); i++;
-    if(d.getDay()===0) continue;                 // skip Sundays (and today is already excluded)
-    const iso=d.toISOString().split('T')[0];
-    const label=dows[d.getDay()]+', '+d.getDate()+' '+mons[d.getMonth()];
-    const c=document.createElement('button');
-    c.type='button'; c.className='dcard'; c.dataset.iso=iso; c.dataset.label=label;
-    c.innerHTML='<div class="dow">'+dows[d.getDay()]+'</div><div class="dnum">'+d.getDate()+'</div><div class="dmon">'+mons[d.getMonth()]+'</div>';
-    c.addEventListener('click', ()=>{
-      stripEl.querySelectorAll('.dcard').forEach(x=>x.classList.remove('sel'));
-      c.classList.add('sel');
-      order.date=c.dataset.iso; order.dateLabel=c.dataset.label;
-      haptic(); validate(); maybeAutoAdvance();
-    });
-    stripEl.appendChild(c);
-    added++;
-  }
+  const d=new Date(); d.setDate(d.getDate()+1);
+  if(d.getDay()===0) d.setDate(d.getDate()+1);   // if tomorrow is Sunday, start Monday
+  order.date=d.toISOString().split('T')[0];
+  order.dateLabel=dows[d.getDay()]+', '+d.getDate()+' '+mons[d.getMonth()];
 })();
 
 /* ---- single select cards (plan, batch) ---- */
@@ -544,9 +494,7 @@ function stepValid(i){
     case 0: return !!order.plan;
     case 1: return !!order.batch;
     case 2: return order.days.length>=1;
-    case 3: return !!order.date;
-    case 4: return true;
-    case 5: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
+    case 3: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
     default: return true;
   }
 }
@@ -563,7 +511,7 @@ function buildSummary(){
   rows.push(['Slot', order.batchLabel, '']);
   rows.push(['Days', daysText(), '']);
   rows.push(['Preference', order.dietLabel, '']);
-  rows.push(['Start', order.dateLabel, '']);
+  rows.push(['Starts', order.dateLabel+' (tomorrow)', '']);
   rows.push(['Deliver to', order.name+', '+order.phone, '']);
   rows.push(['Address', order.address, '']);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
@@ -581,8 +529,7 @@ function go(to){
   inn.classList.add('active');
   cur=to;
   bar.style.width = (cur/(steps.length-1))*100 + '%';
-  cstep.textContent = String(Math.min(cur+1,7)).padStart(2,'0');
-  if(cur===4) document.getElementById('ao-n').textContent = order.deliveries;
+  cstep.textContent = String(Math.min(cur+1,5)).padStart(2,'0');
   refreshFooter();
 }
 
@@ -665,6 +612,7 @@ function resetPayBtn(amt){ payBtn.disabled=false; payBtn.textContent='Pay '+rupe
 function showConfirm(status){
   document.getElementById('c-name').textContent=(order.name? order.name+',':'')+' you are set';
   document.getElementById('c-orderno').textContent=orderNo;
+  document.getElementById('c-start').textContent=order.dateLabel;
   sendOrder(status||'paid'); go(CONFIRM);
 }
 

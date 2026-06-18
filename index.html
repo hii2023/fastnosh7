@@ -87,10 +87,9 @@
 
   /* benefits strip (plan page) */
   .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex:none;}
-  .benefit{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 4px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;}
-  .benefit .bi{width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;color:var(--accent-text);}
-  .benefit .bi svg{width:21px;height:21px;}
-  .benefit small{font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;font-weight:600;line-height:1.15;color:var(--ink);letter-spacing:.2px;}
+  .benefit{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;}
+  .benefit .statnum{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;line-height:1;letter-spacing:-.5px;color:var(--accent-text);}
+  .benefit small{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:600;line-height:1.15;color:var(--muted);letter-spacing:.2px;}
 
   /* plan cards (graphic) */
   .plan{
@@ -166,6 +165,9 @@
   .field::placeholder,textarea.field::placeholder{color:var(--muted-2);}
   textarea.field{resize:none;min-height:70px;}
   #f-address{min-height:120px;}
+  /* optional instructions box looks different (not mandatory) */
+  #f-note{background:transparent;border:1.5px dashed var(--muted-2);min-height:58px;}
+  #f-note:focus{background:var(--surface-2);border-style:solid;}
   .field:focus,textarea.field:focus{outline:0;border-color:var(--accent-text);background:var(--surface);box-shadow:0 0 0 3px rgba(120,180,40,.18);}
   .row2{display:flex;gap:10px;}
   .row2 > *{flex:1;}
@@ -237,15 +239,15 @@
 
     <!-- STEP 1: PLAN (graphic) -->
     <section class="step" data-step="0">
-      <div class="eyebrow">Plan</div>
+      <div class="eyebrow">Welcome</div>
       <h1>Choose your <span class="accent">plan</span></h1>
-      <p class="sub">High protein, low carb, freshly made healthy meals.</p>
+      <p class="sub">Welcome to Nosh7, your healthy meal provider.</p>
       <div class="body">
         <div class="benefits">
-          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12"/></svg></span><small>High Protein</small></div>
-          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 11l4 4 4-4"/></svg></span><small>Low Carb</small></div>
-          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6Z"/><path d="M12 14c0-2.5-2-4.5-5-4.5 0 2.5 2 4.5 5 4.5Z"/></svg></span><small>High Fiber</small></div>
-          <div class="benefit"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21S4 16.5 4 10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16.5 12 21 12 21Z"/></svg></span><small>Nutritious</small></div>
+          <div class="benefit"><b class="statnum">400g</b><small>Meal pack</small></div>
+          <div class="benefit"><b class="statnum">20g</b><small>Avg protein</small></div>
+          <div class="benefit"><b class="statnum">Low</b><small>Carb</small></div>
+          <div class="benefit"><b class="statnum" style="font-size:14px;">280-380</b><small>Calories</small></div>
         </div>
         <button class="plan" data-group="plan" data-key="trial" data-label="Trial Plan" data-price="1250" data-units="5">
           <div class="plan-top">
@@ -328,7 +330,7 @@
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
       <div class="body" style="justify-content:flex-start;gap:0;">
         <div class="summary" id="summary"></div>
-        <div class="notebox" style="margin-top:11px;">Amount below is for delivery within <b>5 KM</b>. Beyond 5 KM, <b>Rs 10 / KM</b>, our team will call you if a distance fee applies.</div>
+        <div class="notebox" style="margin-top:11px;">Amount below covers delivery within <b>5 KM of Iscon Cross Roads</b>. Beyond that, <b>Rs 10 / KM</b>, our team will call you if a distance fee applies.</div>
       </div>
     </section>
 
@@ -341,7 +343,7 @@
           <div class="ordlabel">Order number</div>
           <div class="ordno" id="c-orderno">NOSH-000000</div>
         </div>
-        <p class="note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly. If your address is beyond 5 KM, our team will call about a small distance fee (Rs 10 / KM).<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
+        <p class="note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly. If your address is beyond 5 KM of Iscon Cross Roads, our team will call about a small distance fee (Rs 10 / KM).<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
       </div>
     </section>
 

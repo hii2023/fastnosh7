@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2fb6a3"/>
+      <stop offset=".55" stop-color="#5cbf57"/>
+      <stop offset="1" stop-color="#9ad13f"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#ring)" stroke-width="7"/>
+  <!-- leaf cluster -->
+  <path d="M50 56 C45 42 46 29 51 20 C56 30 55 44 50 56 Z" fill="#6cbf3f"/>
+  <path d="M50 56 C56 44 65 35 72 31 C70 44 61 54 50 56 Z" fill="#2e8b3d"/>
+  <path d="M41 58 C52 56 65 55 75 49 C66 61 50 63 41 58 Z" fill="#e6d24c"/>
+</svg>

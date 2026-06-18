@@ -90,6 +90,7 @@
   .benefit{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;}
   .benefit .statnum{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;line-height:1;letter-spacing:-.5px;color:var(--accent-text);}
   .benefit small{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:600;line-height:1.15;color:var(--muted);letter-spacing:.2px;}
+  .speccap{flex:none;text-align:center;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.3px;margin-top:-2px;}
 
   /* plan cards (graphic) */
   .plan{
@@ -211,10 +212,21 @@
   .notebox{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:11.5px;color:var(--muted);line-height:1.45;}
   .notebox b{color:var(--accent-text);}
 
+  /* in-app browser banner (Instagram etc.) */
+  #iabanner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#0c0f0b;color:#fff;padding:9px 12px;align-items:center;gap:8px;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:500;}
+  #iabanner.show{display:flex;}
+  #iabanner button{font-family:inherit;font-weight:700;font-size:12px;border:0;border-radius:8px;padding:6px 12px;cursor:pointer;}
+  #iaopen{background:var(--lime);color:#0c0f0b;}
+  #iaclose{background:transparent;color:#fff;opacity:.55;font-weight:600;}
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;}}
 </style>
 </head>
 <body>
+<div id="iabanner">
+  <span>For smooth payment, open in your browser</span>
+  <button id="iaopen" type="button">Open</button>
+  <button id="iaclose" type="button">Later</button>
+</div>
 <div class="app">
   <div class="topbar">
     <div class="brand">
@@ -246,9 +258,10 @@
         <div class="benefits">
           <div class="benefit"><b class="statnum">400g</b><small>Meal pack</small></div>
           <div class="benefit"><b class="statnum">20g</b><small>Avg protein</small></div>
-          <div class="benefit"><b class="statnum">Low</b><small>Carb</small></div>
-          <div class="benefit"><b class="statnum" style="font-size:14px;">280-380</b><small>Calories</small></div>
+          <div class="benefit"><b class="statnum">Low</b><small>Carbs</small></div>
+          <div class="benefit"><b class="statnum">High</b><small>Fiber</small></div>
         </div>
+        <div class="speccap">Each meal 280 to 380 calories</div>
         <button class="plan" data-group="plan" data-key="trial" data-label="Trial Plan" data-price="1250" data-units="5">
           <div class="plan-top">
             <div><div class="plan-name">Trial Plan</div><div class="plan-meals">5 fresh meals</div></div>
@@ -656,6 +669,24 @@ function setTheme(t){
 }
 setTheme(localStorage.getItem('nosh7_theme') || 'light');
 themeBtn.addEventListener('click', ()=> setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'));
+
+/* ---- nudge users out of in-app browsers (Instagram, Facebook, etc.) ---- */
+(function(){
+  const ua = navigator.userAgent || '';
+  const inApp = /Instagram|FBAN|FBAV|FB_IAB|Line|Snapchat|Twitter|MicroMessenger/i.test(ua);
+  if(!inApp) return;
+  const banner = document.getElementById('iabanner');
+  banner.classList.add('show');
+  const isAndroid = /Android/i.test(ua);
+  document.getElementById('iaopen').addEventListener('click', ()=>{
+    if(isAndroid){
+      window.location.href = 'intent://start.nosh7.in/' + window.location.search + '#Intent;scheme=https;package=com.android.chrome;end';
+    } else {
+      alert('Tap the menu (three dots, top right) and choose "Open in browser" / "Open in Safari".');
+    }
+  });
+  document.getElementById('iaclose').addEventListener('click', ()=> banner.classList.remove('show'));
+})();
 
 steps[0].classList.add('active');
 bar.style.width='0%';

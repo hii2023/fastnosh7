@@ -71,6 +71,30 @@
   }
   .step.top{justify-content:flex-start;}
   .step.center{justify-content:center;}
+  .step.scroll{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .step.scroll .body{flex:0 0 auto;gap:12px;}
+  .addr-extra{display:none;flex-direction:column;gap:12px;}
+  .addr-extra.show{display:flex;}
+  .search-wrap{position:relative;}
+  .ac-dropdown{display:none;position:absolute;top:100%;left:0;right:0;margin-top:5px;z-index:60;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;max-height:260px;overflow-y:auto;}
+  .ac-item{padding:11px 13px;cursor:pointer;border-top:1px solid var(--line);}
+  .ac-item:first-child{border-top:0;}
+  .ac-item:active,.ac-item:hover{background:var(--surface-2);}
+  .ac-item b{display:block;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .ac-item span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .locbtn{margin-top:8px;display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);color:var(--accent-text);border:1px solid var(--line);border-radius:11px;padding:9px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;}
+  .locbtn svg{width:15px;height:15px;}
+  .locbtn:active{transform:scale(.98);}
+  .locbtn[disabled]{opacity:.6;}
+  /* Google Places autocomplete dropdown */
+  .pac-container{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-top:4px;font-family:'Plus Jakarta Sans',sans-serif;z-index:300;overflow:hidden;}
+  .pac-item{padding:10px 12px;font-size:13px;color:var(--ink);border-top:1px solid var(--line);cursor:pointer;}
+  .pac-item:first-child{border-top:0;}
+  .pac-item:hover,.pac-item-selected{background:var(--surface-2);}
+  .pac-item-query{font-size:13px;color:var(--ink);font-weight:600;}
+  .pac-matched{color:var(--accent-text);}
+  .pac-icon{display:none;}
+  .hdpi .pac-icon{display:none;}
   /* bigger cards on the Pick a slot step */
   section[data-step="1"] .opt{padding:17px 16px;gap:16px;}
   section[data-step="1"] .opt .idx{width:48px;height:48px;font-size:18px;border-radius:13px;}
@@ -318,23 +342,38 @@
       </div>
     </section>
 
-    <!-- STEP 4: MEMBER DETAILS -->
-    <section class="step center" data-step="3">
-      <div class="eyebrow">Member</div>
-      <h1>Your <span class="accent">details</span></h1>
-      <p class="sub">Who we deliver to, and where. Meals start tomorrow.</p>
-      <div class="body">
-        <div class="row2">
-          <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
-          <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
-        </div>
+    <!-- STEP 4: ADDRESS + DETAILS -->
+    <section class="step scroll" data-step="3">
+      <div class="eyebrow">Address</div>
+      <h1>Delivery <span class="accent">address</span></h1>
+      <p class="sub">Search your area, then add your flat details. Meals start tomorrow.</p>
+      <div class="body" style="justify-content:flex-start;">
         <div>
-          <div class="label">Full address</div>
-          <textarea class="field" id="f-address" placeholder="Flat, street, area, landmark, pincode"></textarea>
+          <div class="label">Search address (Ahmedabad)</div>
+          <div class="search-wrap">
+            <input class="field" id="f-search" type="text" placeholder="Society, area, road, landmark" autocomplete="off" />
+            <div id="ac-dropdown" class="ac-dropdown"></div>
+          </div>
+          <button class="locbtn" id="useloc" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            Use my current location
+          </button>
         </div>
-        <div>
-          <div class="label">Delivery instructions (optional)</div>
-          <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact"></textarea>
+        <div id="addr-extra" class="addr-extra">
+          <div id="addr-picked" class="notebox"></div>
+          <div class="row2">
+            <div><div class="label">House / Flat no</div><input class="field" id="f-house" type="text" placeholder="e.g. B-204" /></div>
+            <div><div class="label">Building / Apartment</div><input class="field" id="f-building" type="text" placeholder="e.g. Akshat Avenue" /></div>
+          </div>
+          <div class="row2">
+            <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
+            <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
+          </div>
+          <div>
+            <div class="label">Delivery instructions (optional)</div>
+            <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact"></textarea>
+          </div>
+          <div id="distfee" class="notebox" style="display:none"></div>
         </div>
       </div>
     </section>
@@ -345,7 +384,7 @@
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
       <div class="body" style="justify-content:flex-start;gap:0;">
         <div class="summary" id="summary"></div>
-        <div class="notebox" style="margin-top:11px;">Amount below covers delivery within <b>5 KM of Iscon Cross Roads</b>. Beyond that, <b>Rs 10 / KM</b>, our team will call you if a distance fee applies.</div>
+        <div class="notebox" style="margin-top:11px;">Delivery is <b>free within 5 KM</b> of Nosh7. Beyond that, <b>Rs 10 / KM</b> is calculated from your address and already included in the total above.</div>
       </div>
     </section>
 
@@ -398,7 +437,18 @@ const CONFIG = {
   ORDER_WEBHOOK: "https://script.google.com/macros/s/AKfycbyLqKXtSX2xqBmMDtzY8AUkCzLIPaFZKVKEGolgJjfUwmZ644Gu4f0FTa243G5YxuDj/exec",
 
   BUSINESS_NAME: "Nosh7",
-  WHATSAPP_NUMBER: "919712989498"
+  WHATSAPP_NUMBER: "919712989498",
+
+  // Address search + auto distance fee (Google Maps Places).
+  // Needs a Google Maps JS API key with "Maps JavaScript API", "Places API" and "Geocoding API"
+  // enabled, billing on, key restricted to start.nosh7.in. Leave blank to fall back to a plain
+  // text address box (no autocomplete / no auto fee).
+  GOOGLE_MAPS_API_KEY: "AIzaSyDb_oJ-cs65Ace4wBETtocwk57Cx5qODx4",
+  // Nosh7 base location, distance is measured from here. When a Google key is set the app
+  // geocodes BASE_ADDRESS to get exact coords; BASE_LAT/LNG below are the fallback if it can't.
+  BASE_ADDRESS: "5A Akshat Avenue, Ramdevnagar Road, Satellite, Ahmedabad 380015",
+  BASE_LAT: 23.0299, BASE_LNG: 72.5119,
+  FREE_KM: 5, PER_KM_FEE: 10, ROAD_FACTOR: 1.3   // free within 5 km, then Rs 10 per extra km
 };
 /* ============================================================ */
 
@@ -410,7 +460,8 @@ const order = {
   diet:"regular", dietLabel:"Regular",
   days: WEEK.map(d=>d[0]),     // all of Mon..Sat by default
   date:"", dateLabel:"", note:"",
-  name:"", phone:"", address:"",
+  name:"", phone:"",
+  area:"", house:"", building:"", pincode:"", lat:null, lng:null, distanceKm:0, distanceFee:0,
   addons:{}
 };
 
@@ -503,22 +554,154 @@ document.querySelectorAll('#paneer-size button').forEach(b=>{
 /* ---- inputs ---- */
 document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); });
 document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
-document.getElementById('f-address').addEventListener('input', e=>{ order.address=e.target.value.trim(); validate(); });
+document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); });
+document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); });
 document.getElementById('f-note').addEventListener('input', e=>{ order.note=e.target.value.trim(); });
+let gPlaces=null, gAcToken=null, acTimer=null;
+document.getElementById('f-search').addEventListener('input', e=>{
+  order.area=e.target.value.trim(); order.lat=null; order.lng=null;  // typing = not a confirmed point yet
+  if(order.area) document.getElementById('addr-extra').classList.add('show');
+  computeDistanceFee(); validate();
+  clearTimeout(acTimer);
+  if(!gPlaces || order.area.length<3){ hideAcDropdown(); return; }
+  acTimer=setTimeout(()=>fetchSuggestions(order.area), 250);
+});
+document.addEventListener('click', e=>{ if(!e.target.closest('.search-wrap')) hideAcDropdown(); });
+function hideAcDropdown(){ const dd=document.getElementById('ac-dropdown'); if(dd){ dd.style.display='none'; dd.innerHTML=''; } }
+async function fetchSuggestions(q){
+  try{
+    if(!gAcToken) gAcToken=new gPlaces.AutocompleteSessionToken();
+    const {suggestions}=await gPlaces.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input:q, sessionToken:gAcToken, includedRegionCodes:['in'],
+      locationRestriction:{ west:72.38, south:22.82, east:72.80, north:23.22 }   // Ahmedabad box
+    });
+    renderAcDropdown(suggestions||[]);
+  }catch(err){ hideAcDropdown(); }
+}
+function renderAcDropdown(suggestions){
+  const dd=document.getElementById('ac-dropdown');
+  const preds=suggestions.map(s=>s.placePrediction).filter(Boolean);
+  if(!preds.length){ hideAcDropdown(); return; }
+  dd.innerHTML='';
+  preds.forEach(pp=>{
+    const main=pp.mainText? pp.mainText.text : (pp.text? pp.text.text : '');
+    const sec=pp.secondaryText? pp.secondaryText.text : '';
+    const it=document.createElement('div'); it.className='ac-item';
+    it.innerHTML='<b>'+esc(main)+'</b>'+(sec?'<span>'+esc(sec)+'</span>':'');
+    it.addEventListener('click', ()=>selectPrediction(pp));
+    dd.appendChild(it);
+  });
+  dd.style.display='block';
+}
+async function selectPrediction(pp){
+  hideAcDropdown();
+  try{
+    const place=pp.toPlace();
+    await place.fetchFields({ fields:['formattedAddress','location','addressComponents'] });
+    gAcToken=null;
+    const loc=place.location;
+    order.pincode=pinFromComponents(place.addressComponents);
+    document.getElementById('f-search').value=place.formattedAddress||'';
+    setSelectedAddress(place.formattedAddress||order.area, loc.lat(), loc.lng());
+  }catch(err){}
+}
+function pinFromComponents(comps){
+  if(!comps) return '';
+  for(const c of comps){ const t=c.types||[]; if(t.indexOf('postal_code')>=0) return c.longText||c.long_name||''; }
+  return '';
+}
+
+/* ---- address selection + distance fee ---- */
+function fullAddress(){ return [order.house, order.building, order.area].filter(Boolean).join(', '); }
+function haversineKm(la1,lo1,la2,lo2){
+  const R=6371, toR=x=>x*Math.PI/180;
+  const dLa=toR(la2-la1), dLo=toR(lo2-lo1);
+  const a=Math.sin(dLa/2)**2 + Math.cos(toR(la1))*Math.cos(toR(la2))*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function computeDistanceFee(){
+  const el=document.getElementById('distfee');
+  if(order.lat==null){ order.distanceKm=0; order.distanceFee=0; el.style.display='none'; return; }
+  const km = haversineKm(CONFIG.BASE_LAT, CONFIG.BASE_LNG, order.lat, order.lng) * CONFIG.ROAD_FACTOR;
+  order.distanceKm = km;
+  // round the distance DOWN to whole km (e.g. 5.19 km counts as 5, stays free)
+  order.distanceFee = Math.max(0, Math.floor(km) - CONFIG.FREE_KM) * CONFIG.PER_KM_FEE;
+  el.style.display='block';
+  if(order.distanceFee>0){
+    const tot=deliveryFeeTotal();
+    el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. Delivery fee <b>'+rupee(order.distanceFee)+' per delivery</b>'+(order.deliveries?' ('+rupee(tot)+' for '+order.deliveries+' meals)':'')+', added to your total.';
+  } else {
+    el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. <b>Free delivery</b> (within '+CONFIG.FREE_KM+' km).';
+  }
+}
+function setSelectedAddress(addr, lat, lng){
+  order.area=addr; order.lat=lat; order.lng=lng;
+  document.getElementById('addr-picked').textContent=addr;
+  document.getElementById('addr-extra').classList.add('show');
+  computeDistanceFee();
+  validate();
+  // if the picked place had no pincode (broad area), reverse-geocode the point to get it
+  if(!order.pincode && window.gGeocoder){
+    gGeocoder.geocode({location:{lat,lng}}, (res,status)=>{
+      if(status==='OK' && res){ for(const r of res){ const p=pinFromComponents(r.address_components); if(p){ order.pincode=p; break; } } }
+    });
+  }
+}
+
+document.getElementById('useloc').addEventListener('click', ()=>{
+  if(!navigator.geolocation){ alert('Location is not available on this device. Please search your address.'); return; }
+  const btn=document.getElementById('useloc');
+  const label=btn.innerHTML; btn.disabled=true; btn.textContent='Locating...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude, lng=pos.coords.longitude;
+    const done=(addr)=>{ document.getElementById('f-search').value=addr; setSelectedAddress(addr, lat, lng); btn.disabled=false; btn.innerHTML=label; };
+    if(window.gGeocoder){
+      gGeocoder.geocode({location:{lat,lng}}, (res,status)=>{
+        if(status==='OK'&&res[0]){ order.pincode=pinFromComponents(res[0].address_components); done(res[0].formatted_address); }
+        else done(lat.toFixed(5)+', '+lng.toFixed(5));
+      });
+    } else { done(lat.toFixed(5)+', '+lng.toFixed(5)); }
+  }, err=>{
+    alert('Could not get your location. Please allow location access or search your address.');
+    btn.disabled=false; btn.innerHTML=label;
+  }, {enableHighAccuracy:true, timeout:10000});
+});
+
+/* Google Maps (new Places API), loads only if a key is set */
+window.gGeocoder=null;
+window.initMaps=async function(){
+  try{
+    await google.maps.importLibrary("geocoding");
+    gGeocoder=new google.maps.Geocoder();
+    // refine the Nosh7 base to exact coords from its address
+    if(CONFIG.BASE_ADDRESS){
+      gGeocoder.geocode({address:CONFIG.BASE_ADDRESS, componentRestrictions:{country:'in'}}, (res,status)=>{
+        if(status==='OK' && res[0]){ const l=res[0].geometry.location; CONFIG.BASE_LAT=l.lat(); CONFIG.BASE_LNG=l.lng(); if(order.lat!=null) computeDistanceFee(); }
+      });
+    }
+    gPlaces=await google.maps.importLibrary("places");
+  }catch(e){}
+};
+if(CONFIG.GOOGLE_MAPS_API_KEY){
+  const gs=document.createElement('script');
+  gs.src='https://maps.googleapis.com/maps/api/js?key='+CONFIG.GOOGLE_MAPS_API_KEY+'&loading=async&callback=initMaps&v=weekly';
+  gs.async=true; document.head.appendChild(gs);
+}
 
 function stepValid(i){
   switch(i){
     case 0: return !!order.plan;
     case 1: return !!order.batch;
     case 2: return order.days.length>=1;
-    case 3: return order.name.length>1 && order.phone.length===10 && order.address.length>5;
+    case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && (order.house||'').length>0;
     default: return true;
   }
 }
 function validate(){ nextBtn.disabled = !stepValid(cur); }
 
 function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.price); return s; }
-function grandTotal(){ return order.planPrice + addonsPerMeal()*order.deliveries; }
+function deliveryFeeTotal(){ return (order.distanceFee||0) * order.deliveries; }
+function grandTotal(){ return order.planPrice + addonsPerMeal()*order.deliveries + deliveryFeeTotal(); }
 const rupee = n => "Rs "+n.toLocaleString('en-IN');
 function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.join(", "); }
 
@@ -530,7 +713,8 @@ function buildSummary(){
   rows.push(['Preference', order.dietLabel, '']);
   rows.push(['Starts', order.dateLabel+' (tomorrow)', '']);
   rows.push(['Deliver to', order.name+', '+order.phone, '']);
-  rows.push(['Address', order.address, '']);
+  rows.push(['Address', fullAddress(), '']);
+  if(order.distanceFee>0) rows.push(['Delivery fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
   if(order.note) rows.push(['Notes', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>
@@ -639,7 +823,8 @@ function sendOrder(status, reason){
     orderNo, status:status||"paid", reason:reason||"", paymentId:order.paymentId||"", payment:CONFIG.PAYMENT_METHOD,
     plan:order.planLabel, deliveries:order.deliveries, slot:order.batchLabel,
     preference:order.dietLabel, days:daysText(), startDate:order.dateLabel||order.date,
-    name:order.name, phone:order.phone, address:order.address,
+    name:order.name, phone:order.phone, address:fullAddress(), house:order.house, building:order.building, area:order.area, pincode:order.pincode||"",
+    lat:order.lat, lng:order.lng, distanceKm:order.distanceKm? order.distanceKm.toFixed(2):"", deliveryFeePerMeal:order.distanceFee||0, deliveryFeeTotal:deliveryFeeTotal(),
     addons:Object.values(order.addons).map(a=>a.label).join(", "),
     instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
   };
@@ -649,7 +834,8 @@ function sendOrder(status, reason){
 msgBtn.addEventListener('click', ()=>{
   const lines=["Hi Nosh7, I just placed an order.","Order: "+orderNo,"Name: "+order.name,
     "Plan: "+order.planLabel,"Slot: "+order.batchLabel,"Days: "+daysText(),
-    "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+order.address,"Total: "+rupee(grandTotal())];
+    "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+fullAddress(),"Total: "+rupee(grandTotal())];
+  if(order.distanceFee>0) lines.push("Distance fee: "+rupee(order.distanceFee)+" ("+order.distanceKm.toFixed(1)+" km)");
   if(order.note) lines.push("Notes: "+order.note);
   window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');
 });

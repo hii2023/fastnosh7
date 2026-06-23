@@ -714,12 +714,8 @@ window.initMaps=async function(){
   try{
     await google.maps.importLibrary("geocoding");
     gGeocoder=new google.maps.Geocoder();
-    // refine the Nosh7 base to exact coords from its address
-    if(CONFIG.BASE_ADDRESS){
-      gGeocoder.geocode({address:CONFIG.BASE_ADDRESS, componentRestrictions:{country:'in'}}, (res,status)=>{
-        if(status==='OK' && res[0]){ const l=res[0].geometry.location; CONFIG.BASE_LAT=l.lat(); CONFIG.BASE_LNG=l.lng(); if(order.lat!=null) computeDistanceFee(); }
-      });
-    }
+    // base coords are fixed (BASE_LAT/LNG) so the fee shown here always matches
+    // what the payment Worker recomputes and charges. Do not refine at runtime.
     gPlaces=await google.maps.importLibrary("places");
   }catch(e){}
 };
@@ -823,8 +819,8 @@ async function payRazorpay(amt){
   let rzpOrderId=null;
   if(CONFIG.RAZORPAY_ORDER_ENDPOINT){
     try{
-      const r=await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:amt,receipt:orderNo,name:order.name,phone:order.phone})});
-      const d=await r.json(); rzpOrderId=d.id; if(!rzpOrderId) throw new Error('no order id');
+      const r=await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:order.plan,lat:order.lat,lng:order.lng,receipt:orderNo,name:order.name,phone:order.phone})});
+      const d=await r.json(); rzpOrderId=d.id; if(!rzpOrderId) throw new Error(d.error||'no order id'); if(d.amount) amt=d.amount/100;
     }catch(e){ resetPayBtn(amt); alert('Could not start payment. Please try again.'); return; }
   }
   const opts={

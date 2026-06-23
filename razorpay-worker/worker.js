@@ -13,6 +13,28 @@
  *   ALLOW_ORIGIN         (the site origin, e.g. https://order.nosh7.in). Defaults to "*".
  */
 
+// Authoritative price table (must match the front-end plan buttons).
+const PLANS = {
+  trial:   { price: 1250, units: 5 },
+  monthly: { price: 4999, units: 25 },
+};
+// Distance-fee constants (must match index.html CONFIG).
+const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
+const FREE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
+
+function haversineKm(la1, lo1, la2, lo2) {
+  const R = 6371, toR = (x) => (x * Math.PI) / 180;
+  const dLa = toR(la2 - la1), dLo = toR(lo2 - lo1);
+  const a = Math.sin(dLa / 2) ** 2 + Math.cos(toR(la1)) * Math.cos(toR(la2)) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+// Rupees per delivery; 0 within the free radius. Same floor rounding as the app.
+function distanceFeePerDelivery(lat, lng) {
+  if (lat == null || lng == null || isNaN(Number(lat)) || isNaN(Number(lng))) return 0;
+  const km = haversineKm(BASE_LAT, BASE_LNG, Number(lat), Number(lng)) * ROAD_FACTOR;
+  return Math.max(0, Math.floor(km) - FREE_KM) * PER_KM_FEE;
+}
+
 export default {
   async fetch(request, env) {
     const origin = env.ALLOW_ORIGIN || "*";
@@ -31,7 +53,15 @@ export default {
     try {
       if (url.pathname === "/create-order" && request.method === "POST") {
         const body = await request.json();
-        const rupees = Number(body.amount);
+
+        // SERVER IS THE SOURCE OF TRUTH FOR PRICE.
+        // We never trust an "amount" sent by the browser (it can be tampered).
+        // We recompute: plan price + distance fee, from the plan id and the
+        // delivery coordinates, using the same constants as the front-end.
+        const plan = PLANS[body.plan];
+        if (!plan) return json({ error: "invalid plan" }, 400);
+        const feePerDelivery = distanceFeePerDelivery(body.lat, body.lng);
+        const rupees = plan.price + feePerDelivery * plan.units;
         if (!rupees || rupees < 1) return json({ error: "invalid amount" }, 400);
 
         const auth = "Basic " + btoa(env.RAZORPAY_KEY_ID + ":" + env.RAZORPAY_KEY_SECRET);

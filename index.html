@@ -745,6 +745,10 @@ function go(to){
   bar.style.width = (cur/(steps.length-1))*100 + '%';
   cstep.textContent = String(Math.min(cur+1,5)).padStart(2,'0');
   refreshFooter();
+  // landing on the address step: put the cursor in the search box right away
+  if(cur===LAST_INPUT && !order.lat){
+    setTimeout(()=>{ const s=document.getElementById('f-search'); if(s) s.focus(); }, 460);
+  }
 }
 
 function refreshFooter(){

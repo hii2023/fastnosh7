@@ -72,7 +72,10 @@
   .step.top{justify-content:flex-start;}
   .step.center{justify-content:center;}
   .step.scroll{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:14px;}
+  .step.scroll h1{margin-bottom:18px;}
   .step.scroll .body{flex:0 0 auto;gap:20px;}
+  .notebox.picked{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .addr-clear{flex:none;background:transparent;border:1px solid var(--line);color:var(--accent-text);border-radius:8px;padding:5px 11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:11px;cursor:pointer;}
   .addr-extra{display:none;flex-direction:column;gap:20px;}
   .addr-extra.show{display:flex;}
   .search-wrap{position:relative;}
@@ -363,7 +366,7 @@
           </button>
         </div>
         <div id="addr-extra" class="addr-extra">
-          <div id="addr-picked" class="notebox"></div>
+          <div id="addr-picked" class="notebox picked"><span id="addr-picked-text"></span><button type="button" id="addr-clear" class="addr-clear">Clear</button></div>
           <div class="row2 addr-row">
             <div><div class="label">House / Flat no</div><input class="field" id="f-house" type="text" placeholder="e.g. B-204" /></div>
             <div><div class="label">Building / Apartment</div><input class="field" id="f-building" type="text" placeholder="e.g. Akshat Avenue" /></div>
@@ -371,10 +374,6 @@
           <div class="row2">
             <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
             <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
-          </div>
-          <div>
-            <div class="label">Delivery instructions (optional)</div>
-            <textarea class="field" id="f-note" placeholder="Allergies, gate code, preferred contact"></textarea>
           </div>
           <div id="distfee" class="notebox" style="display:none"></div>
         </div>
@@ -387,7 +386,6 @@
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
       <div class="body" style="justify-content:flex-start;gap:0;">
         <div class="summary" id="summary"></div>
-        <div class="notebox" style="margin-top:11px;">Delivery is <b>free within 5 KM</b> of Nosh7. Beyond that, <b>Rs 10 / KM</b> is calculated from your address and already included in the total above.</div>
       </div>
     </section>
 
@@ -559,9 +557,8 @@ document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.ta
 document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
 document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); });
 document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); });
-document.getElementById('f-note').addEventListener('input', e=>{ order.note=e.target.value.trim(); });
 // pressing Enter jumps to the next field
-[['f-house','f-building'],['f-building','f-name'],['f-name','f-phone'],['f-phone','f-note']].forEach(([from,to])=>{
+[['f-house','f-building'],['f-building','f-name'],['f-name','f-phone']].forEach(([from,to])=>{
   document.getElementById(from).addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); const n=document.getElementById(to); if(n) n.focus(); } });
 });
 let gPlaces=null, gAcToken=null, acTimer=null;
@@ -637,15 +634,15 @@ function computeDistanceFee(){
   if(order.distanceFee>0){
     el.className='notebox';
     const tot=deliveryFeeTotal();
-    el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. Delivery fee <b>'+rupee(order.distanceFee)+' per delivery</b>'+(order.deliveries?' ('+rupee(tot)+' for '+order.deliveries+' meals)':'')+', added to your total.';
+    el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. Distance fee <b>'+rupee(order.distanceFee)+' per delivery</b>'+(order.deliveries?' ('+rupee(tot)+' for '+order.deliveries+' meals)':'')+', added to your total.';
   } else {
     el.className='notebox gift';
-    el.innerHTML='<b>Delivery is on us</b><br><small>a little something for being nearby</small>';
+    el.innerHTML='<b>Free delivery</b><br><small>you are within our free delivery zone</small>';
   }
 }
 function setSelectedAddress(addr, lat, lng){
   order.area=addr; order.lat=lat; order.lng=lng;
-  document.getElementById('addr-picked').textContent=addr;
+  document.getElementById('addr-picked-text').textContent=addr;
   document.getElementById('addr-extra').classList.add('show');
   computeDistanceFee();
   validate();
@@ -658,6 +655,15 @@ function setSelectedAddress(addr, lat, lng){
     });
   }
 }
+
+// small "Clear" button on the picked-address note: reset the search and start over
+document.getElementById('addr-clear').addEventListener('click', ()=>{
+  order.area=''; order.lat=null; order.lng=null; order.pincode='';
+  const s=document.getElementById('f-search'); s.value='';
+  document.getElementById('addr-picked-text').textContent='';
+  document.getElementById('addr-extra').classList.remove('show');
+  computeDistanceFee(); validate(); hideAcDropdown(); s.focus();
+});
 
 document.getElementById('useloc').addEventListener('click', ()=>{
   if(!navigator.geolocation){ alert('Location is not available on this device. Please search your address.'); return; }
@@ -725,7 +731,7 @@ function buildSummary(){
   rows.push(['Starts', order.dateLabel+' (tomorrow)', '']);
   rows.push(['Deliver to', order.name+', '+order.phone, '']);
   rows.push(['Address', fullAddress(), '']);
-  if(order.distanceFee>0) rows.push(['Delivery fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
+  if(order.distanceFee>0) rows.push(['Distance fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
   if(order.note) rows.push(['Notes', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>

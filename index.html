@@ -836,6 +836,7 @@ async function payRazorpay(amt){
           const v=await fetch(CONFIG.RAZORPAY_VERIFY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:resp.razorpay_order_id,razorpay_payment_id:resp.razorpay_payment_id,razorpay_signature:resp.razorpay_signature,orderNo})});
           const vd=await v.json();
           if(!vd.valid){ resetPayBtn(amt); alert('Payment could not be verified. Please contact us on WhatsApp.'); return; }
+          order.orderTicket = vd.ticket || "";   // signed proof the order sheet can trust
         }catch(e){ resetPayBtn(amt); alert('Verification error. Please contact us on WhatsApp.'); return; }
       }
       order.paymentId=resp.razorpay_payment_id; saveOrder(); showConfirm('paid');
@@ -863,7 +864,7 @@ function showConfirm(status){
 function sendOrder(status, reason){
   if(!CONFIG.ORDER_WEBHOOK || !orderNo) return;
   const payload={
-    orderNo, status:status||"paid", reason:reason||"", paymentId:order.paymentId||"", payment:CONFIG.PAYMENT_METHOD,
+    orderNo, status:status||"paid", reason:reason||"", paymentId:order.paymentId||"", ticket:order.orderTicket||"", payment:CONFIG.PAYMENT_METHOD,
     plan:order.planLabel, deliveries:order.deliveries, slot:order.batchLabel,
     preference:order.dietLabel, days:daysText(), startDate:order.dateLabel||order.date,
     name:order.name, phone:order.phone, address:fullAddress(), house:order.house, building:order.building, area:order.area, pincode:order.pincode||"",

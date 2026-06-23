@@ -87,7 +87,15 @@ export default {
           `${b.razorpay_order_id}|${b.razorpay_payment_id}`
         );
         const valid = timingSafeEqual(expected, b.razorpay_signature || "");
-        return json({ valid });
+        // On a genuinely verified payment, mint a ticket the order sheet can trust.
+        // ticket = HMAC(ORDER_TICKET_SECRET, orderNo|paymentId). The secret lives only
+        // here and in the Apps Script (never in the browser), so a fake "paid" row
+        // submitted straight to the sheet cannot carry a valid ticket.
+        let ticket = "";
+        if (valid && env.ORDER_TICKET_SECRET) {
+          ticket = await hmacHex(env.ORDER_TICKET_SECRET, `${b.orderNo || ""}|${b.razorpay_payment_id || ""}`);
+        }
+        return json({ valid, ticket });
       }
 
       return json({ error: "not found" }, 404);

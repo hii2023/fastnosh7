@@ -18,10 +18,31 @@
 
 // Preferred column order for a fresh sheet. Any extra keys are appended after these.
 var PREFERRED = [
-  "placedAt", "orderNo", "status", "name", "phone", "address",
+  "placedAt", "orderNo", "status", "verified", "name", "phone", "address",
   "plan", "deliveries", "slot", "preference", "days", "startDate",
   "addons", "instructions", "total", "payment", "paymentId", "reason"
 ];
+
+// HMAC-SHA256 as lowercase hex (matches the Cloudflare worker's hmacHex).
+function hmacHex_(secret, message) {
+  var raw = Utilities.computeHmacSha256Signature(message, secret);
+  return raw.map(function (b) {
+    var v = (b < 0 ? b + 256 : b).toString(16);
+    return v.length === 1 ? "0" + v : v;
+  }).join("");
+}
+
+// "yes" if a paid order carries a valid ticket, "UNVERIFIED" if paid but the ticket
+// is missing/forged, "" for non-paid rows. The ticket secret lives only in Script
+// Properties (Project Settings > Script Properties: ORDER_TICKET_SECRET) and the
+// worker, never in the browser, so a fake "paid" row cannot carry a valid ticket.
+function verifyTicket_(data) {
+  if (String(data.status) !== "paid") return "";
+  var secret = PropertiesService.getScriptProperties().getProperty("ORDER_TICKET_SECRET");
+  if (!secret || !data.ticket) return "UNVERIFIED";
+  var expect = hmacHex_(secret, (data.orderNo || "") + "|" + (data.paymentId || ""));
+  return expect === data.ticket ? "yes" : "UNVERIFIED";
+}
 
 // Run this ONCE from the editor to clean up: pick "resetSheet" in the function
 // dropdown at the top, then click Run. It wipes all rows and writes a fresh,
@@ -38,6 +59,9 @@ function doPost(e) {
   lock.waitLock(20000);
   try {
     var data = JSON.parse(e.postData.contents);
+    // authenticate paid orders against the ticket, then drop the raw ticket
+    data.verified = verifyTicket_(data);
+    delete data.ticket;
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName("Orders") || ss.insertSheet("Orders");
     var keys = Object.keys(data);

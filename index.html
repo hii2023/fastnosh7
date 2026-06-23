@@ -237,6 +237,11 @@
   /* distance fee note */
   .notebox{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:11.5px;color:var(--muted);line-height:1.45;}
   .notebox b{color:var(--accent-text);}
+  .notebox.gift{background:var(--lime);border-color:var(--lime);color:#0c0f0b;display:flex;align-items:center;gap:11px;}
+  .notebox.gift b{color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;}
+  .notebox.gift small{font-size:11px;opacity:.78;}
+  .notebox.gift .gift-ic{display:flex;flex:none;}
+  .notebox.gift .gift-ic svg{width:26px;height:26px;}
 
   /* in-app browser banner (Instagram etc.) */
   #iabanner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#0c0f0b;color:#fff;padding:9px 12px;align-items:center;gap:8px;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:500;}
@@ -557,6 +562,10 @@ document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.
 document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); });
 document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); });
 document.getElementById('f-note').addEventListener('input', e=>{ order.note=e.target.value.trim(); });
+// pressing Enter jumps to the next field
+[['f-house','f-building'],['f-building','f-name'],['f-name','f-phone'],['f-phone','f-note']].forEach(([from,to])=>{
+  document.getElementById(from).addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); const n=document.getElementById(to); if(n) n.focus(); } });
+});
 let gPlaces=null, gAcToken=null, acTimer=null;
 document.getElementById('f-search').addEventListener('input', e=>{
   order.area=e.target.value.trim(); order.lat=null; order.lng=null;  // typing = not a confirmed point yet
@@ -628,10 +637,12 @@ function computeDistanceFee(){
   order.distanceFee = Math.max(0, Math.floor(km) - CONFIG.FREE_KM) * CONFIG.PER_KM_FEE;
   el.style.display='block';
   if(order.distanceFee>0){
+    el.className='notebox';
     const tot=deliveryFeeTotal();
     el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. Delivery fee <b>'+rupee(order.distanceFee)+' per delivery</b>'+(order.deliveries?' ('+rupee(tot)+' for '+order.deliveries+' meals)':'')+', added to your total.';
   } else {
-    el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. <b>Free delivery</b> (within '+CONFIG.FREE_KM+' km).';
+    el.className='notebox gift';
+    el.innerHTML='<span class="gift-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8"/></svg></span><span><b>Delivery is on us</b><br><small>a little something for being nearby</small></span>';
   }
 }
 function setSelectedAddress(addr, lat, lng){
@@ -640,6 +651,8 @@ function setSelectedAddress(addr, lat, lng){
   document.getElementById('addr-extra').classList.add('show');
   computeDistanceFee();
   validate();
+  hideAcDropdown();
+  setTimeout(()=>{ const h=document.getElementById('f-house'); if(h && !h.value){ h.focus(); } }, 120);
   // if the picked place had no pincode (broad area), reverse-geocode the point to get it
   if(!order.pincode && window.gGeocoder){
     gGeocoder.geocode({location:{lat,lng}}, (res,status)=>{

@@ -1,15 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2fb6a3"/>
-      <stop offset=".55" stop-color="#5cbf57"/>
-      <stop offset="1" stop-color="#9ad13f"/>
+      <stop offset="0" stop-color="#2bb6c4"/>
+      <stop offset=".5" stop-color="#4cbf6a"/>
+      <stop offset="1" stop-color="#a7d94a"/>
     </linearGradient>
   </defs>
-  <circle cx="50" cy="50" r="48" fill="#ffffff"/>
-  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#ring)" stroke-width="7"/>
-  <!-- leaf cluster -->
-  <path d="M50 56 C45 42 46 29 51 20 C56 30 55 44 50 56 Z" fill="#6cbf3f"/>
-  <path d="M50 56 C56 44 65 35 72 31 C70 44 61 54 50 56 Z" fill="#2e8b3d"/>
-  <path d="M41 58 C52 56 65 55 75 49 C66 61 50 63 41 58 Z" fill="#e6d24c"/>
+  <circle cx="50" cy="50" r="49" fill="url(#ring)"/>
+  <circle cx="50" cy="50" r="40" fill="#ffffff"/>
+  <!-- two-leaf sprout -->
+  <path d="M50 64 C44 50 45 36 51 27 C57 37 56 52 50 64 Z" fill="#3aa356"/>
+  <path d="M50 60 C56 48 66 40 74 37 C71 51 61 60 50 60 Z" fill="#7cc242"/>
+  <path d="M50 64 C44 56 35 51 28 49 C33 60 42 65 50 64 Z" fill="#2f8f4d"/>
+  <rect x="48.5" y="52" width="3" height="14" rx="1.5" fill="#3aa356"/>
 </svg>

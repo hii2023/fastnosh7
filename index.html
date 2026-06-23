@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#f4f7ee" />
+<meta name="theme-color" content="#0c0f0b" />
 <title>Nosh7 Healthy Meals, Subscribe</title>
 <meta name="description" content="Subscribe to Nosh7 fresh healthy meals. High protein, low carb, high fiber. Pick a plan, slot and start date, then pay over UPI or card." />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -45,7 +45,7 @@
   }
 
   /* top bar */
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 6px;flex:none;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 20px 6px;flex:none;}
   .brand{display:flex;align-items:center;gap:9px;}
   .brand .logo{width:40px;height:40px;flex:none;display:block;}
   .brand .logo svg{width:100%;height:100%;display:block;}
@@ -242,9 +242,32 @@
   /* distance fee note */
   .notebox{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:11.5px;color:var(--muted);line-height:1.45;}
   .notebox b{color:var(--accent-text);}
-  .notebox.gift{background:var(--lime);border-color:var(--lime);color:#0c0f0b;padding:9px 13px;}
+  .notebox.gift{background:var(--lime);border-color:var(--lime);color:#0c0f0b;padding:9px 13px;position:relative;overflow:hidden;}
   .notebox.gift b{color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;}
   .notebox.gift small{font-size:11px;color:#0c0f0b;opacity:.72;}
+  .notebox.gift::before{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-18deg);animation:shine 2.8s var(--ease) infinite;}
+  @keyframes shine{0%{left:-60%;}55%,100%{left:135%;}}
+  .gift-spark{position:absolute;top:8px;right:12px;width:15px;height:15px;color:#0c0f0b;animation:twinkle 1.9s ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:.28;transform:scale(.65) rotate(0deg);}50%{opacity:1;transform:scale(1) rotate(90deg);}}
+  @media (prefers-reduced-motion:reduce){.notebox.gift::before,.gift-spark{animation:none;}}
+
+  /* shorter screens (most iPhones with Safari toolbars): compact the address step so it fits in one view, no scroll */
+  @media (max-height:740px){
+    .step.scroll{padding-top:8px;}
+    .step.scroll h1{font-size:25px;margin-bottom:10px;}
+    .step.scroll .body{gap:13px;}
+    .addr-extra{gap:13px;}
+    .step.scroll .field{padding:11px 14px;}
+    .step.scroll .label{margin-bottom:3px;}
+    .locbtn{margin-top:6px;padding:8px 12px;}
+    .notebox{padding:8px 12px;}
+  }
+  @media (max-height:640px){
+    .step.scroll h1{font-size:23px;margin-bottom:7px;}
+    .step.scroll .body{gap:10px;}
+    .addr-extra{gap:10px;}
+    .step.scroll .field{padding:9px 13px;}
+  }
 
   /* in-app browser banner (Instagram etc.) */
   #iabanner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#0c0f0b;color:#fff;padding:9px 12px;align-items:center;gap:8px;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:500;}
@@ -637,7 +660,7 @@ function computeDistanceFee(){
     el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. Distance fee <b>'+rupee(order.distanceFee)+' per delivery</b>'+(order.deliveries?' ('+rupee(tot)+' for '+order.deliveries+' meals)':'')+', added to your total.';
   } else {
     el.className='notebox gift';
-    el.innerHTML='<b>Free delivery</b><br><small>you are within our free delivery zone</small>';
+    el.innerHTML='<svg class="gift-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.1L20 10l-6.3 1.9L12 18l-1.7-6.1L4 10l6.3-1.9z"/></svg><b>Free delivery</b><br><small>you are within our free delivery zone</small>';
   }
 }
 function setSelectedAddress(addr, lat, lng){
@@ -876,7 +899,7 @@ function setTheme(t){
   else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent='Dark'; themeColorMeta.setAttribute('content','#f4f7ee'); }
   localStorage.setItem('nosh7_theme', t);
 }
-setTheme(localStorage.getItem('nosh7_theme') || 'light');
+setTheme(localStorage.getItem('nosh7_theme') || 'dark');
 themeBtn.addEventListener('click', ()=> setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'));
 
 /* ---- nudge users out of in-app browsers (Instagram, Facebook, etc.) ---- */

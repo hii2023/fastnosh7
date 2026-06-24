@@ -316,10 +316,10 @@
   section[data-step="2"] .addons-wrap{margin-top:0;}
   /* plan step: center the two plan cards in the available space */
   section[data-step="0"] .body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;gap:13px;}
-  section[data-step="0"] .benefits{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin-top:2px;}
-  section[data-step="0"] .benefit{flex:0 0 auto;padding:9px 14px;}
-  section[data-step="0"] .benefit .statnum{font-size:18px;}
-  section[data-step="0"] .benefit small{font-size:10.5px;line-height:1.1;}
+  section[data-step="0"] .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px;}
+  section[data-step="0"] .benefit{padding:16px 4px;border-radius:15px;justify-content:center;gap:4px;}
+  section[data-step="0"] .benefit .statnum{font-size:19px;}
+  section[data-step="0"] .benefit small{font-size:10px;line-height:1.15;}
   section[data-step="0"] .plan:first-of-type{margin-top:auto;}
   section[data-step="0"] .plan:last-of-type{margin-bottom:auto;}
   /* small add-on boxes on the days step */
@@ -377,7 +377,6 @@
       <p>Pick a meal track. Same fresh kitchen, tuned to your goal.</p>
     </div>
     <div class="grid" id="catGrid"></div>
-    <div class="foot">Every meal 20g+ protein &middot; 280 to 380 cal &middot; Regular or Jain</div>
   </div>
 
   <div class="steps" id="steps">
@@ -1003,12 +1002,12 @@ const CATS = [
 ];
 // 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
 const BENEFITS = {
-  fresh:      [["280-380","Calories"],["20g+","Protein"],["High","Fiber"],["Low","Carbs"]],
-  protein:    [["40g","Protein"],["Build","Muscle"],["High","Fiber"],["Low","Carbs"]],
-  lowsugar:   [["Low","GI"],["Sugar","Free"],["High","Fiber"],["Diabetic","Safe"]],
+  fresh:      [["280-380","Calories"],["20g+","Protein"],["High","Fiber"],["High","Energy"]],
+  protein:    [["40g","Protein"],["Lean","Muscle"],["Low","Carbs"],["High","Fiber"]],
+  lowsugar:   [["Low","GI"],["No","Added sugar"],["High","Fiber"],["Diabetic","Safe"]],
   weightloss: [["Low","Calorie"],["30g","Protein"],["High","Fiber"],["Low","Carbs"]],
-  vegan:      [["Plant","Based"],["High","Fiber"],["Iron","Rich"],["Dairy","Free"]],
-  fruit:      [["Fresh","Fruit"],["Rich","Vitamins"],["Natural","Fiber"],["No","Sugar"]]
+  vegan:      [["100%","Plant"],["Plant","Protein"],["Iron","Rich"],["High","Fiber"]],
+  fruit:      [["Fresh","Fruit"],["Rich","Vitamins"],["High","Fiber"],["Natural","Energy"]]
 };
 function plansFor(c){
   var moPer=c.fromMeal, wkPer=c.wkMeal||(c.fromMeal+50);

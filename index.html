@@ -315,7 +315,12 @@
   section[data-step="2"] .daysmid .days{width:100%;}
   section[data-step="2"] .addons-wrap{margin-top:0;}
   /* plan step: center the two plan cards in the available space */
-  section[data-step="0"] .body{flex:1 1 auto;justify-content:center;gap:14px;}
+  section[data-step="0"] .body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;gap:13px;}
+  section[data-step="0"] .benefits{gap:7px;margin-top:auto;}
+  section[data-step="0"] .plan:last-of-type{margin-bottom:auto;}
+  section[data-step="0"] .benefit{padding:10px 3px;}
+  section[data-step="0"] .benefit .statnum{font-size:15px;}
+  section[data-step="0"] .benefit small{font-size:9px;line-height:1.1;}
   /* small add-on boxes on the days step */
   .addons-wrap{flex:none;}
   .addons-wrap .label{margin-top:4px;}
@@ -988,13 +993,22 @@ const ICON = {
 };
 
 const CATS = [
-  {key:'fresh',     name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true},
-  {key:'protein',   name:'High Protein',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal'},
-  {key:'lowsugar',  name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true},
-  {key:'weightloss',name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:239, std:false, monthly:5974, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal'},
-  {key:'pcod',      name:'PCOD / PCOS',     tag:'Hormone-friendly meals', fromMeal:200, std:true},
-  {key:'fruit',     name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New'}
+  {key:'fresh',     slug:'healthy-fresh', name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true},
+  {key:'protein',   slug:'high-protein',  name:'High Protein',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal'},
+  {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true},
+  {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:239, std:false, monthly:5974, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal'},
+  {key:'pcod',      slug:'pcod-pcos',     name:'PCOD / PCOS',     tag:'Hormone-friendly meals', fromMeal:200, std:true},
+  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New'}
 ];
+// 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
+const BENEFITS = {
+  fresh:      [["280-380","Calories"],["20g+","Protein"],["High","Fiber"],["Low","Carbs"]],
+  protein:    [["40g","Protein"],["Build","Muscle"],["High","Fiber"],["Low","Carbs"]],
+  lowsugar:   [["Low","GI"],["Sugar","Free"],["High","Fiber"],["Diabetic","Safe"]],
+  weightloss: [["Low","Calorie"],["30g","Protein"],["High","Fiber"],["Low","Carbs"]],
+  pcod:       [["Low","GI"],["Hormone","Balance"],["High","Fiber"],["Low","Carbs"]],
+  fruit:      [["Fresh","Fruit"],["Rich","Vitamins"],["Natural","Fiber"],["No","Sugar"]]
+};
 function plansFor(c){
   var moPer=c.fromMeal, wkPer=c.wkMeal||(c.fromMeal+50);
   var monthly=c.monthly||(c.std?4999:moPer*25);
@@ -1055,7 +1069,9 @@ function buildPlanStep(c){
   var p=plansFor(c);
   planEyebrow.textContent=c.name;
   planNote.textContent=c.note||'Pick weekly or monthly.';
+  var bens=(BENEFITS[c.key]||[]).map(function(b){ return '<div class="benefit"><b class="statnum">'+b[0]+'</b><small>'+b[1]+'</small></div>'; }).join('');
   planBody.innerHTML=
+    (bens?'<div class="benefits">'+bens+'</div>':'')+
     '<button class="plan" data-key="monthly" data-label="'+c.name+' Monthly" data-price="'+p.monthly+'" data-units="25">'+
       '<div class="plan-top"><div><div class="plan-name">Monthly <span class="badge">Best value</span></div><div class="plan-meals">25 fresh meals</div></div><div class="dot"></div></div>'+
       '<div class="plan-price"><em>Rs</em>'+p.monthly.toLocaleString('en-IN')+'</div>'+
@@ -1107,6 +1123,16 @@ function goHome(){
 document.getElementById('brandHome').addEventListener('click', goHome);
 
 buildHome();
+
+// Deep link: ?track=<slug> (e.g. ?track=high-protein) opens straight to that track's plan page.
+(function(){
+  try{
+    var slug=new URLSearchParams(location.search).get('track');
+    if(!slug) return;
+    var c=CATS.find(function(x){ return x.slug===slug || x.key===slug; });
+    if(c) startWizard(c);
+  }catch(e){}
+})();
 /* ====================================================================================================== */
 
 steps[0].classList.add('active');

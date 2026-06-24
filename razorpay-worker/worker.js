@@ -13,11 +13,18 @@
  *   ALLOW_ORIGIN         (the site origin, e.g. https://order.nosh7.in). Defaults to "*".
  */
 
-// Authoritative price table (must match the front-end plan buttons).
-const PLANS = {
-  trial:   { price: 1250, units: 5 },
-  monthly: { price: 4999, units: 25 },
+// Authoritative price tables (must match the front-end CATS / ADDONS).
+// Price depends on the category + plan. Standard tracks share one price.
+const CATPRICE = {
+  fresh:      { monthly: 4999, trial: 1250 },
+  protein:    { monthly: 6999, trial: 1650 },
+  lowsugar:   { monthly: 4999, trial: 1250 },
+  weightloss: { monthly: 5974, trial: 1445 },
+  pcod:       { monthly: 4999, trial: 1250 },
+  fruit:      { monthly: 4999, trial: 1250 },
 };
+const UNITS = { monthly: 25, trial: 5 };
+const ADDON_PRICE = { fruit: 149, protein: 79, drink: 49 }; // per meal
 // Distance-fee constants (must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
 const FREE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
@@ -56,12 +63,21 @@ export default {
 
         // SERVER IS THE SOURCE OF TRUTH FOR PRICE.
         // We never trust an "amount" sent by the browser (it can be tampered).
-        // We recompute: plan price + distance fee, from the plan id and the
-        // delivery coordinates, using the same constants as the front-end.
-        const plan = PLANS[body.plan];
-        if (!plan) return json({ error: "invalid plan" }, 400);
+        // We recompute from the category + plan + which add-ons were chosen,
+        // using our own price tables, plus the distance fee from the coords.
+        const units = UNITS[body.plan];
+        if (!units) return json({ error: "invalid plan" }, 400);
+        // default to a standard track if category is missing (keeps old clients working)
+        const cat = CATPRICE[body.category] ? body.category : "fresh";
+        const base = CATPRICE[cat][body.plan];
+        if (!base) return json({ error: "invalid plan" }, 400);
+        // add-ons: trust only WHICH ones were picked, price them ourselves (per meal x units)
+        let addonPerMeal = 0;
+        if (Array.isArray(body.addons)) {
+          for (const k of body.addons) { if (ADDON_PRICE[k]) addonPerMeal += ADDON_PRICE[k]; }
+        }
         const feePerDelivery = distanceFeePerDelivery(body.lat, body.lng);
-        const rupees = plan.price + feePerDelivery * plan.units;
+        const rupees = base + addonPerMeal * units + feePerDelivery * units;
         if (!rupees || rupees < 1) return json({ error: "invalid amount" }, 400);
 
         const auth = "Basic " + btoa(env.RAZORPAY_KEY_ID + ":" + env.RAZORPAY_KEY_SECRET);

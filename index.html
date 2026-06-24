@@ -342,6 +342,30 @@
   .abox.on .aic{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
   .abox.on .tick{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
   .ahint{font-size:9.5px;color:var(--muted-2);margin:7px 2px 0;text-align:center;line-height:1.3;}
+
+  /* promo code (review page) */
+  .promo{flex:none;margin-top:16px;display:flex;flex-direction:column;gap:9px;}
+  .promo-chip{align-self:flex-start;background:var(--surface-2);border:1px dashed var(--accent-text);color:var(--accent-text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12px;padding:8px 13px;border-radius:10px;cursor:pointer;}
+  .promo-chip b{font-weight:800;letter-spacing:.6px;}
+  .promo-chip:active{transform:scale(.98);}
+  .promo-row{display:flex;gap:8px;}
+  .promo-input{flex:1;text-transform:uppercase;letter-spacing:1px;}
+  .promo-input::placeholder{letter-spacing:0;text-transform:none;}
+  .promo-apply{flex:none;border:0;border-radius:12px;padding:0 20px;background:var(--lime);color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  .promo-apply:active{transform:scale(.97);}
+  .promo-err{display:none;color:#e0726e;font-size:12px;font-weight:600;padding-left:2px;}
+  .promo-err.show{display:block;}
+  .promo-ok{display:none;align-items:center;gap:11px;background:var(--lime);color:#0c0f0b;border-radius:13px;padding:12px 14px;}
+  .promo-ok.show{display:flex;animation:promoPop .42s var(--ease) both, promoGlow .75s ease-out both;}
+  .promo-ok svg{width:23px;height:23px;flex:none;}
+  .promo-ok .chk-circle{stroke-dasharray:64;stroke-dashoffset:64;animation:promoDash .5s var(--ease) .1s forwards;}
+  .promo-ok .chk-tick{stroke-dasharray:22;stroke-dashoffset:22;animation:promoDash .3s var(--ease) .42s forwards;}
+  .promo-ok span{flex:1;font-size:13px;font-weight:600;line-height:1.3;}
+  .promo-ok span b{font-weight:800;}
+  .promo-remove{flex:none;background:rgba(0,0,0,.14);border:0;color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:11px;padding:6px 11px;border-radius:8px;cursor:pointer;}
+  @keyframes promoPop{0%{transform:scale(.9);opacity:0;}60%{transform:scale(1.03);}100%{transform:scale(1);opacity:1;}}
+  @keyframes promoGlow{0%{box-shadow:0 0 0 0 rgba(196,245,70,.55);}100%{box-shadow:0 0 0 16px rgba(196,245,70,0);}}
+  @keyframes promoDash{to{stroke-dashoffset:0;}}
 </style>
 </head>
 <body>
@@ -463,8 +487,21 @@
     <section class="step top" data-step="4">
       <div class="eyebrow">Review</div>
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
-      <div class="body" style="justify-content:flex-start;gap:0;">
+      <div class="body" style="justify-content:flex-start;gap:0;overflow-y:auto;min-height:0;">
         <div class="summary" id="summary"></div>
+        <div class="promo">
+          <button class="promo-chip" id="promoChip" type="button">Tap to use code <b>HEALTHY</b> &middot; flat Rs 150 off</button>
+          <div class="promo-row" id="promoRow">
+            <input class="field promo-input" id="f-promo" type="text" placeholder="Promo code" autocomplete="off" autocapitalize="characters" />
+            <button class="promo-apply" id="promoApply" type="button">Apply</button>
+          </div>
+          <div class="promo-err" id="promoErr"></div>
+          <div class="promo-ok" id="promoOk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0c0f0b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle class="chk-circle" cx="12" cy="12" r="10"/><path class="chk-tick" d="M7 12.5l3.2 3.2L17 9"/></svg>
+            <span>Code <b id="promoCodeLabel">HEALTHY</b> applied &middot; <b id="promoOffLabel">Rs 150 off</b></span>
+            <button class="promo-remove" id="promoRemove" type="button">Remove</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -542,7 +579,7 @@ const order = {
   date:"", dateLabel:"", note:"",
   name:"", phone:"",
   area:"", house:"", building:"", pincode:"", lat:null, lng:null, distanceKm:0, distanceFee:0,
-  addons:{}
+  addons:{}, promo:null, discount:0
 };
 
 const steps = [...document.querySelectorAll('.step')];
@@ -793,7 +830,7 @@ function validate(){ nextBtn.disabled = !stepValid(cur); }
 
 function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.price); return s; }
 function deliveryFeeTotal(){ return (order.distanceFee||0) * order.deliveries; }
-function grandTotal(){ return order.planPrice + addonsPerMeal()*order.deliveries + deliveryFeeTotal(); }
+function grandTotal(){ return Math.max(0, order.planPrice + addonsPerMeal()*order.deliveries + deliveryFeeTotal() - (order.discount||0)); }
 const rupee = n => "Rs "+n.toLocaleString('en-IN');
 function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.join(", "); }
 
@@ -809,12 +846,58 @@ function buildSummary(){
   if(order.distanceFee>0) rows.push(['Distance fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
   else rows.push(['Distance fee', '<span class="freetag">Free</span>'+(order.distanceKm? ' ('+order.distanceKm.toFixed(1)+' km)':''), '', true]);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
+  if(order.discount>0) rows.push(['Promo', order.promo+' applied', '−'+rupee(order.discount)]);
   if(order.note) rows.push(['Notes', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>{
     const val = r[3] ? r[1] : esc(r[1]);
     return '<div class="sline"><span class="k">'+r[0]+'</span><span class="v">'+val+(r[2]?' &nbsp;<em>'+r[2]+'</em>':'')+'</span></div>';
   }).join('');
 }
+
+/* ---- promo code ---- */
+const PROMOS = { HEALTHY: 150 };  // flat rupees off (must match worker PROMOS)
+function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandTotal()); }
+function applyPromo(raw){
+  const code = (raw||'').trim().toUpperCase();
+  const errEl = document.getElementById('promoErr');
+  if(!code) return;
+  if(PROMOS[code]){
+    order.promo = code; order.discount = PROMOS[code];
+    errEl.classList.remove('show');
+    document.getElementById('promoCodeLabel').textContent = code;
+    document.getElementById('promoOffLabel').textContent = rupee(PROMOS[code])+' off';
+    document.getElementById('promoChip').style.display = 'none';
+    document.getElementById('promoRow').style.display = 'none';
+    const ok = document.getElementById('promoOk');
+    ok.classList.remove('show'); void ok.offsetWidth; ok.classList.add('show');  // restart animation
+    reviewTotal(); haptic();
+  } else {
+    order.promo = null; order.discount = 0;
+    errEl.textContent = 'Invalid code. Try HEALTHY for Rs 150 off.';
+    errEl.classList.add('show');
+    reviewTotal();
+  }
+}
+function removePromo(){
+  order.promo = null; order.discount = 0;
+  document.getElementById('promoOk').classList.remove('show');
+  document.getElementById('promoChip').style.display = 'inline-block';
+  document.getElementById('promoRow').style.display = 'flex';
+  document.getElementById('f-promo').value = '';
+  reviewTotal();
+}
+function resetPromoUI(){
+  order.promo = null; order.discount = 0;
+  const ok=document.getElementById('promoOk'); if(ok) ok.classList.remove('show');
+  const chip=document.getElementById('promoChip'); if(chip) chip.style.display='inline-block';
+  const row=document.getElementById('promoRow'); if(row) row.style.display='flex';
+  const inp=document.getElementById('f-promo'); if(inp) inp.value='';
+  const err=document.getElementById('promoErr'); if(err) err.classList.remove('show');
+}
+document.getElementById('promoApply').addEventListener('click', ()=> applyPromo(document.getElementById('f-promo').value));
+document.getElementById('promoChip').addEventListener('click', ()=> applyPromo('HEALTHY'));
+document.getElementById('promoRemove').addEventListener('click', removePromo);
+document.getElementById('f-promo').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); applyPromo(e.target.value); } });
 
 function go(to){
   if(to===cur) return;
@@ -874,7 +957,7 @@ async function payRazorpay(amt){
   let rzpOrderId=null;
   if(CONFIG.RAZORPAY_ORDER_ENDPOINT){
     try{
-      const r=await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:order.plan,category:order.category,addons:Object.keys(order.addons),lat:order.lat,lng:order.lng,receipt:orderNo,name:order.name,phone:order.phone})});
+      const r=await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:order.plan,category:order.category,addons:Object.keys(order.addons),promo:order.promo||'',lat:order.lat,lng:order.lng,receipt:orderNo,name:order.name,phone:order.phone})});
       const d=await r.json(); rzpOrderId=d.id; if(!rzpOrderId) throw new Error(d.error||'no order id'); if(d.amount) amt=d.amount/100;
     }catch(e){ resetPayBtn(amt); alert('Could not start payment. Please try again.'); return; }
   }
@@ -925,6 +1008,7 @@ function sendOrder(status, reason){
     name:order.name, phone:order.phone, address:fullAddress(), house:order.house, building:order.building, area:order.area, pincode:order.pincode||"",
     lat:order.lat, lng:order.lng, distanceKm:order.distanceKm? order.distanceKm.toFixed(2):"", deliveryFeePerMeal:order.distanceFee||0, deliveryFeeTotal:deliveryFeeTotal(),
     addons:Object.values(order.addons).map(a=>a.label).join(", "),
+    promo:order.promo||"", discount:order.discount||0,
     instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
   };
   try{ fetch(CONFIG.ORDER_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }catch(e){}
@@ -1051,6 +1135,7 @@ function startWizard(c){
   order.batch=null; order.batchLabel=null;
   order.diet='regular'; order.dietLabel='Regular';
   order.addons={};
+  resetPromoUI();
   order.category=c.key; order.categoryName=c.name;
   document.querySelectorAll('#diet button').forEach(x=>x.classList.remove('on'));
   var reg=document.querySelector('#diet button[data-key="regular"]'); if(reg) reg.classList.add('on');

@@ -25,6 +25,7 @@ const CATPRICE = {
 };
 const UNITS = { monthly: 25, trial: 5 };
 const ADDON_PRICE = { fruit: 149, protein: 79, drink: 49 }; // per meal
+const PROMOS = { HEALTHY: 150 }; // flat rupees off (case-insensitive code -> discount)
 // Distance-fee constants (must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
 const FREE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
@@ -77,7 +78,10 @@ export default {
           for (const k of body.addons) { if (ADDON_PRICE[k]) addonPerMeal += ADDON_PRICE[k]; }
         }
         const feePerDelivery = distanceFeePerDelivery(body.lat, body.lng);
-        const rupees = base + addonPerMeal * units + feePerDelivery * units;
+        // promo: trust only the code, apply our own discount
+        const code = (body.promo || "").toString().trim().toUpperCase();
+        const discount = (code && PROMOS[code]) ? PROMOS[code] : 0;
+        const rupees = Math.max(1, base + addonPerMeal * units + feePerDelivery * units - discount);
         if (!rupees || rupees < 1) return json({ error: "invalid amount" }, 400);
 
         const auth = "Basic " + btoa(env.RAZORPAY_KEY_ID + ":" + env.RAZORPAY_KEY_SECRET);

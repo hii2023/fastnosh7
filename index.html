@@ -316,11 +316,12 @@
   section[data-step="2"] .addons-wrap{margin-top:0;}
   /* plan step: center the two plan cards in the available space */
   section[data-step="0"] .body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;gap:13px;}
-  section[data-step="0"] .benefits{gap:7px;margin-top:auto;}
+  section[data-step="0"] .benefits{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin-top:2px;}
+  section[data-step="0"] .benefit{flex:0 0 auto;padding:9px 14px;}
+  section[data-step="0"] .benefit .statnum{font-size:18px;}
+  section[data-step="0"] .benefit small{font-size:10.5px;line-height:1.1;}
+  section[data-step="0"] .plan:first-of-type{margin-top:auto;}
   section[data-step="0"] .plan:last-of-type{margin-bottom:auto;}
-  section[data-step="0"] .benefit{padding:10px 3px;}
-  section[data-step="0"] .benefit .statnum{font-size:15px;}
-  section[data-step="0"] .benefit small{font-size:9px;line-height:1.1;}
   /* small add-on boxes on the days step */
   .addons-wrap{flex:none;}
   .addons-wrap .label{margin-top:4px;}
@@ -448,7 +449,7 @@
           <div id="addr-picked" class="notebox picked"><span id="addr-picked-text"></span><button type="button" id="addr-clear" class="addr-clear">Clear</button></div>
           <div class="row2 addr-row">
             <div><div class="label">House / Flat no</div><input class="field" id="f-house" type="text" placeholder="e.g. B-204" /></div>
-            <div><div class="label">Building / Apartment</div><input class="field" id="f-building" type="text" placeholder="e.g. Akshat Avenue" /></div>
+            <div><div class="label">Building / Apartment</div><input class="field" id="f-building" type="text" placeholder="e.g. Shivalik Shilp" /></div>
           </div>
           <div class="row2">
             <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
@@ -983,10 +984,10 @@ const planNote = document.getElementById('planNote');
 
 const ICON = {
   fresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"/><path d="M5 16h14"/><path d="M12 4c-1.5 1.5-1.5 4 0 5"/><path d="M12 4c1.5 1.5 3.5 1.5 4.5 0"/></svg>',
-  protein:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><path d="M4 9l1.5-1.5L7 9 9 7 7 5 8.5 3.5"/><path d="M20 15l-1.5 1.5L17 15l-2 2 2 2-1.5 1.5"/><path d="M3 12l1 1"/><path d="M20 11l1 1"/></svg>',
+  protein:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.4 13a5 5 0 0 1 9.6 2c0 3.5-2.5 6-7.5 8h-8a4 4 0 0 1-4-3.5"/><path d="M15 14a5 5 0 0 0-7.6 2"/><path d="M10 6.8C8 8 9.5 13 8 15"/><path d="M17.5 5A3.5 3.5 0 0 0 14 9a8 8 0 0 0-6-1c0-2 .5-3 1.5-4"/></svg>',
   lowsugar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0C6.5 9 12 3 12 3Z"/><path d="M5 19 19 5"/></svg>',
-  pcod:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg>',
-  weightloss:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M17 7h4v4"/></svg>',
+  vegan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20C6 20 4 16 4 11c5 0 9 1 11 5"/><path d="M4 11C4 6 8 2 20 2c0 12-6 18-13 18"/></svg>',
+  weightloss:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8.5l-2.2 3.5"/><path d="M9.2 8.5h5.6"/></svg>',
   fruit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-2-3-7-2-7 3 0 5 4 9 7 9s7-4 7-9c0-5-5-6-7-3Z"/><path d="M12 7V4c0-1 1-2 2.5-2"/></svg>',
   drink:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1.4 16.2A2 2 0 0 1 14.6 21H9.4a2 2 0 0 1-2-1.8L6 3Z"/><path d="M6.5 8h11"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>'
@@ -997,7 +998,7 @@ const CATS = [
   {key:'protein',   slug:'high-protein',  name:'High Protein',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal'},
   {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true},
   {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:239, std:false, monthly:5974, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal'},
-  {key:'pcod',      slug:'pcod-pcos',     name:'PCOD / PCOS',     tag:'Hormone-friendly meals', fromMeal:200, std:true},
+  {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:200, std:true},
   {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New'}
 ];
 // 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
@@ -1006,7 +1007,7 @@ const BENEFITS = {
   protein:    [["40g","Protein"],["Build","Muscle"],["High","Fiber"],["Low","Carbs"]],
   lowsugar:   [["Low","GI"],["Sugar","Free"],["High","Fiber"],["Diabetic","Safe"]],
   weightloss: [["Low","Calorie"],["30g","Protein"],["High","Fiber"],["Low","Carbs"]],
-  pcod:       [["Low","GI"],["Hormone","Balance"],["High","Fiber"],["Low","Carbs"]],
+  vegan:      [["Plant","Based"],["High","Fiber"],["Iron","Rich"],["Dairy","Free"]],
   fruit:      [["Fresh","Fruit"],["Rich","Vitamins"],["Natural","Fiber"],["No","Sugar"]]
 };
 function plansFor(c){

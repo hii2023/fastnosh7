@@ -23,6 +23,7 @@
     --shadow:0 12px 28px rgba(70,90,30,.10);
     --glow:0 0 0 1px var(--accent-text), 0 10px 24px rgba(120,180,40,.18);
     --radius:16px; --ease:cubic-bezier(.22,1,.36,1);
+    --field-fill:#e8f0fe; --field-fill-line:#c6dafc;
   }
   html[data-theme="dark"]{
     --bg:#0c0f0b; --bg-2:#10140e; --surface:#161b13; --surface-2:#1c2218;
@@ -30,6 +31,7 @@
     --ink:#f2f6ea; --muted:#8b9683; --muted-2:#5c6657;
     --shadow:0 18px 40px rgba(0,0,0,.45);
     --glow:0 0 0 1px var(--lime), 0 12px 34px rgba(196,245,70,.16);
+    --field-fill:#1d2942; --field-fill-line:#37507e;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;height:100%;}
@@ -193,18 +195,21 @@
   /* inputs */
   .field, textarea.field{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:12px;padding:14px 15px;font-family:inherit;font-size:15px;color:var(--ink);transition:border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);}
   .field::placeholder,textarea.field::placeholder{color:var(--muted-2);}
+  /* filled fields get a soft blue background so completed entries stand out (focus overrides below) */
+  .field:not(:placeholder-shown){background:var(--field-fill);border-color:var(--field-fill-line);color:var(--ink);}
   textarea.field{resize:none;min-height:70px;}
   #f-address{min-height:120px;}
   /* optional instructions box looks different (not mandatory) */
   #f-note{background:transparent;border:1.5px dashed var(--muted-2);min-height:58px;}
   #f-note:focus{background:var(--surface-2);border-style:solid;}
   .field:focus,textarea.field:focus{outline:0;border-color:var(--accent-text);background:var(--surface);box-shadow:0 0 0 3px rgba(120,180,40,.18);}
-  /* keep typed/autofilled values in the theme colour instead of the browser's blue autofill style */
-  .field:-webkit-autofill,.field:-webkit-autofill:hover,.field:-webkit-autofill:focus,
-  textarea.field:-webkit-autofill,textarea.field:-webkit-autofill:hover,textarea.field:-webkit-autofill:focus{
+  /* autofilled values keep the same soft blue fill with readable theme text */
+  .field:-webkit-autofill,.field:-webkit-autofill:hover,
+  textarea.field:-webkit-autofill,textarea.field:-webkit-autofill:hover{
     -webkit-text-fill-color:var(--ink);caret-color:var(--ink);
-    -webkit-box-shadow:0 0 0 1000px var(--surface-2) inset;
-    box-shadow:0 0 0 1000px var(--surface-2) inset;
+    -webkit-box-shadow:0 0 0 1000px var(--field-fill) inset;
+    box-shadow:0 0 0 1000px var(--field-fill) inset;
+    border-color:var(--field-fill-line);
     transition:background-color 9999s ease-out 0s;
   }
   .field:-webkit-autofill:focus,textarea.field:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px var(--surface) inset,0 0 0 3px rgba(120,180,40,.18);box-shadow:0 0 0 1000px var(--surface) inset,0 0 0 3px rgba(120,180,40,.18);}
@@ -299,22 +304,22 @@
   .homescreen .lead h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;line-height:1.08;margin:0;letter-spacing:-1px;font-weight:700;}
   .homescreen .lead h1 .accent{color:var(--accent-text);}
   .homescreen .lead p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.4;}
-  .grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,minmax(min-content,1fr));gap:10px;flex:1;min-height:0;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:min-content;align-content:start;gap:10px;flex:1;min-height:0;}
   .card{position:relative;border:1px solid var(--line);background:var(--surface);border-radius:17px;padding:15px 15px 14px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;display:flex;flex-direction:column;gap:7px;overflow:hidden;transition:transform .18s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease);}
   .card:active{transform:scale(.985);}
   .card .ic{width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);}
   .card .ic svg{width:22px;height:22px;}
   .card .nm{font-size:17px;font-weight:700;letter-spacing:-.3px;line-height:1.12;}
   .card .tg{font-size:12px;color:var(--muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-  .card .cardfoot{margin-top:auto;}
+  .card .cardfoot{margin-top:7px;}
   .card .from{font-size:9px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:2px;}
   .card .pr{display:flex;align-items:baseline;gap:4px;}
-  .card .pr b{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--ink);}
+  .card .pr b{font-size:25px;font-weight:800;letter-spacing:-.5px;color:var(--ink);}
   .card .pr small{font-size:11px;color:var(--muted-2);font-weight:600;}
   .pill{position:absolute;top:11px;right:11px;background:var(--lime);color:#0c0f0b;font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:6px;}
   .pill.soft{background:var(--surface-2);color:var(--accent-text);border:1px solid var(--line);}
   .homescreen .foot{flex:none;margin:10px 2px 0;text-align:center;color:var(--muted-2);font-size:10.5px;}
-  .card[data-key="fruit"]{border-color:rgba(168,85,247,.40);background:linear-gradient(150deg, rgba(139,92,246,.16), rgba(239,68,68,.13));}
+  .card[data-key="fruit"]{border-color:rgba(245,158,11,.42);background:linear-gradient(150deg, rgba(245,158,11,.16), rgba(250,204,21,.11));}
   .card[data-key="fruit"] .ic{background:linear-gradient(135deg,#8b5cf6,#ef4444);border-color:transparent;color:#fff;}
   .card[data-key="fruit"] .pill{background:linear-gradient(135deg,#8b5cf6,#ef4444);color:#fff;border:0;}
 
@@ -1086,20 +1091,20 @@ const ICON = {
 };
 
 const CATS = [
-  {key:'fresh',     slug:'healthy-fresh', name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true, line:'Real food with complete nutrition, every single day'},
+  {key:'fresh',     slug:'healthy-fresh', name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true, pill:'Favourite', line:'Real food with complete nutrition, every single day'},
   {key:'protein',   slug:'high-protein',  name:'Protein Plus',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal', line:'Built for lean muscle and everyday strength'},
-  {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true, line:'Low-GI meals that keep your sugar steady'},
+  {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true, line:'Diabetic-friendly meals that keep sugar steady'},
   {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:240, std:false, monthly:5999, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal', line:'The best meal plan to lose weight, stay full'},
   {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:200, std:true, line:'100% plant-based, fully balanced nutrition'},
-  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New', line:'Fresh-cut seasonal fruit, naturally sweet'}
+  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, line:'Fresh-cut seasonal fruit, naturally sweet'}
 ];
 // 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
 const BENEFITS = {
   fresh:      [["~425","Calories"],["20g+","Protein"],["High","Fiber"],["Low","Carb"]],
-  protein:    [["~480","Calories"],["40g+","Protein"],["High","Fiber"],["Low-fat","Paneer"]],
-  lowsugar:   [["~400","Calories"],["15g+","Protein"],["High","Fiber"],["Low","GI"]],
-  weightloss: [["~350","Calories"],["30g+","Protein"],["High","Fiber"],["Low","Carb"]],
-  vegan:      [["~410","Calories"],["Plant","Protein"],["High","Fiber"],["Iron","Rich"]],
+  protein:    [["~575","Calories"],["40g+","Protein"],["High","Fiber"],["+100g","Low-fat paneer"]],
+  lowsugar:   [["~425","Calories"],["20g+","Protein"],["High","Fiber"],["Diabetic","Friendly"]],
+  weightloss: [["~500","Calories"],["30g+","Protein"],["High","Fiber"],["+50g","Low-fat paneer"]],
+  vegan:      [["~420","Calories"],["Plant","Protein"],["High","Fiber"],["Low","Carb"]],
   fruit:      [["~220","Calories"],["Rich","Vitamins"],["High","Fiber"],["No added","Sugar"]]
 };
 function plansFor(c){

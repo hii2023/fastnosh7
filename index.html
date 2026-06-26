@@ -124,15 +124,15 @@
   /* plan cards (graphic) */
   .plan{
     width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:20px;
-    padding:22px 20px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
-    display:flex;flex-direction:column;gap:12px;
+    padding:20px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
+    display:flex;flex-direction:column;gap:6px;
     transition:transform .2s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);
   }
   .plan:active{transform:scale(.99);}
   .plan-top{display:flex;align-items:center;justify-content:space-between;}
-  .plan-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.4px;display:flex;align-items:center;gap:9px;}
-  .plan-meals{font-size:13px;color:var(--muted);margin-top:3px;}
-  .plan-price{font-family:'Plus Jakarta Sans',sans-serif;font-size:46px;font-weight:700;letter-spacing:-2px;line-height:1;}
+  .plan-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:23px;font-weight:700;letter-spacing:-.4px;display:flex;align-items:center;gap:9px;}
+  .plan-meals{font-size:13px;color:var(--muted);margin-top:2px;}
+  .plan-price{font-family:'Plus Jakarta Sans',sans-serif;font-size:54px;font-weight:700;letter-spacing:-2px;line-height:1;margin-top:2px;}
   .plan-price em{font-size:19px;font-style:normal;color:var(--muted);font-weight:600;margin-right:4px;}
   .plan-foot{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted);}
   .plan .dot{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--muted-2);position:relative;transition:border-color .25s var(--ease);}
@@ -199,6 +199,15 @@
   #f-note{background:transparent;border:1.5px dashed var(--muted-2);min-height:58px;}
   #f-note:focus{background:var(--surface-2);border-style:solid;}
   .field:focus,textarea.field:focus{outline:0;border-color:var(--accent-text);background:var(--surface);box-shadow:0 0 0 3px rgba(120,180,40,.18);}
+  /* keep typed/autofilled values in the theme colour instead of the browser's blue autofill style */
+  .field:-webkit-autofill,.field:-webkit-autofill:hover,.field:-webkit-autofill:focus,
+  textarea.field:-webkit-autofill,textarea.field:-webkit-autofill:hover,textarea.field:-webkit-autofill:focus{
+    -webkit-text-fill-color:var(--ink);caret-color:var(--ink);
+    -webkit-box-shadow:0 0 0 1000px var(--surface-2) inset;
+    box-shadow:0 0 0 1000px var(--surface-2) inset;
+    transition:background-color 9999s ease-out 0s;
+  }
+  .field:-webkit-autofill:focus,textarea.field:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px var(--surface) inset,0 0 0 3px rgba(120,180,40,.18);box-shadow:0 0 0 1000px var(--surface) inset,0 0 0 3px rgba(120,180,40,.18);}
   .row2{display:flex;gap:10px;}
   .row2 > *{flex:1;}
   .row2.addr-row > *:first-child{flex:0 0 34%;}
@@ -284,7 +293,7 @@
   .app.home-mode .progress,.app.home-mode .steps,.app.home-mode .footer{display:none;}
   .app.home-mode .counter{display:none;}
 
-  .homescreen{display:none;flex-direction:column;flex:1;min-height:0;padding:6px 20px 14px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .homescreen{display:none;flex-direction:column;flex:1;min-height:0;padding:6px 20px 26px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .app.home-mode .homescreen{display:flex;}
   .homescreen .lead{margin:6px 2px 12px;flex:none;}
   .homescreen .lead h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;line-height:1.08;margin:0;letter-spacing:-1px;font-weight:700;}
@@ -298,9 +307,9 @@
   .card .nm{font-size:17px;font-weight:700;letter-spacing:-.3px;line-height:1.12;}
   .card .tg{font-size:12px;color:var(--muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
   .card .cardfoot{margin-top:auto;}
-  .card .from{font-size:9px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:4px;}
+  .card .from{font-size:9px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:2px;}
   .card .pr{display:flex;align-items:baseline;gap:4px;}
-  .card .pr b{font-size:18px;font-weight:800;letter-spacing:-.5px;color:var(--ink);}
+  .card .pr b{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--ink);}
   .card .pr small{font-size:11px;color:var(--muted-2);font-weight:600;}
   .pill{position:absolute;top:11px;right:11px;background:var(--lime);color:#0c0f0b;font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:6px;}
   .pill.soft{background:var(--surface-2);color:var(--accent-text);border:1px solid var(--line);}
@@ -918,7 +927,7 @@ function go(to){
 function refreshFooter(){
   nextBtn.style.display='none'; payBtn.style.display='none'; payHint.style.display='none';
   msgBtn.style.display='none'; restartBtn.style.display='none';
-  backBtn.style.display = (cur>0 && cur<CONFIRM) ? 'block':'none';
+  backBtn.style.display = (cur<CONFIRM) ? 'block':'none';
   if(cur===REVIEW){
     buildSummary();
     payBtn.textContent = 'Pay '+rupee(grandTotal()); payBtn.style.display='flex';
@@ -934,7 +943,7 @@ function refreshFooter(){
 }
 
 nextBtn.addEventListener('click', ()=>{ if(stepValid(cur)) go(cur+1); });
-backBtn.addEventListener('click', ()=> go(Math.max(0,cur-1)) );
+backBtn.addEventListener('click', ()=>{ if(cur===0){ goHome(); haptic(); } else { go(cur-1); } });
 
 /* ---- payment ---- */
 payBtn.addEventListener('click', ()=>{
@@ -1077,21 +1086,21 @@ const ICON = {
 };
 
 const CATS = [
-  {key:'fresh',     slug:'healthy-fresh', name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true},
-  {key:'protein',   slug:'high-protein',  name:'High Protein',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal'},
-  {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true},
-  {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:239, std:false, monthly:5974, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal'},
-  {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:200, std:true},
-  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New'}
+  {key:'fresh',     slug:'healthy-fresh', name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true, line:'Real food with complete nutrition, every single day'},
+  {key:'protein',   slug:'high-protein',  name:'Protein Plus',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal', line:'Built for lean muscle and everyday strength'},
+  {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true, line:'Low-GI meals that keep your sugar steady'},
+  {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:240, std:false, monthly:5999, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal', line:'The best meal plan to lose weight, stay full'},
+  {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:200, std:true, line:'100% plant-based, fully balanced nutrition'},
+  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New', line:'Fresh-cut seasonal fruit, naturally sweet'}
 ];
 // 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
 const BENEFITS = {
-  fresh:      [["280-380","Calories"],["20g+","Protein"],["High","Fiber"],["High","Energy"]],
-  protein:    [["40g","Protein"],["Lean","Muscle"],["Low","Carbs"],["High","Fiber"]],
-  lowsugar:   [["Low","GI"],["No","Added sugar"],["High","Fiber"],["Diabetic","Safe"]],
-  weightloss: [["Low","Calorie"],["30g","Protein"],["High","Fiber"],["Low","Carbs"]],
-  vegan:      [["100%","Plant"],["Plant","Protein"],["Iron","Rich"],["High","Fiber"]],
-  fruit:      [["Fresh","Fruit"],["Rich","Vitamins"],["High","Fiber"],["Natural","Energy"]]
+  fresh:      [["~425","Calories"],["20g+","Protein"],["High","Fiber"],["Low","Carb"]],
+  protein:    [["~480","Calories"],["40g+","Protein"],["High","Fiber"],["Low-fat","Paneer"]],
+  lowsugar:   [["~400","Calories"],["15g+","Protein"],["High","Fiber"],["Low","GI"]],
+  weightloss: [["~350","Calories"],["30g+","Protein"],["High","Fiber"],["Low","Carb"]],
+  vegan:      [["~410","Calories"],["Plant","Protein"],["High","Fiber"],["Iron","Rich"]],
+  fruit:      [["~220","Calories"],["Rich","Vitamins"],["High","Fiber"],["No added","Sugar"]]
 };
 function plansFor(c){
   var moPer=c.fromMeal, wkPer=c.wkMeal||(c.fromMeal+50);
@@ -1101,7 +1110,7 @@ function plansFor(c){
 }
 const ADDONS=[
   {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:149, icon:ICON.fruit},
-  {key:'protein', name:'20g+ Protein', label:'Extra protein (20g+)',price:79,  icon:ICON.protein},
+  {key:'protein', name:'Low-fat Paneer', label:'Low-fat paneer (20g+ protein)',price:79,  icon:ICON.protein},
   {key:'drink',   name:'Healthy drink', label:'Healthy drink',       price:49,  icon:ICON.drink}
 ];
 function addonsFor(c){
@@ -1153,7 +1162,7 @@ function startWizard(c){
 function buildPlanStep(c){
   var p=plansFor(c);
   planEyebrow.textContent=c.name;
-  planNote.textContent=c.note||'Pick weekly or monthly.';
+  planNote.textContent=c.line||c.note||'Pick weekly or monthly.';
   var bens=(BENEFITS[c.key]||[]).map(function(b){ return '<div class="benefit"><b class="statnum">'+b[0]+'</b><small>'+b[1]+'</small></div>'; }).join('');
   planBody.innerHTML=
     (bens?'<div class="benefits">'+bens+'</div>':'')+

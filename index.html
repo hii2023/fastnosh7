@@ -56,8 +56,11 @@
   .brand .mark b{color:var(--accent-text);}
   .brand .tag{font-size:8.5px;font-weight:600;letter-spacing:1.4px;color:var(--muted-2);text-transform:uppercase;margin-top:2px;}
   .rightbar{display:flex;align-items:center;gap:10px;}
-  .themebtn{background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:8px;cursor:pointer;}
+  .themebtn{background:var(--surface-2);border:1px solid var(--line);color:var(--muted);padding:7px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:0;}
+  .themebtn svg{width:17px;height:17px;display:block;}
   .themebtn:active{transform:scale(.96);}
+  .vegmark{display:inline-flex;align-items:center;line-height:0;}
+  .vegmark svg{width:21px;height:21px;display:block;}
   .counter{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:13px;color:var(--muted);letter-spacing:1px;}
   .counter b{color:var(--accent-text);}
 
@@ -319,7 +322,7 @@
   .pill{position:absolute;top:11px;right:11px;background:var(--lime);color:#0c0f0b;font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:6px;}
   .pill.soft{background:var(--surface-2);color:var(--accent-text);border:1px solid var(--line);}
   .homescreen .foot{flex:none;margin:10px 2px 0;text-align:center;color:var(--muted-2);font-size:10.5px;}
-  .card[data-key="fruit"]{border-color:rgba(245,158,11,.42);background:linear-gradient(150deg, rgba(245,158,11,.16), rgba(250,204,21,.11));}
+  /* fruit card matches the other cards; only its icon keeps the distinct colour */
   .card[data-key="fruit"] .ic{background:linear-gradient(135deg,#8b5cf6,#ef4444);border-color:transparent;color:#fff;}
   .card[data-key="fruit"] .pill{background:linear-gradient(135deg,#8b5cf6,#ef4444);color:#fff;border:0;}
 
@@ -402,7 +405,10 @@
       <span class="bx"><span class="mark">NOSH<b>7</b></span><span class="tag">Eat healthy, feel great</span></span>
     </div>
     <div class="rightbar">
-      <button class="themebtn" id="themebtn" type="button">Dark</button>
+      <button class="themebtn" id="themebtn" type="button" aria-label="Toggle theme"></button>
+      <span class="vegmark" role="img" aria-label="Pure Vegetarian" title="Pure Veg">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="2.5" width="19" height="19" rx="3.5" fill="none" stroke="#1a7d33" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#1a7d33"/></svg>
+      </span>
       <div class="counter"><b id="cstep">01</b> / 05</div>
     </div>
   </div>
@@ -1055,9 +1061,12 @@ function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
 /* ---- theme ---- */
 const themeBtn=document.getElementById('themebtn');
 const themeColorMeta=document.querySelector('meta[name="theme-color"]');
+// sun shows in dark mode (tap to go light); moon shows in light mode (tap to go dark)
+const SUN_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 function setTheme(t){
-  if(t==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeBtn.textContent='Light'; themeColorMeta.setAttribute('content','#0c0f0b'); }
-  else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent='Dark'; themeColorMeta.setAttribute('content','#f4f7ee'); }
+  if(t==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeBtn.innerHTML=SUN_ICON; themeColorMeta.setAttribute('content','#0c0f0b'); }
+  else { document.documentElement.removeAttribute('data-theme'); themeBtn.innerHTML=MOON_ICON; themeColorMeta.setAttribute('content','#f4f7ee'); }
   localStorage.setItem('nosh7_theme', t);
 }
 setTheme(localStorage.getItem('nosh7_theme') || 'dark');
@@ -1100,7 +1109,7 @@ const ICON = {
 
 const CATS = [
   {key:'fresh',     slug:'healthy-fresh', name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true, pill:'Favourite', line:'Real food with complete nutrition, every single day'},
-  {key:'protein',   slug:'high-protein',  name:'Protein Plus',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal', line:'Built for lean muscle and everyday strength'},
+  {key:'protein',   slug:'high-protein',  name:'Muscle Gain',     tag:'High-protein meals, 40g+ per meal for muscle gain', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal', line:'High-protein plan built for muscle gain and strength'},
   {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true, line:'Diabetic-friendly meals that keep sugar steady'},
   {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:240, std:false, monthly:5999, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal', line:'The best meal plan to lose weight, stay full'},
   {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:200, std:true, line:'100% plant-based, fully balanced nutrition'},
@@ -1109,9 +1118,9 @@ const CATS = [
 // 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
 const BENEFITS = {
   fresh:      [["~425","Calories"],["20g+","Protein"],["High","Fiber"],["Low","Carb"]],
-  protein:    [["~575","Calories"],["40g+","Protein"],["High","Fiber"],["+100g","Low-fat paneer"]],
+  protein:    [["~575","Calories"],["40g+","Protein"],["High","Fiber"],["Low-fat","Paneer"]],
   lowsugar:   [["~425","Calories"],["20g+","Protein"],["High","Fiber"],["Diabetic","Friendly"]],
-  weightloss: [["~500","Calories"],["30g+","Protein"],["High","Fiber"],["+50g","Low-fat paneer"]],
+  weightloss: [["~500","Calories"],["30g+","Protein"],["High","Fiber"],["Low","Carb"]],
   vegan:      [["~420","Calories"],["Plant","Protein"],["High","Fiber"],["Low","Carb"]],
   fruit:      [["~220","Calories"],["Rich","Vitamins"],["High","Fiber"],["No added","Sugar"]]
 };
@@ -1123,7 +1132,7 @@ function plansFor(c){
 }
 const ADDONS=[
   {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:149, icon:ICON.fruit},
-  {key:'protein', name:'Low-fat Paneer', label:'Low-fat paneer (20g+ protein)',price:79,  icon:ICON.protein},
+  {key:'protein', name:'Low-fat Paneer', label:'Low-fat paneer (20g+ protein)',price:80,  icon:ICON.protein},
   {key:'drink',   name:'Healthy drink', label:'Healthy drink',       price:49,  icon:ICON.drink}
 ];
 function addonsFor(c){

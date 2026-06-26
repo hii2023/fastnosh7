@@ -1179,8 +1179,17 @@ function startWizard(c){
   steps[0].classList.add('active');
   cur=0; bar.style.width='0%'; cstep.textContent='01';
   refreshFooter(); haptic();
+  requestAnimationFrame(function(){ fitOneLine(planNote, 13, 10.5); });
 }
 
+// shrink a one-line label's font until it fits on a single line (down to a floor, then allow wrap)
+function fitOneLine(el, max, min){
+  el.style.whiteSpace='nowrap';
+  var fs=max; el.style.fontSize=fs+'px';
+  while(el.scrollWidth>el.clientWidth && fs>min){ fs-=0.5; el.style.fontSize=fs+'px'; }
+  if(el.scrollWidth>el.clientWidth){ el.style.whiteSpace='normal'; }
+}
+window.addEventListener('resize', function(){ if(cur===0 && CURCAT) fitOneLine(planNote, 13, 10.5); });
 function buildPlanStep(c){
   var p=plansFor(c);
   planEyebrow.textContent=c.name;

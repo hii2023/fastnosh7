@@ -528,7 +528,7 @@
           <div class="ordlabel">Order number</div>
           <div class="ordno" id="c-orderno">NOSH-000000</div>
         </div>
-        <p class="note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly. If your address is beyond 5 KM of Iscon Cross Roads, our team will call about a small distance fee (Rs 10 / KM).<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
+        <p class="note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly.<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
       </div>
     </section>
 
@@ -539,7 +539,7 @@
     <button class="cta" id="pay" style="display:none">Pay</button>
     <div class="hint" id="payhint" style="display:none"></div>
     <button class="cta" id="msg" style="display:none">Message us on WhatsApp</button>
-    <button class="cta ghost" id="restart" style="display:none">Place another order</button>
+    <button class="cta ghost" id="restart" style="display:none">Share with Friends &amp; Family</button>
     <button class="back" id="back" style="display:none">Back</button>
   </div>
 </div>
@@ -1036,7 +1036,15 @@ msgBtn.addEventListener('click', ()=>{
   if(order.note) lines.push("Notes: "+order.note);
   window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');
 });
-restartBtn.addEventListener('click', ()=> location.reload());
+restartBtn.addEventListener('click', ()=>{
+  var url="https://start.nosh7.in";
+  var msg="I just subscribed to Nosh7 fresh healthy meals and love it! 🌱 Eat healthy, feel great, pick a plan here: "+url;
+  if(navigator.share){
+    navigator.share({title:'Nosh7 Healthy Meals', text:msg, url:url}).catch(function(){});
+  } else {
+    window.open("https://wa.me/?text="+encodeURIComponent(msg), '_blank');
+  }
+});
 
 function saveOrder(){
   try{ const all=JSON.parse(localStorage.getItem('nosh7_orders')||'[]'); all.push({orderNo,total:grandTotal(),at:new Date().toISOString(),...order}); localStorage.setItem('nosh7_orders',JSON.stringify(all)); }catch(e){}

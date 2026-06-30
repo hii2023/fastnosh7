@@ -25,7 +25,7 @@ const CATPRICE = {
 };
 const UNITS = { monthly: 25, trial: 5 };
 const ADDON_PRICE = { fruit: 149, protein: 80, drink: 49 }; // per meal
-const PROMOS = { HEALTHY: 150 }; // flat rupees off (case-insensitive code -> discount)
+const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } }; // rupees off per plan (must match index.html PROMOS)
 // Distance-fee constants (must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
 const FREE_KM_LIMIT = 5.2, BASE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
@@ -78,9 +78,9 @@ export default {
           for (const k of body.addons) { if (ADDON_PRICE[k]) addonPerMeal += ADDON_PRICE[k]; }
         }
         const feePerDelivery = distanceFeePerDelivery(body.lat, body.lng);
-        // promo: trust only the code, apply our own discount
+        // promo: trust only the code, apply our own per-plan discount
         const code = (body.promo || "").toString().trim().toUpperCase();
-        const discount = (code && PROMOS[code]) ? PROMOS[code] : 0;
+        const discount = (code && PROMOS[code]) ? (PROMOS[code][body.plan] || 0) : 0;
         const rupees = Math.max(1, base + addonPerMeal * units + feePerDelivery * units - discount);
         if (!rupees || rupees < 1) return json({ error: "invalid amount" }, 400);
 

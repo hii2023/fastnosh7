@@ -851,11 +851,12 @@ function validate(){ nextBtn.disabled = !stepValid(cur); }
 
 function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.price); return s; }
 function deliveryFeeTotal(){ return (order.distanceFee||0) * order.deliveries; }
-function grandTotal(){ return Math.max(0, order.planPrice + addonsPerMeal()*order.deliveries + deliveryFeeTotal() - (order.discount||0)); }
+function grandTotal(){ return Math.max(0, order.planPrice + addonsPerMeal()*order.deliveries + deliveryFeeTotal() - promoDiscount()); }
 const rupee = n => "Rs "+n.toLocaleString('en-IN');
 function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.join(", "); }
 
 function buildSummary(){
+  refreshPromoLabels();
   const rows=[];
   rows.push(['Plan', order.planLabel + (order.deliveries? ', '+rupee(Math.round(order.planPrice/order.deliveries))+' x '+order.deliveries : ''), rupee(order.planPrice)]);
   rows.push(['Slot', order.batchLabel, '']);
@@ -867,7 +868,7 @@ function buildSummary(){
   if(order.distanceFee>0) rows.push(['Distance fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
   else rows.push(['Distance fee', '<span class="freetag">Free</span>'+(order.distanceKm? ' ('+order.distanceKm.toFixed(1)+' km)':''), '', true]);
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
-  if(order.discount>0) rows.push(['Promo', order.promo+' applied', '−'+rupee(order.discount)]);
+  if(promoDiscount()>0) rows.push(['Promo', order.promo+' applied', '−'+rupee(promoDiscount())]);
   if(order.note) rows.push(['Notes', order.note, '']);
   document.getElementById('summary').innerHTML = rows.map(r=>{
     const val = r[3] ? r[1] : esc(r[1]);
@@ -876,31 +877,42 @@ function buildSummary(){
 }
 
 /* ---- promo code ---- */
-const PROMOS = { HEALTHY: 150 };  // flat rupees off (must match worker PROMOS)
+const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } };  // rupees off per plan (must match worker PROMOS)
+// discount for the currently selected code + plan (recomputed live so switching plans stays correct)
+function promoDiscount(){ const p = PROMOS[order.promo]; return p ? (p[order.plan] || 0) : 0; }
+function promoOffFor(plan){ const p = PROMOS.HEALTHY; return p ? (p[plan] || 0) : 0; }
 function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandTotal()); }
+// keep the promo chip + applied label showing the right amount for the selected plan
+function refreshPromoLabels(){
+  const chip = document.getElementById('promoChip');
+  if(chip) chip.innerHTML = 'Tap to use code <b>HEALTHY</b> &middot; Rs '+promoOffFor(order.plan)+' off';
+  if(order.promo && promoDiscount()>0){
+    const off=document.getElementById('promoOffLabel'); if(off) off.textContent = rupee(promoDiscount())+' off';
+  }
+}
 function applyPromo(raw){
   const code = (raw||'').trim().toUpperCase();
   const errEl = document.getElementById('promoErr');
   if(!code) return;
   if(PROMOS[code]){
-    order.promo = code; order.discount = PROMOS[code];
+    order.promo = code;
     errEl.classList.remove('show');
     document.getElementById('promoCodeLabel').textContent = code;
-    document.getElementById('promoOffLabel').textContent = rupee(PROMOS[code])+' off';
+    document.getElementById('promoOffLabel').textContent = rupee(promoDiscount())+' off';
     document.getElementById('promoChip').style.display = 'none';
     document.getElementById('promoRow').style.display = 'none';
     const ok = document.getElementById('promoOk');
     ok.classList.remove('show'); void ok.offsetWidth; ok.classList.add('show');  // restart animation
     reviewTotal(); haptic();
   } else {
-    order.promo = null; order.discount = 0;
-    errEl.textContent = 'Invalid code. Try HEALTHY for Rs 150 off.';
+    order.promo = null;
+    errEl.textContent = 'Invalid code. Try HEALTHY.';
     errEl.classList.add('show');
     reviewTotal();
   }
 }
 function removePromo(){
-  order.promo = null; order.discount = 0;
+  order.promo = null;
   document.getElementById('promoOk').classList.remove('show');
   document.getElementById('promoChip').style.display = 'inline-block';
   document.getElementById('promoRow').style.display = 'flex';
@@ -908,7 +920,7 @@ function removePromo(){
   reviewTotal();
 }
 function resetPromoUI(){
-  order.promo = null; order.discount = 0;
+  order.promo = null;
   const ok=document.getElementById('promoOk'); if(ok) ok.classList.remove('show');
   const chip=document.getElementById('promoChip'); if(chip) chip.style.display='inline-block';
   const row=document.getElementById('promoRow'); if(row) row.style.display='flex';
@@ -1029,7 +1041,7 @@ function sendOrder(status, reason){
     name:order.name, phone:order.phone, address:fullAddress(), house:order.house, building:order.building, area:order.area, pincode:order.pincode||"",
     lat:order.lat, lng:order.lng, distanceKm:order.distanceKm? order.distanceKm.toFixed(2):"", deliveryFeePerMeal:order.distanceFee||0, deliveryFeeTotal:deliveryFeeTotal(),
     addons:Object.values(order.addons).map(a=>a.label).join(", "),
-    promo:order.promo||"", discount:order.discount||0,
+    promo:order.promo||"", discount:promoDiscount(),
     instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
   };
   try{ fetch(CONFIG.ORDER_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }catch(e){}

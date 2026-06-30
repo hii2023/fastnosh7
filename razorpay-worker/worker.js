@@ -19,16 +19,16 @@ const CATPRICE = {
   fresh:      { monthly: 4999, trial: 1250 },
   protein:    { monthly: 6999, trial: 1650 },
   lowsugar:   { monthly: 4999, trial: 1250 },
-  weightloss: { monthly: 5974, trial: 1445 },
+  weightloss: { monthly: 5999, trial: 1445 },
   pcod:       { monthly: 4999, trial: 1250 },
   fruit:      { monthly: 4999, trial: 1250 },
 };
 const UNITS = { monthly: 25, trial: 5 };
-const ADDON_PRICE = { fruit: 149, protein: 79, drink: 49 }; // per meal
+const ADDON_PRICE = { fruit: 149, protein: 80, drink: 49 }; // per meal
 const PROMOS = { HEALTHY: 150 }; // flat rupees off (case-insensitive code -> discount)
 // Distance-fee constants (must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
-const FREE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
+const FREE_KM_LIMIT = 5.2, BASE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
 
 function haversineKm(la1, lo1, la2, lo2) {
   const R = 6371, toR = (x) => (x * Math.PI) / 180;
@@ -36,11 +36,11 @@ function haversineKm(la1, lo1, la2, lo2) {
   const a = Math.sin(dLa / 2) ** 2 + Math.cos(toR(la1)) * Math.cos(toR(la2)) * Math.sin(dLo / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
-// Rupees per delivery; 0 within the free radius. Same floor rounding as the app.
+// Rupees per delivery; free up to 5.2 km, else Rs 10 per started km beyond 5. Same logic as the app.
 function distanceFeePerDelivery(lat, lng) {
   if (lat == null || lng == null || isNaN(Number(lat)) || isNaN(Number(lng))) return 0;
   const km = haversineKm(BASE_LAT, BASE_LNG, Number(lat), Number(lng)) * ROAD_FACTOR;
-  return Math.max(0, Math.floor(km) - FREE_KM) * PER_KM_FEE;
+  return (km <= FREE_KM_LIMIT) ? 0 : Math.max(0, Math.ceil(km - BASE_KM - 1e-9)) * PER_KM_FEE;
 }
 
 export default {

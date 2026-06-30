@@ -843,7 +843,7 @@ function stepValid(i){
     case 0: return !!order.plan;
     case 1: return !!order.batch;
     case 2: return order.days.length>=1;
-    case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && (order.house||'').length>0;
+    case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && (order.house||'').length>0 && (order.building||'').length>0;
     default: return true;
   }
 }

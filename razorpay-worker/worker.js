@@ -20,7 +20,7 @@ const CATPRICE = {
   protein:    { monthly: 6999, trial: 1650 },
   lowsugar:   { monthly: 4999, trial: 1250 },
   weightloss: { monthly: 5999, trial: 1445 },
-  pcod:       { monthly: 4999, trial: 1250 },
+  vegan:      { monthly: 5975, trial: 1445 },
   fruit:      { monthly: 4999, trial: 1250 },
 };
 const UNITS = { monthly: 25, trial: 5 };
@@ -77,6 +77,10 @@ export default {
         if (Array.isArray(body.addons)) {
           for (const k of body.addons) { if (ADDON_PRICE[k]) addonPerMeal += ADDON_PRICE[k]; }
         }
+        // coords are mandatory: without them the distance fee cannot be charged,
+        // and a tampered client could omit them to dodge the fee entirely
+        if (body.lat == null || body.lng == null || isNaN(Number(body.lat)) || isNaN(Number(body.lng)))
+          return json({ error: "missing delivery location" }, 400);
         const feePerDelivery = distanceFeePerDelivery(body.lat, body.lng);
         // promo: trust only the code, apply our own per-plan discount
         const code = (body.promo || "").toString().trim().toUpperCase();

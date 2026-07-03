@@ -483,6 +483,7 @@
             <input class="field" id="f-search" type="text" placeholder="Society, area, road, landmark" autocomplete="off" />
             <div id="ac-dropdown" class="ac-dropdown"></div>
           </div>
+          <div id="pickhint" class="notebox" style="display:none;margin-top:8px;">Please tap your address in the suggestions, or use your current location, so we can check your delivery distance.</div>
           <button class="locbtn" id="useloc" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
             Use my current location
@@ -700,8 +701,9 @@ document.getElementById('f-building').addEventListener('input', e=>{ order.build
 let gPlaces=null, gAcToken=null, acTimer=null;
 document.getElementById('f-search').addEventListener('input', e=>{
   order.area=e.target.value.trim(); order.lat=null; order.lng=null;  // typing = not a confirmed point yet
+  document.getElementById('addr-picked').style.display='none';       // old picked point no longer valid
   if(order.area) document.getElementById('addr-extra').classList.add('show');
-  computeDistanceFee(); validate();
+  computeDistanceFee(); validate(); updatePickHint();
   clearTimeout(acTimer);
   if(!gPlaces || order.area.length<3){ hideAcDropdown(); return; }
   acTimer=setTimeout(()=>fetchSuggestions(order.area), 250);
@@ -777,12 +779,19 @@ function computeDistanceFee(){
     el.innerHTML='<svg class="gift-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.1L20 10l-6.3 1.9L12 18l-1.7-6.1L4 10l6.3-1.9z"/></svg><b>Free delivery</b><br><small>you are within our free delivery zone</small>';
   }
 }
+// the address step needs a CONFIRMED map point (order.lat) before Review,
+// otherwise the distance fee cannot be calculated and far orders slip through free
+function updatePickHint(){
+  const h=document.getElementById('pickhint'); if(!h) return;
+  h.style.display = (order.lat==null && (order.area||'').length>=3) ? 'block' : 'none';
+}
 function setSelectedAddress(addr, lat, lng){
   order.area=addr; order.lat=lat; order.lng=lng;
   document.getElementById('addr-picked-text').textContent=addr;
+  document.getElementById('addr-picked').style.display='flex';
   document.getElementById('addr-extra').classList.add('show');
   computeDistanceFee();
-  validate();
+  validate(); updatePickHint();
   hideAcDropdown();
   setTimeout(()=>{ const h=document.getElementById('f-house'); if(h && !h.value){ h.focus(); } }, 120);
   // if the picked place had no pincode (broad area), reverse-geocode the point to get it
@@ -799,7 +808,7 @@ document.getElementById('addr-clear').addEventListener('click', ()=>{
   const s=document.getElementById('f-search'); s.value='';
   document.getElementById('addr-picked-text').textContent='';
   document.getElementById('addr-extra').classList.remove('show');
-  computeDistanceFee(); validate(); hideAcDropdown(); s.focus();
+  computeDistanceFee(); validate(); updatePickHint(); hideAcDropdown(); s.focus();
 });
 
 document.getElementById('useloc').addEventListener('click', ()=>{
@@ -843,7 +852,7 @@ function stepValid(i){
     case 0: return !!order.plan;
     case 1: return !!order.batch;
     case 2: return order.days.length>=1;
-    case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && (order.house||'').length>0 && (order.building||'').length>0;
+    case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && order.lat!=null && (order.house||'').length>0 && (order.building||'').length>0;
     default: return true;
   }
 }
@@ -1125,7 +1134,7 @@ const CATS = [
   {key:'protein',   slug:'high-protein',  name:'Muscle Gain',     tag:'High-protein meals, 40g+ per meal for muscle gain', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal', line:'High-protein plan built for muscle gain and strength'},
   {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true, line:'Diabetic-friendly meals that keep sugar steady'},
   {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:240, std:false, monthly:5999, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal', line:'The best meal plan to lose weight, stay full'},
-  {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:200, std:true, line:'100% plant-based, fully balanced nutrition'},
+  {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:239, std:false, monthly:5975, weekly:1445, wkMeal:289, line:'100% plant-based, fully balanced nutrition'},
   {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, line:'Fresh-cut seasonal fruit, naturally sweet'}
 ];
 // 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.

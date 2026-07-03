@@ -383,6 +383,43 @@
   @keyframes promoPop{0%{transform:scale(.9);opacity:0;}60%{transform:scale(1.03);}100%{transform:scale(1);opacity:1;}}
   @keyframes promoGlow{0%{box-shadow:0 0 0 0 rgba(196,245,70,.55);}100%{box-shadow:0 0 0 16px rgba(196,245,70,0);}}
   @keyframes promoDash{to{stroke-dashoffset:0;}}
+
+  /* ============== desktop (web) layout: split screen, mobile untouched ============== */
+  .deskpanel{display:none;}
+  @media (min-width:900px) and (min-height:560px){
+    body{align-items:center;justify-content:center;gap:70px;padding:0 56px;}
+    .deskpanel{
+      display:flex;flex-direction:column;justify-content:center;gap:36px;
+      width:min(460px,38vw);flex:none;
+    }
+    .deskpanel .dp-brand{display:flex;align-items:center;gap:11px;}
+    .deskpanel .dp-brand .logo{width:46px;height:46px;}
+    .deskpanel .dp-brand .logo svg{width:100%;height:100%;display:block;}
+    .deskpanel .dp-brand .mark{font-weight:700;font-size:23px;letter-spacing:-.5px;}
+    .deskpanel .dp-brand .mark b{color:var(--accent-text);}
+    .deskpanel h2{margin:0;font-size:42px;line-height:1.08;letter-spacing:-1.6px;font-weight:800;}
+    .deskpanel h2 .accent{color:var(--accent-text);}
+    .deskpanel .dp-sub{margin:14px 0 0;color:var(--muted);font-size:16px;line-height:1.55;max-width:400px;}
+    .deskpanel .dp-benefits{display:flex;flex-direction:column;gap:14px;}
+    .deskpanel .dp-benefit{display:flex;align-items:center;gap:15px;}
+    .deskpanel .dp-benefit .bic{
+      width:46px;height:46px;flex:none;border-radius:13px;display:grid;place-items:center;
+      background:var(--surface-2);border:1px solid var(--line);color:var(--accent-text);
+    }
+    .deskpanel .dp-benefit .bic svg{width:23px;height:23px;}
+    .deskpanel .dp-benefit .bt{display:flex;flex-direction:column;gap:2px;}
+    .deskpanel .dp-benefit .bt b{font-size:15.5px;font-weight:700;}
+    .deskpanel .dp-benefit .bt small{font-size:12.5px;color:var(--muted);}
+    .app{
+      flex:none;height:min(860px,94dvh);border-radius:26px;
+      border:1px solid var(--line);box-shadow:var(--shadow);
+    }
+    /* pointer polish: hover states (touch devices never see these) */
+    .card:hover{transform:translateY(-2px);border-color:var(--accent-text);}
+    .plan:hover,.opt:hover,.day:hover,.abox:hover,.dcard:hover{border-color:var(--accent-text);}
+    .cta:hover:not([disabled]){filter:brightness(1.05);}
+    .promo-chip:hover,.locbtn:hover{border-color:var(--accent-text);}
+  }
 </style>
 </head>
 <body>
@@ -391,6 +428,40 @@
   <button id="iaopen" type="button">Open</button>
   <button id="iaclose" type="button">Later</button>
 </div>
+<!-- desktop-only brand panel (display:none on mobile, no JS involved) -->
+<aside class="deskpanel">
+  <div class="dp-brand">
+    <span class="logo" aria-label="Nosh7 logo"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="lgdp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2fb6a3"/><stop offset=".55" stop-color="#5cbf57"/><stop offset="1" stop-color="#9ad13f"/></linearGradient></defs>
+      <circle cx="50" cy="50" r="45" fill="none" stroke="url(#lgdp)" stroke-width="7"/>
+      <path d="M50 26c-9 7-14 15-14 24 0 10 6 17 14 24 8-7 14-14 14-24 0-9-5-17-14-24z" fill="none" stroke="url(#lgdp)" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M50 36v28M42 46c2 3 5 5 8 6M58 46c-2 3-5 5-8 6" fill="none" stroke="url(#lgdp)" stroke-width="5" stroke-linecap="round"/>
+    </svg></span>
+    <span class="mark">NOSH<b>7</b></span>
+  </div>
+  <div>
+    <h2>Healthy meals,<br/>cooked <span class="accent">fresh daily</span></h2>
+    <p class="dp-sub">Pick your meal track, choose a plan and slot, and we deliver fresh to your door across Ahmedabad.</p>
+  </div>
+  <div class="dp-benefits">
+    <div class="dp-benefit">
+      <span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20C6 20 4 16 4 11c5 0 9 1 11 5"/><path d="M4 11C4 6 8 2 20 2c0 12-6 18-13 18"/></svg></span>
+      <span class="bt"><b>Cooked fresh every morning</b><small>prepared daily in our Ahmedabad kitchen, never frozen</small></span>
+    </div>
+    <div class="dp-benefit">
+      <span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v7a6 6 0 0 0 12 0V4"/><path d="M4 4h4M16 4h4M12 17v4M8 21h8"/></svg></span>
+      <span class="bt"><b>High protein, fully balanced</b><small>20g+ protein in every meal, high fiber, low carb</small></span>
+    </div>
+    <div class="dp-benefit">
+      <span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg></span>
+      <span class="bt"><b>Free delivery within 5 km</b><small>small per-km charge beyond that, shown before you pay</small></span>
+    </div>
+    <div class="dp-benefit">
+      <span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span>
+      <span class="bt"><b>Regular and Jain options</b><small>pick your preference while ordering, no extra cost</small></span>
+    </div>
+  </div>
+</aside>
 <div class="app home-mode">
   <div class="topbar">
     <div class="brand" id="brandHome">

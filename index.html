@@ -386,8 +386,27 @@
 
   /* ============== desktop (web) layout: split screen, mobile untouched ============== */
   .deskpanel{display:none;}
+  .doodles{display:none;}
   @media (min-width:900px) and (min-height:560px){
-    body{align-items:center;justify-content:center;gap:70px;padding:0 56px;}
+    body{
+      align-items:center;justify-content:center;gap:64px;padding:0 56px;
+      background:
+        radial-gradient(55% 75% at 88% 12%, rgba(120,180,40,.10), transparent 62%),
+        radial-gradient(45% 65% at 8% 88%, rgba(120,180,40,.07), transparent 60%),
+        var(--bg);
+    }
+    /* hand-drawn veggie doodles floating around the page (behind everything) */
+    .doodles{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;color:var(--accent-text);}
+    .doodles svg{position:absolute;opacity:.11;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+    .dd1{top:5%;left:3%;width:74px;transform:rotate(-14deg);}
+    .dd2{top:8%;right:4%;width:64px;transform:rotate(12deg);}
+    .dd3{bottom:7%;left:6%;width:66px;transform:rotate(9deg);}
+    .dd4{bottom:9%;right:3.5%;width:78px;transform:rotate(-10deg);}
+    .dd5{top:44%;left:1.5%;width:56px;transform:rotate(18deg);}
+    .dd6{top:40%;right:1.5%;width:58px;transform:rotate(-16deg);}
+    .dd7{top:3%;left:44%;width:60px;transform:rotate(7deg);}
+    .dd8{bottom:3%;left:47%;width:54px;transform:rotate(-8deg);}
+    .deskpanel,.app{position:relative;z-index:1;}
     .deskpanel{
       display:flex;flex-direction:column;justify-content:center;gap:36px;
       width:min(460px,38vw);flex:none;
@@ -411,9 +430,16 @@
     .deskpanel .dp-benefit .bt b{font-size:15.5px;font-weight:700;}
     .deskpanel .dp-benefit .bt small{font-size:12.5px;color:var(--muted);}
     .app{
-      flex:none;height:min(860px,94dvh);border-radius:26px;
+      flex:none;width:min(640px,47vw);max-width:none;height:min(860px,94dvh);border-radius:26px;
       border:1px solid var(--line);box-shadow:var(--shadow);
     }
+    /* wider app: home tracks fit 3 across so the space is used */
+    .grid{grid-template-columns:repeat(3,1fr);}
+    /* plan step: the two plans sit side by side instead of stacking */
+    section[data-step="0"] .body{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center;}
+    section[data-step="0"] .benefits{grid-column:1/-1;}
+    section[data-step="0"] .plan:first-of-type{margin-top:0;}
+    section[data-step="0"] .plan:last-of-type{margin-bottom:0;}
     /* pointer polish: hover states (touch devices never see these) */
     .card:hover{transform:translateY(-2px);border-color:var(--accent-text);}
     .plan:hover,.opt:hover,.day:hover,.abox:hover,.dcard:hover{border-color:var(--accent-text);}
@@ -427,6 +453,17 @@
   <span>For smooth payment, open in your browser</span>
   <button id="iaopen" type="button">Open</button>
   <button id="iaclose" type="button">Later</button>
+</div>
+<!-- desktop-only veggie doodles (display:none on mobile, purely decorative) -->
+<div class="doodles" aria-hidden="true">
+  <svg class="dd1" viewBox="0 0 64 64"><path d="M24 26 C20 34 16 46 14 54 C22 50 34 44 40 38 C46 32 44 24 38 22 C32 20 27 21 24 26 Z"/><path d="M40 22 C42 16 44 12 48 8 M42 24 C47 21 52 19 57 18 M38 20 C38 14 39 10 40 6"/><path d="M27 32 L33 34 M23 40 L29 42 M19 48 L24 50"/></svg>
+  <svg class="dd2" viewBox="0 0 64 64"><circle cx="32" cy="36" r="20"/><path d="M32 16 C30 12 28 9 25 7 M32 16 C34 11 37 8 41 7 M32 16 C28 15 24 15 21 17 M32 16 C36 15 40 15 43 17 M32 16 L32 22"/></svg>
+  <svg class="dd3" viewBox="0 0 64 64"><path d="M32 58 C32 40 32 24 32 8"/><path d="M32 46 C24 46 16 42 12 34 C20 33 28 36 32 42 M32 32 C40 32 48 28 52 20 C44 19 36 22 32 28 M32 20 C26 19 21 15 19 9 C25 10 30 13 32 17"/></svg>
+  <svg class="dd4" viewBox="0 0 64 64"><path d="M10 34 C10 46 20 54 32 54 C44 54 54 46 54 34 Z"/><path d="M14 34 C22 30 28 30 32 33 C38 29 46 29 50 34"/><path d="M24 24 C22 20 24 16 22 12 M34 24 C32 20 34 16 32 12 M44 24 C42 20 44 16 42 12"/></svg>
+  <svg class="dd5" viewBox="0 0 64 64"><path d="M12 44 C18 28 32 16 52 12 C50 32 38 48 20 52 C16 53 13 50 12 44 Z"/><circle cx="26" cy="40" r="4.5"/><circle cx="34" cy="31" r="4.5"/><circle cx="42" cy="22" r="4.5"/></svg>
+  <svg class="dd6" viewBox="0 0 64 64"><path d="M28 40 C20 40 14 34 16 27 C12 22 16 14 23 14 C25 8 33 6 38 10 C45 8 51 14 49 21 C53 26 49 34 42 34 L40 40"/><path d="M28 40 L26 54 C29 56 35 56 38 54 L36 40"/><path d="M32 34 L32 26 M26 32 L24 26 M38 32 L40 27"/></svg>
+  <svg class="dd7" viewBox="0 0 64 64"><path d="M32 6 C40 14 52 24 52 38 C52 49 43 58 32 58 C21 58 12 49 12 38 C12 24 24 14 32 6 Z"/><circle cx="32" cy="40" r="9"/></svg>
+  <svg class="dd8" viewBox="0 0 64 64"><path d="M20 28 C12 34 12 46 20 50 C28 54 40 52 44 44 C48 36 42 26 32 26 C27 26 23 26 20 28 Z"/><path d="M34 50 C36 54 38 57 42 60"/><path d="M30 26 C28 20 28 14 30 8 M36 26 C37 20 40 15 44 12 M26 27 C22 22 20 17 20 12"/></svg>
 </div>
 <!-- desktop-only brand panel (display:none on mobile, no JS involved) -->
 <aside class="deskpanel">

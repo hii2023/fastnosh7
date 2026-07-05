@@ -450,6 +450,34 @@
     .cta:hover:not([disabled]){filter:brightness(1.05);}
     .promo-chip:hover,.locbtn:hover{border-color:var(--accent-text);}
   }
+  /* shorter laptop screens: compact the left panel so the page never scrolls */
+  @media (min-width:900px) and (min-height:560px) and (max-height:820px){
+    body{gap:44px;}
+    .deskpanel{gap:20px;}
+    .deskpanel .dp-brand .logo{width:38px;height:38px;}
+    .deskpanel .dp-brand .mark{font-size:19px;}
+    .deskpanel h2{font-size:31px;letter-spacing:-1.2px;}
+    .deskpanel .dp-sub{font-size:13.5px;margin-top:9px;}
+    .deskpanel .dp-benefits{gap:9px;}
+    .deskpanel .dp-benefit{gap:12px;}
+    .deskpanel .dp-benefit .bic{width:38px;height:38px;border-radius:11px;}
+    .deskpanel .dp-benefit .bic svg{width:19px;height:19px;}
+    .deskpanel .dp-benefit .bt b{font-size:13.5px;}
+    .deskpanel .dp-benefit .bt small{font-size:11.5px;}
+    .dp-plan{padding:10px 14px;min-width:210px;border-radius:12px;}
+    .dp-plan b{font-size:14.5px;}
+    .dp-plan span{font-size:12.5px;}
+    /* compact the app steps too so no step ever needs internal scrolling */
+    .step h1{font-size:25px;margin-bottom:8px;}
+    section[data-step="1"] .opt{padding:11px 16px;}
+    section[data-step="1"] .opt .idx{width:40px;height:40px;font-size:16px;}
+    section[data-step="1"] .opt .txt b{font-size:16px;}
+    section[data-step="1"] .body{gap:9px;}
+    .plan{padding:16px;}
+    .plan-price{font-size:44px;}
+    .day{padding:11px 0;font-size:14.5px;}
+    .dcard{padding:10px 0;}
+  }
 </style>
 </head>
 <body>
@@ -1398,12 +1426,22 @@ function dpAccentName(name){
   var last=parts.pop();
   return esc(parts.join(' '))+'<br/><span class="accent">'+esc(last)+'</span>';
 }
+// per-track benefit rows for the desktop panel: bold line + friendly subline
+const DP_DESC={
+  fresh:[["~425 calories per meal","portioned right for lunch or dinner"],["20g+ protein","keeps you full and energetic all day"],["High fiber","good digestion, steady energy"],["Low carb","no post-meal heaviness"]],
+  protein:[["~575 calories per meal","fuel for training and recovery days"],["40g+ protein per meal","built for muscle gain and strength"],["High fiber","clean and filling, never heavy"],["Low-fat paneer","lean protein in every meal"]],
+  lowsugar:[["~425 calories per meal","light, balanced portions"],["20g+ protein","steady energy without sugar spikes"],["High fiber","slows down sugar absorption"],["Diabetic friendly","low GI, no added sugar"]],
+  weightloss:[["~500 calories per meal","stay full while eating fewer calories"],["30g+ protein","protects muscle while you lose fat"],["High fiber","keeps hunger away for longer"],["Low carb","lighter meals, better results"]],
+  vegan:[["~420 calories per meal","fully plant-based nutrition"],["Plant protein","dal, soya, beans and nuts"],["High fiber","naturally rich, easy on digestion"],["100% dairy free","no milk, no paneer, no ghee"]],
+  fruit:[["~220 calories per bowl","light, fresh and refreshing"],["Rich in vitamins","fresh-cut seasonal fruit every day"],["High fiber","natural digestion support"],["No added sugar","only the fruit's own sweetness"]]
+};
 function dpShowTrack(c){
   if(!dpHead) return;
   dpHead.innerHTML=dpAccentName(c.name);
   dpSub.textContent=c.line||c.tag;
-  dpBens.innerHTML=(BENEFITS[c.key]||[]).map(function(b){
-    return '<div class="dp-benefit"><span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span><span class="bt"><b>'+esc(b[0]+' '+b[1])+'</b></span></div>';
+  var rows=DP_DESC[c.key]||(BENEFITS[c.key]||[]).map(function(b){ return [b[0]+' '+b[1],'']; });
+  dpBens.innerHTML=rows.map(function(r){
+    return '<div class="dp-benefit"><span class="bic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span><span class="bt"><b>'+esc(r[0])+'</b>'+(r[1]?'<small>'+esc(r[1])+'</small>':'')+'</span></div>';
   }).join('');
   dpShowPlan();
 }

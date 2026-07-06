@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /order-collector.gs
+Disallow: /razorpay-worker/

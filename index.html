@@ -11,7 +11,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" media="(min-width:900px) and (min-height:560px)" />
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
   /* ============================================================
@@ -503,39 +502,6 @@
     .dcard{padding:10px 0;}
   }
 
-  /* ============== desktop brand theme: warm cream + terracotta, serif body (web only) ============== */
-  @media (min-width:900px) and (min-height:560px){
-    :root{
-      --bg:#faf9f5; --bg-2:#f0eee6; --surface:#ffffff; --surface-2:#f5f3ec;
-      --line:#e8e6dc; --lime:#d97757; --accent-text:#b8552f;
-      --ink:#141413; --muted:#5f5e58; --muted-2:#b0aea5;
-      --shadow:0 14px 30px rgba(20,20,19,.08);
-      --glow:0 0 0 1px #d97757, 0 10px 24px rgba(217,119,87,.20);
-      --field-fill:#f0eee6; --field-fill-line:#d9d6c8;
-    }
-    :root[data-theme="dark"]{
-      --bg:#141413; --bg-2:#191917; --surface:#201f1d; --surface-2:#282723;
-      --line:#3a3833; --lime:#d97757; --accent-text:#d97757;
-      --ink:#faf9f5; --muted:#b0aea5; --muted-2:#6f6d66;
-      --shadow:0 18px 40px rgba(0,0,0,.5);
-      --glow:0 0 0 1px #d97757, 0 12px 34px rgba(217,119,87,.22);
-      --field-fill:#2b2a26; --field-fill-line:#4a4840;
-    }
-    body{
-      background:
-        radial-gradient(55% 75% at 88% 12%, rgba(217,119,87,.10), transparent 62%),
-        radial-gradient(45% 65% at 8% 88%, rgba(120,140,93,.08), transparent 60%),
-        var(--bg);
-    }
-    .app{background:radial-gradient(120% 50% at 100% 0%, rgba(217,119,87,.07), transparent 60%),linear-gradient(180deg,var(--bg-2),var(--bg) 26%);}
-    /* typography: Poppins for headings and prices, Lora for supporting copy */
-    .deskpanel h2{font-family:'Poppins',Arial,sans-serif;font-weight:700;}
-    .step h1,.homescreen .lead h1,.hero h1,.hero h2{font-family:'Poppins',Arial,sans-serif;font-weight:700;}
-    .plan-price{font-family:'Poppins',Arial,sans-serif;font-weight:700;letter-spacing:-1px;}
-    .deskpanel .dp-sub,.homescreen .lead p,.sub,.tg,.plan-meals,.notebox,.deskpanel .dp-benefit .bt small,.dp-secure,.ahint,.speccap{font-family:'Lora',Georgia,serif;}
-    /* accent cycling: green for the free-delivery note (keeps its dark text for contrast) */
-    .notebox.gift{background:#a3b58a;border-color:#a3b58a;}
-  }
 </style>
 </head>
 <body>

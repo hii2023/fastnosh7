@@ -14,6 +14,16 @@
  *   4. From the editor function dropdown pick "setupSheet" and click Run.
  *      (Reorders + reformats existing rows; keeps all your data.)
  *
+ * WHATSAPP ORDER ALERTS via CallMeBot (optional, free):
+ *   1. On the owner phone (9712989498) save +34 644 44 21 48 as a contact and
+ *      send it this WhatsApp message: "I allow callmebot to send me messages".
+ *      It replies with your personal apikey within a couple of minutes.
+ *   2. Script Properties > add:
+ *        CALLMEBOT_APIKEY = (the key from step 1)
+ *        OWNER_WHATSAPP   = 919712989498
+ *   3. Deploy a new version. Every paid order now also pings the owner phone.
+ *      Run "testWhatsAppAlert" from the editor dropdown to send a test message.
+ *
  * UPDATING (when this code changes):
  *   Paste new code > Save > Deploy > Manage deployments > edit (pencil) >
  *   Version: New version > Deploy. The /exec URL stays the same.
@@ -125,6 +135,9 @@ function doPost(e) {
     var row = headerKeys.map(function (k) { return data[k] !== undefined ? data[k] : ""; });
     sheet.appendRow(row);
 
+    // WhatsApp alert to the owner. Isolated so an alert failure can never lose an order.
+    try { sendWhatsAppAlert_(data); } catch (waErr) { /* order is already saved; ignore */ }
+
     return ContentService.createTextOutput(JSON.stringify({ ok: true }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
@@ -138,6 +151,65 @@ function doPost(e) {
 // Opening the /exec URL in a browser confirms it is deployed.
 function doGet() {
   return ContentService.createTextOutput("Nosh7 order collector is live.");
+}
+
+// ---- WhatsApp owner alert (CallMeBot) ----
+// Sends one message per real order (paid or UPI-submitted, never failed) to the
+// owner phone. Needs Script Properties CALLMEBOT_APIKEY + OWNER_WHATSAPP.
+function sendWhatsAppAlert_(data) {
+  var status = String(data.status || "");
+  if (status !== "paid" && status !== "submitted") return;
+
+  var props  = PropertiesService.getScriptProperties();
+  var apikey = props.getProperty("CALLMEBOT_APIKEY");
+  var phone  = props.getProperty("OWNER_WHATSAPP");
+  if (!apikey || !phone) return;   // alerts not configured; sheet still works
+
+  var payLine;
+  if (status === "paid") {
+    payLine = (data.verified === "yes")
+      ? "Rs " + data.total + "  PAID (verified)"
+      : "Rs " + data.total + "  PAID but UNVERIFIED, check the sheet";
+  } else {
+    payLine = "Rs " + data.total + "  UPI submitted, confirm payment manually";
+  }
+
+  var lines = [
+    "NEW ORDER " + (data.orderNo || ""),
+    (data.name || "") + " | " + (data.phone || ""),
+    (data.plan || "") + (data.addons ? " + " + data.addons : ""),
+    payLine,
+    "Slot: " + (data.slot || "") + " | Start: " + (data.startDate || ""),
+    "Days: " + (data.days || "") + " | " + (data.preference || ""),
+    "Addr: " + (data.address || "") + (data.pincode ? " (" + data.pincode + ")" : "")
+  ];
+  if (data.distanceKm) {
+    lines.push("Distance: " + data.distanceKm + " km" +
+      (Number(data.deliveryFeeTotal) > 0 ? " | Fee Rs " + data.deliveryFeeTotal : " | Free zone"));
+  }
+  if (data.lat && data.lng) lines.push("https://www.google.com/maps?q=" + data.lat + "," + data.lng);
+  if (data.instructions) lines.push("Note: " + data.instructions);
+
+  var url = "https://api.callmebot.com/whatsapp.php" +
+    "?phone="  + encodeURIComponent(phone) +
+    "&apikey=" + encodeURIComponent(apikey) +
+    "&text="   + encodeURIComponent(lines.join("\n"));
+  UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+}
+
+// Run this from the editor dropdown after setting the Script Properties:
+// it sends a sample order alert to the owner phone so you can verify the setup.
+function testWhatsAppAlert() {
+  sendWhatsAppAlert_({
+    status: "paid", verified: "yes", orderNo: "NOSH-TEST01",
+    name: "Test Customer", phone: "9999999999",
+    plan: "Healthy Fresh Monthly", addons: "Healthy drink",
+    total: 6224, slot: "Lunch 11:30 AM to 1:30 PM", startDate: "Mon, 7 Jul",
+    days: "Mon to Sat", preference: "Regular",
+    address: "B-204, Shivalik Shilp, Iscon Cross Road", pincode: "380015",
+    distanceKm: "6.40", deliveryFeeTotal: 250, lat: 23.03, lng: 72.51,
+    instructions: "Call on arrival"
+  });
 }
 
 // ===========================================================================

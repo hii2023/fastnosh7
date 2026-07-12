@@ -1191,6 +1191,7 @@ async function payRazorpay(amt){
     theme:{color:"#bdec4f"},
     modal:{ondismiss:function(){ resetPayBtn(amt); }},
     handler:async function(resp){
+      window.__n7PayOpen=false;
       if(CONFIG.RAZORPAY_VERIFY_ENDPOINT && rzpOrderId){
         try{
           const v=await fetch(CONFIG.RAZORPAY_VERIFY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:resp.razorpay_order_id,razorpay_payment_id:resp.razorpay_payment_id,razorpay_signature:resp.razorpay_signature,orderNo})});
@@ -1203,6 +1204,7 @@ async function payRazorpay(amt){
     }
   };
   if(rzpOrderId) opts.order_id=rzpOrderId;
+  window.__n7PayOpen=true;   // pause the back-guard while the Razorpay sheet is up
   const rzp=new Razorpay(opts);
   rzp.on('payment.failed', function(resp){
     const reason=(resp && resp.error && resp.error.description) || "payment failed or cancelled";
@@ -1212,7 +1214,7 @@ async function payRazorpay(amt){
   });
   rzp.open();
 }
-function resetPayBtn(amt){ payBtn.disabled=false; payBtn.textContent='Pay '+rupee(amt); }
+function resetPayBtn(amt){ window.__n7PayOpen=false; payBtn.disabled=false; payBtn.textContent='Pay '+rupee(amt); }
 
 function showConfirm(status){
   document.getElementById('c-name').textContent=(order.name? order.name+',':'')+' you are set';
@@ -1510,6 +1512,83 @@ buildHome();
 steps[0].classList.add('active');
 bar.style.width='0%';
 refreshFooter();
+</script>
+<script>
+/* Browser-back guard: the phone back button steps BACK inside the funnel instead of
+   exiting the site; on the home screen it asks "Leave this site?" first. Armed only
+   when the visitor arrived from off-site (ads, WhatsApp, nosh7.in, direct), which is
+   how everyone reaches start.nosh7.in. Paused while the Razorpay sheet is open. */
+(function(){
+  'use strict';
+  var refHost=''; try{ if(document.referrer) refHost=new URL(document.referrer).host; }catch(e){}
+  if(refHost && refHost===location.host) return;   // in-site arrival: never interrupt
+
+  var leaving=false, wrap=null, lastFocus=null;
+  var reduce=false; try{ reduce=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+  var st=document.createElement('style');
+  st.textContent=
+    '.n7lv-backdrop{position:fixed;inset:0;z-index:400;background:rgba(5,8,4,.6);display:flex;align-items:center;justify-content:center;padding:22px;'+(reduce?'':'animation:n7lvFade .18s ease;')+'}'+
+    '.n7lv-modal{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;max-width:330px;width:100%;padding:22px 20px 18px;box-shadow:var(--shadow);'+(reduce?'':'animation:n7lvPop .22s var(--ease);')+'}'+
+    '.n7lv-modal h2{margin:0 0 6px;font-size:19px;letter-spacing:-.4px;}'+
+    '.n7lv-modal p{margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.5;}'+
+    '.n7lv-row{display:flex;gap:9px;}'+
+    '.n7lv-row button{flex:1;padding:12px 0;border-radius:11px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}'+
+    '.n7lv-stay{border:0;background:var(--lime);color:#0c0f0b;}'+
+    '.n7lv-go{border:1.5px solid var(--line);background:transparent;color:var(--muted);}'+
+    '.n7lv-stay:focus-visible,.n7lv-go:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px;}'+
+    '@keyframes n7lvFade{from{opacity:0}to{opacity:1}}'+
+    '@keyframes n7lvPop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}';
+  document.head.appendChild(st);
+
+  history.pushState({},'');
+
+  window.addEventListener('popstate', function(){
+    if(leaving) return;
+    history.pushState({},'');               // hold position
+    if(window.__n7PayOpen) return;          // Razorpay sheet handles its own back
+    if(wrap) return;                        // modal already up
+    if(!app.classList.contains('home-mode')){
+      if(cur===CONFIRM){ showModal(); }     // order placed: do not step back into payment
+      else if(cur===0){ goHome(); haptic(); }
+      else { go(cur-1); haptic(); }         // back inside the funnel, never out
+    } else {
+      showModal();
+    }
+  });
+
+  function showModal(){
+    lastFocus=document.activeElement;
+    wrap=document.createElement('div');
+    wrap.className='n7lv-backdrop';
+    wrap.innerHTML=
+      '<div class="n7lv-modal" role="dialog" aria-modal="true" aria-labelledby="n7lvTitle">'+
+        '<h2 id="n7lvTitle">Leave this site?</h2>'+
+        '<p>Your fresh healthy meals are just a few taps away.</p>'+
+        '<div class="n7lv-row">'+
+          '<button type="button" class="n7lv-stay">Stay</button>'+
+          '<button type="button" class="n7lv-go">Leave</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(wrap);
+    var stay=wrap.querySelector('.n7lv-stay'), go2=wrap.querySelector('.n7lv-go');
+    function close(){
+      if(!wrap) return;
+      wrap.remove(); wrap=null;
+      document.removeEventListener('keydown', onKey, true);
+      if(lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    function onKey(e){
+      if(e.key==='Escape'){ e.preventDefault(); close(); }
+      else if(e.key==='Tab'){ e.preventDefault(); (document.activeElement===stay?go2:stay).focus(); }
+    }
+    stay.addEventListener('click', close);
+    go2.addEventListener('click', function(){ leaving=true; close(); history.go(-2); });
+    wrap.addEventListener('click', function(e){ if(e.target===wrap) close(); });
+    document.addEventListener('keydown', onKey, true);
+    stay.focus();
+  }
+})();
 </script>
 </body>
 </html>

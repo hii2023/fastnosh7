@@ -1541,10 +1541,16 @@ refreshFooter();
     '@keyframes n7lvPop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}';
   document.head.appendChild(st);
 
-  history.pushState({},'');
+  // Arm on the FIRST user touch, not on load: Chrome marks history entries added
+  // without user activation as "skippable" and the back button ignores them.
+  var armed=false;
+  function arm(){ if(armed) return; armed=true; history.pushState({},''); }
+  ['pointerdown','touchstart','keydown'].forEach(function(t){
+    document.addEventListener(t, arm, {once:true, capture:true, passive:true});
+  });
 
   window.addEventListener('popstate', function(){
-    if(leaving) return;
+    if(leaving || !armed) return;
     history.pushState({},'');               // hold position
     if(window.__n7PayOpen) return;          // Razorpay sheet handles its own back
     if(wrap) return;                        // modal already up

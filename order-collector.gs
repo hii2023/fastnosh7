@@ -133,10 +133,32 @@ function doPost(e) {
     }
 
     var row = headerKeys.map(function (k) { return data[k] !== undefined ? data[k] : ""; });
-    sheet.appendRow(row);
 
-    // WhatsApp alert to the owner. Isolated so an alert failure can never lose an order.
-    try { sendWhatsAppAlert_(data); } catch (waErr) { /* order is already saved; ignore */ }
+    // De-dupe by Order No: if this order number already has a row, UPDATE it in place
+    // instead of appending a second one. The client may legitimately send the same order
+    // more than once (sendBeacon + fetch fallback, a retry, or the same order arriving
+    // both from the browser and a future server path), and we want exactly one row per
+    // order, with the latest data winning.
+    var isNew = true;
+    var noCol = headerKeys.indexOf("orderNo"); // 0-based
+    if (noCol >= 0 && data.orderNo) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow >= 2) {
+        var existing = sheet.getRange(2, noCol + 1, lastRow - 1, 1).getValues();
+        for (var r = 0; r < existing.length; r++) {
+          if (String(existing[r][0]) === String(data.orderNo)) {
+            sheet.getRange(r + 2, 1, 1, row.length).setValues([row]);
+            isNew = false;
+            break;
+          }
+        }
+      }
+    }
+    if (isNew) sheet.appendRow(row);
+
+    // WhatsApp alert to the owner. Only for genuinely new orders (never re-alert on an
+    // update). Isolated so an alert failure can never lose an order.
+    if (isNew) { try { sendWhatsAppAlert_(data); } catch (waErr) { /* order is already saved; ignore */ } }
 
     return ContentService.createTextOutput(JSON.stringify({ ok: true }))
       .setMimeType(ContentService.MimeType.JSON);

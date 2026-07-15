@@ -1192,15 +1192,22 @@ async function payRazorpay(amt){
     modal:{ondismiss:function(){ resetPayBtn(amt); }},
     handler:async function(resp){
       window.__n7PayOpen=false;
+      // The payment has ALREADY succeeded here (Razorpay only calls this on success),
+      // so we record + confirm the order no matter what. The verify step below only
+      // decides whether we can attach a signed ticket: if it passes, the sheet marks the
+      // row "verified"; if it hiccups (network/timeout) the row is saved as UNVERIFIED so
+      // the owner can double-check it against Razorpay. A verify hiccup must NEVER drop a
+      // paid order (that was the NOSH-878390 bug: money taken, nothing saved).
+      order.paymentId=resp.razorpay_payment_id;
+      order.orderTicket="";
       if(CONFIG.RAZORPAY_VERIFY_ENDPOINT && rzpOrderId){
         try{
           const v=await fetch(CONFIG.RAZORPAY_VERIFY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:resp.razorpay_order_id,razorpay_payment_id:resp.razorpay_payment_id,razorpay_signature:resp.razorpay_signature,orderNo})});
           const vd=await v.json();
-          if(!vd.valid){ resetPayBtn(amt); alert('Payment could not be verified. Please contact us on WhatsApp.'); return; }
-          order.orderTicket = vd.ticket || "";   // signed proof the order sheet can trust
-        }catch(e){ resetPayBtn(amt); alert('Verification error. Please contact us on WhatsApp.'); return; }
+          if(vd && vd.valid) order.orderTicket = vd.ticket || "";   // signed proof the order sheet can trust
+        }catch(e){ /* verify unreachable: still save the paid order, unverified */ }
       }
-      order.paymentId=resp.razorpay_payment_id; saveOrder(); showConfirm('paid');
+      saveOrder(); showConfirm('paid');
     }
   };
   if(rzpOrderId) opts.order_id=rzpOrderId;
@@ -1235,7 +1242,18 @@ function sendOrder(status, reason){
     promo:order.promo||"", discount:promoDiscount(),
     instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
   };
-  try{ fetch(CONFIG.ORDER_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }catch(e){}
+  const body=JSON.stringify(payload);
+  // sendBeacon is built for exactly this: it hands the request to the OS and it goes
+  // through even if the page navigates/closes right after (WhatsApp/Instagram in-app
+  // browsers drop plain fetches). Fall back to keepalive fetch if beacon is unavailable
+  // or refuses the payload.
+  try{
+    if(navigator.sendBeacon){
+      const blob=new Blob([body],{type:'text/plain;charset=utf-8'});
+      if(navigator.sendBeacon(CONFIG.ORDER_WEBHOOK, blob)) return;
+    }
+  }catch(e){}
+  try{ fetch(CONFIG.ORDER_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body}); }catch(e){}
 }
 
 msgBtn.addEventListener('click', ()=>{

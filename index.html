@@ -455,8 +455,10 @@
       flex:none;width:min(640px,47vw);max-width:none;height:min(860px,94dvh);border-radius:26px;
       border:1px solid var(--line);box-shadow:var(--shadow);
     }
-    /* wider app: home tracks fit 3 across and stretch to fill the card */
-    .grid{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:12px;}
+    /* wider app: home tracks fit 3 across as square tiles, centered in the space */
+    .grid{grid-template-columns:repeat(3,1fr);grid-auto-rows:min-content;align-content:center;gap:12px;}
+    .grid .card{aspect-ratio:1;justify-content:flex-start;}
+    .grid .card .cardfoot{margin-top:auto;}
     /* plan step: the two plans sit side by side instead of stacking */
     section[data-step="0"] .body{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center;}
     section[data-step="0"] .benefits{grid-column:1/-1;}

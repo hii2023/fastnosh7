@@ -936,6 +936,17 @@ function pinFromComponents(comps){
 }
 
 /* ---- address selection + distance fee ---- */
+// strip the redundant "..., Ahmedabad, Gujarat 380058, India" tail Google appends:
+// we serve Ahmedabad only, and pincode lives in its own field/column.
+function cleanAddr(s){
+  return String(s||'')
+    .replace(/\b\d{6}\b/g,'')                         // drop 6-digit pincodes
+    .replace(/\b(Ahmedabad|Gujarat|India)\b/gi,'')    // drop city / state / country
+    .replace(/(\s*,\s*)+/g,', ')                       // collapse comma runs
+    .replace(/^[\s,]+|[\s,]+$/g,'')                    // trim edge commas / spaces
+    .replace(/\s{2,}/g,' ')
+    .trim();
+}
 function fullAddress(){ return [order.house, order.building, order.area].filter(Boolean).join(', '); }
 function haversineKm(la1,lo1,la2,lo2){
   const R=6371, toR=x=>x*Math.PI/180;
@@ -968,8 +979,8 @@ function updatePickHint(){
   h.style.display = (order.lat==null && (order.area||'').length>=3) ? 'block' : 'none';
 }
 function setSelectedAddress(addr, lat, lng){
-  order.area=addr; order.lat=lat; order.lng=lng;
-  document.getElementById('addr-picked-text').textContent=addr;
+  order.area=cleanAddr(addr); order.lat=lat; order.lng=lng;
+  document.getElementById('addr-picked-text').textContent=order.area;
   document.getElementById('addr-picked').style.display='flex';
   document.getElementById('addr-extra').classList.add('show');
   computeDistanceFee();
@@ -1266,9 +1277,11 @@ function sendOrder(status, reason){
 }
 
 msgBtn.addEventListener('click', ()=>{
-  const lines=["Hi Nosh7, I just placed an order.","Order: "+orderNo,"Name: "+order.name,
+  const lines=["Hi Nosh7, I just placed an order.","Order: "+orderNo,"Name: "+order.name,"Phone: "+order.phone,
     "Plan: "+order.planLabel,"Slot: "+order.batchLabel,"Days: "+daysText(),
     "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+fullAddress(),"Total: "+rupee(grandTotal())];
+  const addonList=Object.values(order.addons).map(a=>a.label).join(", ");
+  if(addonList) lines.push("Add-ons: "+addonList);
   if(order.distanceFee>0) lines.push("Distance fee: "+rupee(order.distanceFee)+" ("+order.distanceKm.toFixed(1)+" km)");
   if(order.note) lines.push("Notes: "+order.note);
   window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');

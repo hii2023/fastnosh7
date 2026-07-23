@@ -167,7 +167,17 @@ function doPost(e) {
         }
       }
     }
-    if (isNew) sheet.appendRow(row);
+    if (isNew) {
+      // Newest first: new orders go to the TOP (row 2), not appended at the bottom.
+      sheet.insertRowBefore(2);
+      // a freshly inserted row can inherit the header's styling; reset it to a plain data row
+      sheet.getRange(2, 1, 1, headerKeys.length).setBackground(null).setFontColor(null).setFontWeight("normal");
+      sheet.getRange(2, 1, 1, row.length).setValues([row]);
+      MONEY_KEYS.forEach(function (k) {
+        var i = headerKeys.indexOf(k);
+        if (i >= 0) sheet.getRange(2, i + 1).setNumberFormat('"Rs "#,##0');
+      });
+    }
 
     // WhatsApp alert to the owner, exactly once — when the order FIRST reaches a real
     // paid/submitted state, whether that is the first insert or an update flipping a

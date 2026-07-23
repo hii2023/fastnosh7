@@ -134,20 +134,33 @@ function doPost(e) {
 
     var row = headerKeys.map(function (k) { return data[k] !== undefined ? data[k] : ""; });
 
-    // De-dupe by Order No: if this order number already has a row, UPDATE it in place
-    // instead of appending a second one. The client may legitimately send the same order
-    // more than once (sendBeacon + fetch fallback, a retry, or the same order arriving
-    // both from the browser and a future server path), and we want exactly one row per
-    // order, with the latest data winning.
+    // De-dupe by Order No: exactly one row per order. The same order legitimately arrives
+    // more than once — a "pending" pre-write before payment, then "paid" after, plus
+    // possible beacon/fetch retries and the server-side Razorpay webhook. Each message
+    // MERGES into the row: a field the message does not supply keeps its existing value.
+    // This is what lets a partial update (the webhook flipping status to "paid") land
+    // without blanking the address/name the pre-write already saved.
     var isNew = true;
-    var noCol = headerKeys.indexOf("orderNo"); // 0-based
+    var prevStatus = "";
+    var record = data;                          // what we alert from (the full stored row)
+    var noCol = headerKeys.indexOf("orderNo");  // 0-based
+    var statusCol = headerKeys.indexOf("status");
     if (noCol >= 0 && data.orderNo) {
       var lastRow = sheet.getLastRow();
       if (lastRow >= 2) {
         var existing = sheet.getRange(2, noCol + 1, lastRow - 1, 1).getValues();
         for (var r = 0; r < existing.length; r++) {
           if (String(existing[r][0]) === String(data.orderNo)) {
-            sheet.getRange(r + 2, 1, 1, row.length).setValues([row]);
+            var rowNum = r + 2;
+            var current = sheet.getRange(rowNum, 1, 1, headerKeys.length).getValues()[0];
+            if (statusCol >= 0) prevStatus = String(current[statusCol] || "");
+            var merged = headerKeys.map(function (k, i) {
+              var incoming = data[k];
+              return (incoming !== undefined && incoming !== "" && incoming !== null) ? incoming : current[i];
+            });
+            sheet.getRange(rowNum, 1, 1, merged.length).setValues([merged]);
+            record = {};
+            headerKeys.forEach(function (k, i) { record[k] = merged[i]; });
             isNew = false;
             break;
           }
@@ -156,9 +169,17 @@ function doPost(e) {
     }
     if (isNew) sheet.appendRow(row);
 
-    // WhatsApp alert to the owner. Only for genuinely new orders (never re-alert on an
-    // update). Isolated so an alert failure can never lose an order.
-    if (isNew) { try { sendWhatsAppAlert_(data); } catch (waErr) { /* order is already saved; ignore */ } }
+    // WhatsApp alert to the owner, exactly once — when the order FIRST reaches a real
+    // paid/submitted state, whether that is the first insert or an update flipping a
+    // pending pre-write to paid. Built from the full stored row so even a bare webhook
+    // update alerts with the customer's name/address. Isolated: an alert failure can
+    // never lose an order.
+    var nowStatus     = String(data.status || "");
+    var isRealNow     = (nowStatus === "paid" || nowStatus === "submitted");
+    var wasRealBefore = (prevStatus === "paid" || prevStatus === "submitted");
+    if (isRealNow && !wasRealBefore) {
+      try { sendWhatsAppAlert_(record); } catch (waErr) { /* order is already saved; ignore */ }
+    }
 
     return ContentService.createTextOutput(JSON.stringify({ ok: true }))
       .setMimeType(ContentService.MimeType.JSON);

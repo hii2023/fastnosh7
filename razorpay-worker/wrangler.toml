@@ -9,3 +9,6 @@ compatibility_date = "2024-11-01"
 
 [vars]
 ALLOW_ORIGIN = "https://start.nosh7.in"
+# Apps Script /exec URL of the order-collector sheet. The /razorpay-webhook route POSTs
+# a "paid" update here when Razorpay captures a payment (public, already in index.html).
+ORDER_WEBHOOK = "https://script.google.com/macros/s/AKfycbyLqKXtSX2xqBmMDtzY8AUkCzLIPaFZKVKEGolgJjfUwmZ644Gu4f0FTa243G5YxuDj/exec"

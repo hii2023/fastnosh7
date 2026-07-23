@@ -122,6 +122,55 @@ export default {
         return json({ valid, ticket });
       }
 
+      if (url.pathname === "/razorpay-webhook" && request.method === "POST") {
+        // Server-side safety net. Razorpay calls this directly when a payment is captured,
+        // so a paid order reaches the sheet even if the customer's browser never fired its
+        // post-payment beacon (tab closed, in-app browser killed, network drop). We verify
+        // the webhook signature, then POST a "paid" update to the same Apps Script sheet.
+        // The sheet MERGES by Order No, so this only flips status/paymentId on the row the
+        // browser pre-wrote (address etc. preserved); if no row exists yet it creates a
+        // partial one, which still beats losing the order.
+        const raw = await request.text();
+        const sig = request.headers.get("X-Razorpay-Signature") || "";
+        if (!env.RAZORPAY_WEBHOOK_SECRET) return json({ error: "webhook not configured" }, 503);
+        const expected = await hmacHex(env.RAZORPAY_WEBHOOK_SECRET, raw);
+        if (!timingSafeEqual(expected, sig)) return json({ error: "bad signature" }, 401);
+
+        let evt;
+        try { evt = JSON.parse(raw); } catch (e) { return json({ error: "bad json" }, 400); }
+
+        const pay = evt && evt.payload && evt.payload.payment && evt.payload.payment.entity;
+        // Act only on a captured (money-in-hand) payment. Ignore authorized/failed/others.
+        if (evt && evt.event === "payment.captured" && pay) {
+          let orderNo = (pay.notes && pay.notes.order) ? String(pay.notes.order) : "";
+          // Fallback: no checkout note -> read the order's receipt (we set receipt = orderNo).
+          if (!orderNo && pay.order_id) {
+            try {
+              const auth = "Basic " + btoa(env.RAZORPAY_KEY_ID + ":" + env.RAZORPAY_KEY_SECRET);
+              const or = await fetch("https://api.razorpay.com/v1/orders/" + pay.order_id, { headers: { Authorization: auth } });
+              if (or.ok) { const od = await or.json(); orderNo = String(od.receipt || ""); }
+            } catch (e) { /* fall through with empty orderNo */ }
+          }
+          if (orderNo && env.ORDER_WEBHOOK) {
+            // Mint the same signed ticket the browser path would, so the sheet marks this
+            // row "verified" (the webhook signature already proved the payment is genuine).
+            const ticket = env.ORDER_TICKET_SECRET
+              ? await hmacHex(env.ORDER_TICKET_SECRET, `${orderNo}|${pay.id || ""}`)
+              : "";
+            const update = { orderNo, status: "paid", paymentId: pay.id || "", ticket, payment: "razorpay" };
+            try {
+              await fetch(env.ORDER_WEBHOOK, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(update),
+              });
+            } catch (e) { /* sheet unreachable; Razorpay will retry the webhook */ }
+          }
+        }
+        // Always 200 so Razorpay does not hammer retries for events we intentionally ignore.
+        return json({ ok: true });
+      }
+
       return json({ error: "not found" }, 404);
     } catch (e) {
       return json({ error: "server error" }, 500);

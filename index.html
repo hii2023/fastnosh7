@@ -1171,6 +1171,7 @@ payBtn.addEventListener('click', ()=>{
 function payUPI(amt){
   const note=encodeURIComponent(CONFIG.BUSINESS_NAME+" "+orderNo);
   const upi="upi://pay?pa="+encodeURIComponent(CONFIG.UPI_ID)+"&pn="+encodeURIComponent(CONFIG.BUSINESS_NAME)+"&am="+amt+"&cu=INR&tn="+note;
+  sendOrder('pending');   // pre-write so the order survives even if the UPI app swallows the tab
   try{ window.location.href=upi; }catch(e){}
   saveOrder();
   setTimeout(()=>showConfirm('submitted'), 800);
@@ -1213,6 +1214,12 @@ async function payRazorpay(amt){
     }
   };
   if(rzpOrderId) opts.order_id=rzpOrderId;
+  // Pre-write the FULL order (address included) to the sheet as "pending" BEFORE the
+  // Razorpay sheet opens. If the phone dies or the in-app browser is killed the instant
+  // payment completes, the order is already saved and the post-payment beacon (or the
+  // server-side Razorpay webhook) only has to flip it to "paid". Without this, a dropped
+  // beacon means money taken with nothing in the sheet (the NOSH-639317 case).
+  sendOrder('pending');
   window.__n7PayOpen=true;   // pause the back-guard while the Razorpay sheet is up
   const rzp=new Razorpay(opts);
   rzp.on('payment.failed', function(resp){

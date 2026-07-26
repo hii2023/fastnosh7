@@ -45,6 +45,14 @@
     position:relative;overflow:hidden;
     background:radial-gradient(120% 50% at 100% 0%, rgba(120,180,40,.10), transparent 60%),linear-gradient(180deg,var(--bg-2),var(--bg) 26%);
   }
+  /* faint food-doodle wash behind the app content (recognisable, but text stays legible) */
+  .app::before{
+    content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:url("doodle-bg.webp") center center / cover no-repeat;
+    opacity:.07;
+  }
+  html[data-theme="dark"] .app::before{opacity:.05;}
+  .app > .topbar,.app > .progress,.app > .steps,.app > .footer,.app > .homescreen{position:relative;z-index:1;}
 
   /* top bar */
   .topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 20px 6px;flex:none;}

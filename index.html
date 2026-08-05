@@ -124,6 +124,7 @@
   h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:30px;line-height:1.05;margin:7px 0 3px;letter-spacing:-1px;font-weight:700;flex:none;}
   h1 .accent{color:var(--accent-text);}
   .sub{color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.4;flex:none;}
+  .skipnote{display:inline-block;margin-top:3px;font-size:16px;font-weight:700;color:var(--ink);}
   .body{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-start;gap:11px;}
   .step.top .body{flex:1 1 auto;}
 
@@ -180,8 +181,16 @@
 
   /* segmented (diet) */
   .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;}
-  .seg button{flex:1;border:0;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:14px;padding:11px 0;border-radius:9px;color:var(--muted);cursor:pointer;transition:background .25s var(--ease),color .25s var(--ease);}
+  .seg button{flex:1;border:0;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:13px;padding:11px 2px;border-radius:9px;color:var(--muted);cursor:pointer;transition:background .25s var(--ease),color .25s var(--ease);white-space:nowrap;}
   .seg button.on{background:var(--lime);color:#0c0f0b;}
+  /* diet exclusion note (Jain / Swaminarayan) */
+  .dietnote{display:none;margin-top:9px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:600;line-height:1.4;color:var(--ink);}
+  .dietnote.show{display:block;}
+  .dietnote b{color:var(--accent-text);font-weight:700;}
+  /* plan-page meal-frequency toggles */
+  .planseg{flex:none;margin-bottom:2px;}
+  .planseg .save{display:inline-block;margin-left:6px;background:var(--lime);color:#0c0f0b;font-size:9px;font-weight:800;padding:2px 5px;border-radius:6px;letter-spacing:.2px;vertical-align:middle;}
+  .planseg button.on .save{background:#0c0f0b;color:var(--lime);}
 
   .label{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;margin:0 0 4px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;flex:none;}
 
@@ -373,6 +382,7 @@
   .promo-chip{align-self:flex-start;background:var(--surface-2);border:1px dashed var(--accent-text);color:var(--accent-text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12px;padding:8px 13px;border-radius:10px;cursor:pointer;}
   .promo-chip b{font-weight:800;letter-spacing:.6px;}
   .promo-chip:active{transform:scale(.98);}
+  .promo-hint{color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;}
   .promo-row{display:flex;gap:8px;}
   .promo-input{flex:1;text-transform:uppercase;letter-spacing:1px;}
   .promo-input::placeholder{letter-spacing:0;text-transform:none;}
@@ -470,6 +480,7 @@
     /* plan step: the two plans sit side by side instead of stacking */
     section[data-step="0"] .body{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center;}
     section[data-step="0"] .benefits{grid-column:1/-1;}
+    section[data-step="0"] .planseg{grid-column:1/-1;}
     section[data-step="0"] .plan:first-of-type{margin-top:0;}
     section[data-step="0"] .plan:last-of-type{margin-bottom:0;}
     /* pointer polish: hover states (touch devices never see these) */
@@ -632,7 +643,9 @@
         <div class="seg" id="diet">
           <button data-key="regular" class="on">Regular</button>
           <button data-key="jain" id="dietJain">Jain</button>
+          <button data-key="swami" id="dietSwami">Swaminarayan</button>
         </div>
+        <div class="dietnote" id="dietNote"></div>
         <button class="opt" data-group="batch" data-key="b1" data-label="Morning, 9:30 AM to 11:30 AM">
           <div class="idx">01</div><div class="txt"><b>9:30 AM to 11:30 AM</b><span>Morning batch</span></div><div class="dot"></div>
         </button>
@@ -652,7 +665,7 @@
     <section class="step" data-step="2">
       <div class="eyebrow">Days</div>
       <h1>Delivery <span class="accent">days</span></h1>
-      <p class="sub">Monday to Saturday by default. Uncheck any day you skip.</p>
+      <p class="sub">Monday to Saturday by default.<br><span class="skipnote">Uncheck any day you skip.</span></p>
       <div class="body">
         <div class="daysmid"><div class="days" id="days"></div></div>
         <div class="addons-wrap" id="addonsWrap">
@@ -701,7 +714,7 @@
       <div class="body" style="justify-content:flex-start;gap:0;overflow-y:auto;min-height:0;">
         <div class="summary" id="summary"></div>
         <div class="promo">
-          <button class="promo-chip" id="promoChip" type="button">Tap to use code <b>HEALTHY</b> &middot; flat Rs 150 off</button>
+          <div class="promo-hint" id="promoHint">Have a promo code? Type it and tap Apply.</div>
           <div class="promo-row" id="promoRow">
             <input class="field promo-input" id="f-promo" type="text" placeholder="Promo code" autocomplete="off" autocapitalize="characters" />
             <button class="promo-apply" id="promoApply" type="button">Apply</button>
@@ -784,6 +797,7 @@ const WEEK = [["Mon","Monday"],["Tue","Tuesday"],["Wed","Wednesday"],["Thu","Thu
 
 const order = {
   plan:null, planLabel:null, planPrice:0, deliveries:0,
+  perDay:1, daily:'bd', dailyLabel:'Breakfast & Dinner',
   batch:null, batchLabel:null,
   diet:"regular", dietLabel:"Regular",
   days: WEEK.map(d=>d[0]),     // all of Mon..Sat by default
@@ -849,10 +863,22 @@ function maybeAutoAdvance(){
 }
 
 /* ---- diet ---- */
+// ingredients each preference skips (shown as a note under the segmented control)
+const DIET_EXCLUDE = {
+  jain:  'onion, garlic, ginger, carrot, beetroot, potato and mushroom',
+  swami: 'onion, garlic and ginger'
+};
+function updateDietNote(){
+  const n=document.getElementById('dietNote'); if(!n) return;
+  const list=DIET_EXCLUDE[order.diet];
+  if(list){ n.innerHTML='We skip these ingredients: <b>'+list+'</b>.'; n.classList.add('show'); }
+  else n.classList.remove('show');
+}
 document.querySelectorAll('#diet button').forEach(b=>{
   b.addEventListener('click', ()=>{
     document.querySelectorAll('#diet button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on'); order.diet=b.dataset.key; order.dietLabel=b.textContent; haptic();
+    b.classList.add('on'); order.diet=b.dataset.key; order.dietLabel=b.textContent;
+    updateDietNote(); haptic();
   });
 });
 
@@ -1092,10 +1118,8 @@ const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } };  // rupees off per pla
 function promoDiscount(){ const p = PROMOS[order.promo]; return p ? (p[order.plan] || 0) : 0; }
 function promoOffFor(plan){ const p = PROMOS.HEALTHY; return p ? (p[plan] || 0) : 0; }
 function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandTotal()); }
-// keep the promo chip + applied label showing the right amount for the selected plan
+// keep the applied label showing the right amount for the selected plan
 function refreshPromoLabels(){
-  const chip = document.getElementById('promoChip');
-  if(chip) chip.innerHTML = 'Tap to use code <b>HEALTHY</b> &middot; Rs '+promoOffFor(order.plan)+' off';
   if(order.promo && promoDiscount()>0){
     const off=document.getElementById('promoOffLabel'); if(off) off.textContent = rupee(promoDiscount())+' off';
   }
@@ -1104,19 +1128,19 @@ function applyPromo(raw){
   const code = (raw||'').trim().toUpperCase();
   const errEl = document.getElementById('promoErr');
   if(!code) return;
-  if(PROMOS[code]){
+  if(PROMOS[code] && (PROMOS[code][order.plan]||0) > 0){
     order.promo = code;
     errEl.classList.remove('show');
     document.getElementById('promoCodeLabel').textContent = code;
     document.getElementById('promoOffLabel').textContent = rupee(promoDiscount())+' off';
-    document.getElementById('promoChip').style.display = 'none';
+    document.getElementById('promoHint').style.display = 'none';
     document.getElementById('promoRow').style.display = 'none';
     const ok = document.getElementById('promoOk');
     ok.classList.remove('show'); void ok.offsetWidth; ok.classList.add('show');  // restart animation
     reviewTotal(); haptic();
   } else {
     order.promo = null;
-    errEl.textContent = 'Invalid code. Try HEALTHY.';
+    errEl.textContent = PROMOS[code] ? 'This code does not apply to this plan.' : 'Invalid code. Try HEALTHY.';
     errEl.classList.add('show');
     reviewTotal();
   }
@@ -1124,7 +1148,7 @@ function applyPromo(raw){
 function removePromo(){
   order.promo = null;
   document.getElementById('promoOk').classList.remove('show');
-  document.getElementById('promoChip').style.display = 'inline-block';
+  document.getElementById('promoHint').style.display = 'block';
   document.getElementById('promoRow').style.display = 'flex';
   document.getElementById('f-promo').value = '';
   reviewTotal();
@@ -1132,13 +1156,12 @@ function removePromo(){
 function resetPromoUI(){
   order.promo = null;
   const ok=document.getElementById('promoOk'); if(ok) ok.classList.remove('show');
-  const chip=document.getElementById('promoChip'); if(chip) chip.style.display='inline-block';
+  const hint=document.getElementById('promoHint'); if(hint) hint.style.display='block';
   const row=document.getElementById('promoRow'); if(row) row.style.display='flex';
   const inp=document.getElementById('f-promo'); if(inp) inp.value='';
   const err=document.getElementById('promoErr'); if(err) err.classList.remove('show');
 }
 document.getElementById('promoApply').addEventListener('click', ()=> applyPromo(document.getElementById('f-promo').value));
-document.getElementById('promoChip').addEventListener('click', ()=> applyPromo('HEALTHY'));
 document.getElementById('promoRemove').addEventListener('click', removePromo);
 document.getElementById('f-promo').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); applyPromo(e.target.value); } });
 
@@ -1376,11 +1399,14 @@ const BENEFITS = {
   vegan:      [["~420","Calories"],["Plant","Protein"],["High","Fiber"],["Low","Carb"]],
   fruit:      [["~220","Calories"],["Rich","Vitamins"],["High","Fiber"],["No added","Sugar"]]
 };
+const DAILY_DISCOUNT = 0.07;   // 2-meals-a-day Daily Plan: 7% off the 2x regular price (must match worker)
 function plansFor(c){
   var moPer=c.fromMeal, wkPer=c.wkMeal||(c.fromMeal+50);
   var monthly=c.monthly||(c.std?4999:moPer*25);
   var weekly=c.weekly||wkPer*5;
-  return {moPer:moPer, wkPer:wkPer, monthly:monthly, weekly:weekly};
+  // 2 meals a day = 2x the plan, minus the daily discount
+  var d2=function(x){ return Math.round(2*x*(1-DAILY_DISCOUNT)); };
+  return {moPer:moPer, wkPer:wkPer, monthly:monthly, weekly:weekly, monthly2:d2(monthly), trial2:d2(weekly)};
 }
 const ADDONS=[
   {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:149, icon:ICON.fruit},
@@ -1415,6 +1441,7 @@ let CURCAT=null;
 function startWizard(c){
   CURCAT=c;
   order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
+  order.perDay=1; order.daily='bd'; order.dailyLabel='Breakfast & Dinner';
   order.batch=null; order.batchLabel=null;
   order.diet='regular'; order.dietLabel='Regular';
   order.addons={};
@@ -1422,6 +1449,7 @@ function startWizard(c){
   order.category=c.key; order.categoryName=c.name;
   document.querySelectorAll('#diet button').forEach(x=>x.classList.remove('on'));
   var reg=document.querySelector('#diet button[data-key="regular"]'); if(reg) reg.classList.add('on');
+  updateDietNote();
   daysEl.querySelectorAll('.day').forEach(d=>d.classList.add('on'));
   order.days=WEEK.map(d=>d[0]);
   buildPlanStep(c);
@@ -1448,18 +1476,54 @@ function buildPlanStep(c){
   planEyebrow.textContent=c.name;
   planNote.textContent=c.line||c.note||'Pick weekly or monthly.';
   var bens=(BENEFITS[c.key]||[]).map(function(b){ return '<div class="benefit"><b class="statnum">'+b[0]+'</b><small>'+b[1]+'</small></div>'; }).join('');
+  var two=order.perDay===2;
+  var combo=order.daily==='ld' ? 'Lunch & Dinner' : 'Breakfast & Dinner';
+  // per-plan values switch to the 2-meals-a-day (Daily) pricing when selected
+  var moKey=two?'monthly2':'monthly', trKey=two?'trial2':'trial';
+  var moPrice=two?p.monthly2:p.monthly, trPrice=two?p.trial2:p.weekly;
+  var moUnits=two?50:25, trUnits=two?10:5;
+  var moMeals=two?'50 meals, 2 a day':'25 fresh meals';
+  var trMeals=two?'10 meals, 2 a day':'5 fresh meals';
+  var moLabel=c.name+' Monthly'+(two?' ('+combo+', 2 meals/day)':'');
+  var trLabel=c.name+' Trial Pack'+(two?' ('+combo+', 2 meals/day)':'');
+  var moFoot=two?('Rs '+Math.round(moPrice/moUnits)+' per meal'):('Rs '+p.moPer+' per delivery');
+  var trFoot=two?('Rs '+Math.round(trPrice/trUnits)+' per meal'):('Rs '+p.wkPer+' per delivery');
   planBody.innerHTML=
     (bens?'<div class="benefits">'+bens+'</div>':'')+
-    '<button class="plan" data-key="monthly" data-label="'+c.name+' Monthly" data-price="'+p.monthly+'" data-units="25">'+
-      '<div class="plan-top"><div><div class="plan-name">Monthly <span class="badge">Best value</span></div><div class="plan-meals">25 fresh meals</div></div><div class="dot"></div></div>'+
-      '<div class="plan-price"><em>Rs</em>'+p.monthly.toLocaleString('en-IN')+'</div>'+
-      '<div class="plan-foot">Rs '+p.moPer+' per delivery</div>'+
+    '<div class="seg planseg" id="perDaySeg">'+
+      '<button type="button" data-per="1"'+(two?'':' class="on"')+'>1 meal a day</button>'+
+      '<button type="button" data-per="2"'+(two?' class="on"':'')+'>2 meals a day<span class="save">save 7%</span></button>'+
+    '</div>'+
+    '<div class="seg planseg" id="dailySeg"'+(two?'':' style="display:none"')+'>'+
+      '<button type="button" data-daily="bd"'+(order.daily!=='ld'?' class="on"':'')+'>Breakfast &amp; Dinner</button>'+
+      '<button type="button" data-daily="ld"'+(order.daily==='ld'?' class="on"':'')+'>Lunch &amp; Dinner</button>'+
+    '</div>'+
+    '<button class="plan" data-key="'+moKey+'" data-label="'+moLabel+'" data-price="'+moPrice+'" data-units="'+moUnits+'">'+
+      '<div class="plan-top"><div><div class="plan-name">Monthly <span class="badge">Best value</span></div><div class="plan-meals">'+moMeals+'</div></div><div class="dot"></div></div>'+
+      '<div class="plan-price"><em>Rs</em>'+moPrice.toLocaleString('en-IN')+'</div>'+
+      '<div class="plan-foot">'+moFoot+'</div>'+
     '</button>'+
-    '<button class="plan" data-key="trial" data-label="'+c.name+' Trial Pack" data-price="'+p.weekly+'" data-units="5">'+
-      '<div class="plan-top"><div><div class="plan-name">Trial Pack</div><div class="plan-meals">5 fresh meals</div></div><div class="dot"></div></div>'+
-      '<div class="plan-price"><em>Rs</em>'+p.weekly.toLocaleString('en-IN')+'</div>'+
-      '<div class="plan-foot">Rs '+p.wkPer+' per delivery</div>'+
+    '<button class="plan" data-key="'+trKey+'" data-label="'+trLabel+'" data-price="'+trPrice+'" data-units="'+trUnits+'">'+
+      '<div class="plan-top"><div><div class="plan-name">Trial Pack</div><div class="plan-meals">'+trMeals+'</div></div><div class="dot"></div></div>'+
+      '<div class="plan-price"><em>Rs</em>'+trPrice.toLocaleString('en-IN')+'</div>'+
+      '<div class="plan-foot">'+trFoot+'</div>'+
     '</button>';
+  // meal-frequency toggle (1 vs 2 meals a day). Changing it re-prices, so drop any prior pick.
+  planBody.querySelectorAll('#perDaySeg button').forEach(function(b){
+    b.addEventListener('click', function(){
+      order.perDay=+b.dataset.per;
+      order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
+      buildPlanStep(c); dpShowPlan(); validate(); haptic();
+    });
+  });
+  // which two meals (only shown for the Daily Plan)
+  planBody.querySelectorAll('#dailySeg button').forEach(function(b){
+    b.addEventListener('click', function(){
+      order.daily=b.dataset.daily; order.dailyLabel=b.dataset.daily==='ld'?'Lunch & Dinner':'Breakfast & Dinner';
+      order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
+      buildPlanStep(c); dpShowPlan(); validate(); haptic();
+    });
+  });
   planBody.querySelectorAll('.plan').forEach(function(btn){
     btn.addEventListener('click', function(){
       planBody.querySelectorAll('.plan').forEach(b=>b.classList.remove('sel'));
@@ -1474,6 +1538,8 @@ function buildPlanStep(c){
 function applyCategory(c){
   var jain=document.getElementById('dietJain');
   if(jain) jain.style.display=c.noJain?'none':'';
+  var swami=document.getElementById('dietSwami');
+  if(swami) swami.style.display=c.noJain?'none':'';
   renderAddons(c);
 }
 function renderAddons(c){
@@ -1483,7 +1549,7 @@ function renderAddons(c){
   wrap.innerHTML=list.map(function(a){
     return '<div class="abox" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div>';
   }).join('');
-  hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade or nimbu sharbat' : '';
+  hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade, nimbu sharbat, chia fresca or green apple detox' : '';
   wrap.querySelectorAll('.abox').forEach(function(el){
     el.addEventListener('click', function(){
       var k=el.dataset.a, a=ADDONS.find(x=>x.key===k);

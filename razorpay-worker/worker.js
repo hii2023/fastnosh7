@@ -23,7 +23,11 @@ const CATPRICE = {
   vegan:      { monthly: 5975, trial: 1445 },
   fruit:      { monthly: 4999, trial: 1250 },
 };
-const UNITS = { monthly: 25, trial: 5 };
+const UNITS = { monthly: 25, trial: 5, monthly2: 50, trial2: 10 };
+// 2-meals-a-day "Daily Plan": maps to its 1-meal base plan; base price = 2x, minus DAILY_DISCOUNT.
+// (must match index.html plansFor / DAILY_DISCOUNT)
+const DAILY = { monthly2: "monthly", trial2: "trial" };
+const DAILY_DISCOUNT = 0.07;
 const ADDON_PRICE = { fruit: 149, protein: 80, drink: 49 }; // per meal
 const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } }; // rupees off per plan (must match index.html PROMOS)
 // Distance-fee constants (must match index.html CONFIG).
@@ -70,7 +74,11 @@ export default {
         if (!units) return json({ error: "invalid plan" }, 400);
         // default to a standard track if category is missing (keeps old clients working)
         const cat = CATPRICE[body.category] ? body.category : "fresh";
-        const base = CATPRICE[cat][body.plan];
+        // a Daily (2-meals-a-day) plan prices as 2x its base plan, minus the daily discount
+        const basePlan = DAILY[body.plan] || body.plan;
+        const catBase = CATPRICE[cat][basePlan];
+        if (!catBase) return json({ error: "invalid plan" }, 400);
+        const base = DAILY[body.plan] ? Math.round(2 * catBase * (1 - DAILY_DISCOUNT)) : catBase;
         if (!base) return json({ error: "invalid plan" }, 400);
         // add-ons: trust only WHICH ones were picked, price them ourselves (per meal x units)
         let addonPerMeal = 0;

@@ -111,12 +111,23 @@
   .pac-matched{color:var(--accent-text);}
   .pac-icon{display:none;}
   .hdpi .pac-icon{display:none;}
-  /* bigger cards on the Pick a slot step */
-  section[data-step="1"] .opt{padding:17px 16px;gap:16px;}
-  section[data-step="1"] .opt .idx{width:48px;height:48px;font-size:18px;border-radius:13px;}
-  section[data-step="1"] .opt .txt b{font-size:18px;}
-  section[data-step="1"] .opt .txt span{font-size:13px;}
-  section[data-step="1"] .seg button{font-size:15px;padding:13px 0;}
+  /* Pick a slot step: roomy cards, but the list can always scroll so no slot
+     is ever clipped on shorter phones (iPhone SE/8, plus taller phones with a
+     diet note or the 2-slot Daily layout). */
+  section[data-step="1"] .body{overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;}
+  section[data-step="1"] .opt{padding:14px 15px;gap:14px;}
+  section[data-step="1"] .opt .idx{width:44px;height:44px;font-size:17px;border-radius:12px;}
+  section[data-step="1"] .opt .txt b{font-size:16.5px;}
+  section[data-step="1"] .opt .txt span{font-size:12.5px;}
+  section[data-step="1"] .seg button{font-size:14px;padding:12px 0;}
+  /* short phones: compact a touch more so all four slots fit without scrolling */
+  @media (max-width:899px) and (max-height:720px){
+    section[data-step="1"] .opt{padding:11px 14px;gap:12px;}
+    section[data-step="1"] .opt .idx{width:40px;height:40px;font-size:16px;}
+    section[data-step="1"] .opt .txt b{font-size:15.5px;}
+    section[data-step="1"] h1{font-size:26px;margin-bottom:2px;}
+    section[data-step="1"] .sub{margin-bottom:8px;}
+  }
   .step.active{opacity:1;transform:none;pointer-events:auto;}
   .step.leaving{opacity:0;transform:translateY(-14px);}
 

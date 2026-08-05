@@ -383,6 +383,7 @@
   .promo-chip b{font-weight:800;letter-spacing:.6px;}
   .promo-chip:active{transform:scale(.98);}
   .promo-hint{color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;}
+  .promo-hint b{color:var(--accent-text);font-weight:800;letter-spacing:.6px;}
   .promo-row{display:flex;gap:8px;}
   .promo-input{flex:1;text-transform:uppercase;letter-spacing:1px;}
   .promo-input::placeholder{letter-spacing:0;text-transform:none;}
@@ -714,7 +715,7 @@
       <div class="body" style="justify-content:flex-start;gap:0;overflow-y:auto;min-height:0;">
         <div class="summary" id="summary"></div>
         <div class="promo">
-          <div class="promo-hint" id="promoHint">Have a promo code? Type it and tap Apply.</div>
+          <div class="promo-hint" id="promoHint">Use code <b>HEALTHY</b>. Type it below and tap Apply.</div>
           <div class="promo-row" id="promoRow">
             <input class="field promo-input" id="f-promo" type="text" placeholder="Promo code" autocomplete="off" autocapitalize="characters" />
             <button class="promo-apply" id="promoApply" type="button">Apply</button>
@@ -1120,6 +1121,13 @@ function promoOffFor(plan){ const p = PROMOS.HEALTHY; return p ? (p[plan] || 0) 
 function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandTotal()); }
 // keep the applied label showing the right amount for the selected plan
 function refreshPromoLabels(){
+  const hint=document.getElementById('promoHint');
+  if(hint){
+    const off=promoOffFor(order.plan);
+    hint.innerHTML = off>0
+      ? 'Use code <b>HEALTHY</b> for Rs '+off+' off. Type it below and tap Apply.'
+      : 'Have a promo code? Type it below and tap Apply.';
+  }
   if(order.promo && promoDiscount()>0){
     const off=document.getElementById('promoOffLabel'); if(off) off.textContent = rupee(promoDiscount())+' off';
   }

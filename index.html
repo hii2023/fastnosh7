@@ -239,10 +239,10 @@
   .row2.addr-row > *:last-child{flex:1;}
 
   /* review */
-  .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px;overflow-y:auto;min-height:0;flex:1 1 auto;margin-top:12px;}
+  .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px;overflow:hidden;min-height:0;flex:0 1 auto;margin-top:9px;}
   section[data-step="6"]{padding-top:16px;}
   section[data-step="6"] h1{margin-top:2vh;}
-  .sline{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;gap:13px;}
+  .sline{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;gap:13px;line-height:1.25;}
   .sline:last-child{border-bottom:1px solid var(--line);}
   .sline .k{color:var(--muted);font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;}
   .sline .v{font-weight:600;text-align:right;font-family:'Plus Jakarta Sans',sans-serif;}
@@ -349,11 +349,16 @@
   section[data-step="2"] .daysmid .days{width:100%;}
   section[data-step="2"] .addons-wrap{margin-top:0;}
   /* plan step: center the two plan cards in the available space */
-  section[data-step="0"] .body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;gap:13px;}
-  section[data-step="0"] .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px;}
-  section[data-step="0"] .benefit{padding:16px 4px;border-radius:15px;justify-content:center;gap:4px;}
-  section[data-step="0"] .benefit .statnum{font-size:19px;}
-  section[data-step="0"] .benefit small{font-size:10px;line-height:1.15;}
+  section[data-step="0"] .body{flex:1 1 auto;min-height:0;overflow:hidden;gap:10px;}
+  section[data-step="0"] .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:2px;}
+  section[data-step="0"] .benefit{padding:11px 4px;border-radius:14px;justify-content:center;gap:3px;}
+  section[data-step="0"] .benefit .statnum{font-size:18px;}
+  section[data-step="0"] .benefit small{font-size:9.5px;line-height:1.12;}
+  section[data-step="0"] .planseg button{padding:9px 2px;font-size:12.5px;}
+  section[data-step="0"] .plan{padding:14px 18px;gap:3px;}
+  section[data-step="0"] .plan-name{font-size:21px;}
+  section[data-step="0"] .plan-price{font-size:42px;}
+  section[data-step="0"] .plan-foot{font-size:12.5px;}
   section[data-step="0"] .plan:first-of-type{margin-top:auto;}
   section[data-step="0"] .plan:last-of-type{margin-bottom:auto;}
   /* small add-on boxes on the days step */
@@ -378,7 +383,7 @@
   .ahint{font-size:9.5px;color:var(--muted-2);margin:7px 2px 0;text-align:center;line-height:1.3;}
 
   /* promo code (review page) */
-  .promo{flex:none;margin-top:16px;display:flex;flex-direction:column;gap:9px;}
+  .promo{flex:none;margin-top:10px;display:flex;flex-direction:column;gap:8px;}
   .promo-chip{align-self:flex-start;background:var(--surface-2);border:1px dashed var(--accent-text);color:var(--accent-text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12px;padding:8px 13px;border-radius:10px;cursor:pointer;}
   .promo-chip b{font-weight:800;letter-spacing:.6px;}
   .promo-chip:active{transform:scale(.98);}
@@ -522,6 +527,12 @@
     .plan-price{font-size:44px;}
     .day{padding:11px 0;font-size:14.5px;}
     .dcard{padding:10px 0;}
+    /* review: tighten rows so the fullest summary still fits a short laptop with no scroll */
+    .step.top h1{font-size:25px;margin-bottom:4px;}
+    .summary{margin-top:6px;}
+    .sline{padding:3px 0;font-size:12px;}
+    .sline .k{font-size:10px;}
+    .promo{margin-top:7px;gap:7px;}
   }
 
 </style>
@@ -638,8 +649,8 @@
     <!-- STEP 2: SLOT + DIET -->
     <section class="step" data-step="1">
       <div class="eyebrow">Batch</div>
-      <h1>Pick a <span class="accent">slot</span></h1>
-      <p class="sub">Set your preference, then tap a delivery slot.</p>
+      <h1 id="slotTitle">Pick a <span class="accent">slot</span></h1>
+      <p class="sub" id="slotSub">Set your preference, then tap a delivery slot.</p>
       <div class="body">
         <div class="seg" id="diet">
           <button data-key="regular" class="on">Regular</button>
@@ -799,7 +810,7 @@ const WEEK = [["Mon","Monday"],["Tue","Tuesday"],["Wed","Wednesday"],["Thu","Thu
 const order = {
   plan:null, planLabel:null, planPrice:0, deliveries:0,
   perDay:1, daily:'bd', dailyLabel:'Breakfast & Dinner',
-  batch:null, batchLabel:null,
+  batch:null, batches:[], batchLabel:null, batchShort:null,
   diet:"regular", dietLabel:"Regular",
   days: WEEK.map(d=>d[0]),     // all of Mon..Sat by default
   date:"", dateLabel:"", note:"",
@@ -845,17 +856,52 @@ WEEK.forEach(([sh,full])=>{
   order.dateLabel=dows[d.getDay()]+', '+d.getDate()+' '+mons[d.getMonth()];
 })();
 
-/* ---- single select cards (plan, batch) ---- */
-document.querySelectorAll('[data-group]').forEach(btn=>{
+/* ---- slot (batch) select: 1 slot normally, 2 for a 2-meals-a-day Daily Plan ---- */
+const batchBtns = [...document.querySelectorAll('.opt[data-group="batch"]')];
+function batchesNeeded(){ return order.perDay===2 ? 2 : 1; }
+function labelsFor(keys, short){
+  return keys.map(k=>{ const b=batchBtns.find(x=>x.dataset.key===k); if(!b) return k;
+    return short ? b.dataset.label.split(',')[0] : b.dataset.label; }).join(' + ');
+}
+function syncBatchUI(){
+  const sel = order.batches||[];
+  batchBtns.forEach(b=>b.classList.toggle('sel', sel.includes(b.dataset.key)));
+}
+function setBatch(sel){
+  order.batches = sel;
+  order.batch = sel[0]||null;
+  order.batchLabel = sel.length ? labelsFor(sel,false) : null;
+  order.batchShort = sel.length ? labelsFor(sel,true) : null;
+  syncBatchUI();
+}
+batchBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    const group = btn.dataset.group;
-    document.querySelectorAll('[data-group="'+group+'"]').forEach(b=>b.classList.remove('sel'));
-    btn.classList.add('sel');
-    if(group==='plan'){ order.plan=btn.dataset.key; order.planLabel=btn.dataset.label; order.planPrice=+btn.dataset.price; order.deliveries=+btn.dataset.units; }
-    if(group==='batch'){ order.batch=btn.dataset.key; order.batchLabel=btn.dataset.label; }
-    haptic(); validate(); maybeAutoAdvance();
+    const need = batchesNeeded(), key = btn.dataset.key;
+    let sel = order.batches ? order.batches.slice() : [];
+    if(need===1){
+      sel = [key];                                 // single select
+    } else {
+      const i = sel.indexOf(key);
+      if(i>=0){ sel.splice(i,1); }                 // tap again to unpick
+      else { if(sel.length>=2) sel.shift(); sel.push(key); }  // keep the last two
+    }
+    setBatch(sel);
+    haptic(); validate();
+    if(sel.length===need) maybeAutoAdvance();       // advance once the required slots are chosen
   });
 });
+// slot step title/help reflects how many slots are needed
+function updateSlotStep(){
+  const t=document.getElementById('slotTitle'), s=document.getElementById('slotSub');
+  if(!t) return;
+  if(order.perDay===2){
+    t.innerHTML='Pick <span class="accent">2 slots</span>';
+    s.textContent='Two meals a day, so choose both delivery windows.';
+  } else {
+    t.innerHTML='Pick a <span class="accent">slot</span>';
+    s.textContent='Set your preference, then tap a delivery slot.';
+  }
+}
 
 let advanceTimer=null;
 function maybeAutoAdvance(){
@@ -1078,7 +1124,7 @@ if(CONFIG.GOOGLE_MAPS_API_KEY){
 function stepValid(i){
   switch(i){
     case 0: return !!order.plan;
-    case 1: return !!order.batch;
+    case 1: return (order.batches||[]).length === batchesNeeded();
     case 2: return order.days.length>=1;
     case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && order.lat!=null && (order.house||'').length>0 && (order.building||'').length>0;
     default: return true;
@@ -1096,7 +1142,7 @@ function buildSummary(){
   refreshPromoLabels();
   const rows=[];
   rows.push(['Plan', order.planLabel + (order.deliveries? ', '+rupee(Math.round(order.planPrice/order.deliveries))+' x '+order.deliveries : ''), rupee(order.planPrice)]);
-  rows.push(['Slot', order.batchLabel, '']);
+  rows.push([order.perDay===2?'Slots':'Slot', order.batchShort||order.batchLabel, '']);
   rows.push(['Days', daysText(), '']);
   rows.push(['Preference', order.dietLabel, '']);
   rows.push(['Starts', order.dateLabel+' (tomorrow)', '']);
@@ -1182,6 +1228,7 @@ function go(to){
   cur=to;
   bar.style.width = (cur/(steps.length-1))*100 + '%';
   cstep.textContent = String(Math.min(cur+1,5)).padStart(2,'0');
+  if(cur===1) updateSlotStep();
   refreshFooter();
   // landing on the address step: put the cursor in the search box right away
   if(cur===LAST_INPUT && !order.lat){
@@ -1418,7 +1465,7 @@ function plansFor(c){
 }
 const ADDONS=[
   {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:149, icon:ICON.fruit},
-  {key:'protein', name:'Low-fat Paneer', label:'Low-fat paneer (20g+ protein)',price:80,  icon:ICON.protein},
+  {key:'protein', name:'Low-fat Paneer', label:'Low-fat paneer',price:80,  icon:ICON.protein},
   {key:'drink',   name:'Healthy drink', label:'Healthy drink',       price:49,  icon:ICON.drink}
 ];
 function addonsFor(c){
@@ -1450,7 +1497,7 @@ function startWizard(c){
   CURCAT=c;
   order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
   order.perDay=1; order.daily='bd'; order.dailyLabel='Breakfast & Dinner';
-  order.batch=null; order.batchLabel=null;
+  order.batch=null; order.batches=[]; order.batchLabel=null; order.batchShort=null; syncBatchUI();
   order.diet='regular'; order.dietLabel='Regular';
   order.addons={};
   resetPromoUI();
@@ -1521,6 +1568,7 @@ function buildPlanStep(c){
     b.addEventListener('click', function(){
       order.perDay=+b.dataset.per;
       order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
+      order.batch=null; order.batches=[]; order.batchLabel=null; order.batchShort=null; syncBatchUI();
       buildPlanStep(c); dpShowPlan(); validate(); haptic();
     });
   });

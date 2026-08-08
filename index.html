@@ -392,6 +392,22 @@
   .abox.on .aic{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
   .abox.on .tick{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
   .ahint{font-size:9.5px;color:var(--muted-2);margin:7px 2px 0;text-align:center;line-height:1.3;}
+  /* express add-ons header (shown and selectable by default, no Yes/No gate) */
+  .exp-addon-head{font-size:12.5px;font-weight:700;color:var(--muted);text-align:center;margin:8px 0 2px;letter-spacing:.2px;}
+  .exp-addon-head span{color:var(--muted-2);font-weight:600;}
+  /* single plan (monthly-only + express): center the whole card and its price */
+  .one-plan .plan{text-align:center;align-items:center;}
+  .one-plan .plan-top{justify-content:center;}
+  .one-plan .plan-name{justify-content:center;}
+  .one-plan .plan-foot{justify-content:center;}
+  .one-plan .plan .dot{display:none;}
+  /* express details step: name + phone stacked, one below the other, centered on the page */
+  .express-details .body{flex:1 1 auto !important;min-height:0;justify-content:center !important;}
+  .express-details #addr-extra{width:100%;max-width:320px;margin:0 auto;}
+  .express-details .row2.stack{display:flex;flex-direction:column;gap:14px;}
+  .express-details .row2.stack > *{flex:1 1 auto;}
+  .express-details .label{text-align:center;}
+  .express-details .field{text-align:center;}
 
   /* promo code (review page) */
   .promo{flex:none;margin-top:10px;display:flex;flex-direction:column;gap:8px;}
@@ -605,7 +621,7 @@
     <span id="dpPlanPrice"></span>
   </div>
   <div class="dp-trust">
-    <a class="dp-wa" href="https://wa.me/919712989498" target="_blank" rel="noopener">
+    <a class="dp-wa" href="https://wa.me/919712989498?text=Greetings%20Team%20Nosh%2C%20" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
       Questions? Chat with us
     </a>
@@ -1417,7 +1433,7 @@ function sendOrder(status, reason){
 }
 
 msgBtn.addEventListener('click', ()=>{
-  const lines=["Hi Nosh7, I just placed an order.","Order: "+orderNo,"Name: "+order.name,"Phone: "+order.phone,
+  const lines=["Greetings Team Nosh,","I just placed an order.","Order: "+orderNo,"Name: "+order.name,"Phone: "+order.phone,
     "Plan: "+order.planLabel,"Slot: "+order.batchLabel,"Days: "+daysText(),
     "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+fullAddress(),"Total: "+rupee(grandTotal())];
   const addonList=Object.values(order.addons).map(a=>a.label).join(", ");
@@ -1625,12 +1641,10 @@ function buildPlanStep(c){
       '</button>'
     ) : '')+
     (EXPRESS ? (
-      '<div class="seg planseg" id="addonSeg">'+
-        '<button type="button" data-ax="0" class="on">No extras</button>'+
-        '<button type="button" data-ax="1">Add extras</button>'+
-      '</div>'+
-      '<div id="expAddonWrap" style="display:none;margin-top:9px"><div id="expAddonBox" class="aboxes"></div><div class="ahint" id="expAddonHint"></div></div>'
+      '<div class="exp-addon-head">Add extras <span>(optional)</span></div>'+
+      '<div id="expAddonWrap"><div id="expAddonBox" class="aboxes"></div><div class="ahint" id="expAddonHint"></div></div>'
     ) : '');
+  planBody.classList.toggle('one-plan', !showTrial);   // single plan -> centered card + centered price
   // meal-frequency toggle (1 vs 2 meals a day). Changing it re-prices, so drop any prior pick.
   planBody.querySelectorAll('#perDaySeg button').forEach(function(b){
     b.addEventListener('click', function(){
@@ -1662,16 +1676,7 @@ function buildPlanStep(c){
   if(EXPRESS){
     var mo=planBody.querySelector('.plan[data-key="monthly"]');
     if(mo){ mo.classList.add('sel'); order.plan='monthly'; order.planLabel=mo.dataset.label; order.planPrice=+mo.dataset.price; order.deliveries=+mo.dataset.units; dpShowPlan(); validate(); }
-    var wrap=document.getElementById('expAddonWrap');
-    planBody.querySelectorAll('#addonSeg button').forEach(function(b){
-      b.addEventListener('click', function(){
-        planBody.querySelectorAll('#addonSeg button').forEach(x=>x.classList.remove('on'));
-        b.classList.add('on');
-        if(b.dataset.ax==='1'){ renderExpressAddons(c); wrap.style.display='block'; }
-        else { order.addons={}; wrap.style.display='none'; }
-        validate(); haptic();
-      });
-    });
+    renderExpressAddons(c);   // add-ons shown and selectable by default (no Yes/No gate)
   }
 }
 // express add-ons picker (mirrors renderAddons, but lives on the plan page)
@@ -1779,6 +1784,9 @@ function setupExpressUI(){
   ['addr-search-block','addr-picked','distfee'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
   var row=document.querySelector('.addr-row'); if(row) row.style.display='none';
   var extra=document.getElementById('addr-extra'); if(extra) extra.classList.add('show');
+  // name + phone: stack one below the other, centered on the page
+  var sec=document.querySelector('.step[data-step="3"]'); if(sec) sec.classList.add('express-details');
+  var np=document.querySelector('#addr-extra .row2:not(.addr-row)'); if(np) np.classList.add('stack');
 }
 // Deep links open the app straight to the right funnel.
 //   ?express=<slug>        express monthly (name+phone only)

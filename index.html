@@ -250,10 +250,10 @@
   .row2.addr-row > *:last-child{flex:1;}
 
   /* review */
-  .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px;overflow:hidden;min-height:0;flex:0 1 auto;margin-top:9px;}
+  .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px;overflow:hidden;min-height:0;flex:1 1 auto;margin-top:9px;display:flex;flex-direction:column;}
   section[data-step="6"]{padding-top:16px;}
   section[data-step="6"] h1{margin-top:2vh;}
-  .sline{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;gap:13px;line-height:1.25;}
+  .sline{flex:1 1 auto;display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;gap:13px;line-height:1.25;}
   .sline:last-child{border-bottom:1px solid var(--line);}
   .sline .k{color:var(--muted);font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;}
   .sline .v{font-weight:600;text-align:right;font-family:'Plus Jakarta Sans',sans-serif;}
@@ -401,6 +401,15 @@
   .one-plan .plan-name{justify-content:center;}
   .one-plan .plan-foot{justify-content:center;}
   .one-plan .plan .dot{display:none;}
+  /* express add-on boxes: bigger than the compact day-step ones */
+  #expAddonBox .abox{padding:16px 10px 14px;gap:8px;border-radius:14px;}
+  #expAddonBox .aic{width:42px;height:42px;border-radius:12px;}
+  #expAddonBox .aic svg{width:22px;height:22px;}
+  #expAddonBox b{font-size:14px;}
+  #expAddonBox .ap{font-size:12.5px;}
+  #expAddonBox .ap small{font-size:9.5px;}
+  #expAddonBox .tick{width:20px;height:20px;border-radius:6px;top:8px;right:8px;}
+  #expAddonBox .tick svg{width:13px;height:13px;}
   /* express details step: name + phone stacked, one below the other, centered on the page */
   .express-details .body{flex:1 1 auto !important;min-height:0;justify-content:center !important;}
   .express-details #addr-extra{width:100%;max-width:320px;margin:0 auto;}
@@ -516,6 +525,12 @@
     section[data-step="0"] .planseg{grid-column:1/-1;}
     section[data-step="0"] .plan:first-of-type{margin-top:0;}
     section[data-step="0"] .plan:last-of-type{margin-bottom:0;}
+    /* single plan (monthly-only / express): one centered column, not the 2-col grid */
+    section[data-step="0"] .body.one-plan{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+    .body.one-plan .plan{width:100%;max-width:440px;margin:0;}
+    .body.one-plan .benefits{width:100%;max-width:520px;}
+    .body.one-plan .exp-addon-head{width:100%;max-width:520px;text-align:center;}
+    .body.one-plan #expAddonWrap{width:100%;max-width:520px;}
     /* pointer polish: hover states (touch devices never see these) */
     .card:hover{transform:translateY(-2px);border-color:var(--accent-text);}
     .plan:hover,.opt:hover,.day:hover,.abox:hover,.dcard:hover{border-color:var(--accent-text);}

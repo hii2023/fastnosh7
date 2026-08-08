@@ -85,11 +85,14 @@ export default {
         if (Array.isArray(body.addons)) {
           for (const k of body.addons) { if (ADDON_PRICE[k]) addonPerMeal += ADDON_PRICE[k]; }
         }
-        // coords are mandatory: without them the distance fee cannot be charged,
-        // and a tampered client could omit them to dodge the fee entirely
-        if (body.lat == null || body.lng == null || isNaN(Number(body.lat)) || isNaN(Number(body.lng)))
+        // Express monthly link (?express=...) takes only name + phone, no address, so it
+        // carries no distance fee (flat plan price). For every other flow coords are
+        // mandatory: without them the distance fee cannot be charged, and a tampered client
+        // could omit them to dodge the fee entirely.
+        const isExpress = body.express === true;
+        if (!isExpress && (body.lat == null || body.lng == null || isNaN(Number(body.lat)) || isNaN(Number(body.lng))))
           return json({ error: "missing delivery location" }, 400);
-        const feePerDelivery = distanceFeePerDelivery(body.lat, body.lng);
+        const feePerDelivery = isExpress ? 0 : distanceFeePerDelivery(body.lat, body.lng);
         // promo: trust only the code, apply our own per-plan discount
         const code = (body.promo || "").toString().trim().toUpperCase();
         const discount = (code && PROMOS[code]) ? (PROMOS[code][body.plan] || 0) : 0;

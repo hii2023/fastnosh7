@@ -701,9 +701,9 @@
 
     <!-- STEP 4: ADDRESS + DETAILS -->
     <section class="step scroll" data-step="3">
-      <h1>Delivery <span class="accent">address</span></h1>
+      <h1 id="addrTitle">Delivery <span class="accent">address</span></h1>
       <div class="body" style="justify-content:flex-start;">
-        <div>
+        <div id="addr-search-block">
           <div class="label">Search address (Ahmedabad)</div>
           <div class="search-wrap">
             <input class="field" id="f-search" type="text" placeholder="Society, area, road, landmark" autocomplete="off" />
@@ -761,7 +761,7 @@
           <div class="ordlabel">Order number</div>
           <div class="ordno" id="c-orderno">NOSH-000000</div>
         </div>
-        <p class="note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly.<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
+        <p class="note" id="c-note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly.<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
       </div>
     </section>
 
@@ -773,6 +773,7 @@
     <div class="hint" id="payhint" style="display:none"></div>
     <button class="cta" id="msg" style="display:none">Message us on WhatsApp</button>
     <button class="cta ghost" id="restart" style="display:none">Share with Friends &amp; Family</button>
+    <button class="cta ghost" id="seemenu" style="display:none">See the menu</button>
     <button class="back" id="back" style="display:none">Back</button>
   </div>
 </div>
@@ -839,9 +840,25 @@ const payBtn = document.getElementById('pay');
 const payHint = document.getElementById('payhint');
 const msgBtn = document.getElementById('msg');
 const restartBtn = document.getElementById('restart');
+const seemenuBtn = document.getElementById('seemenu');
 let cur = 0, orderNo = "";
 
 const REVIEW = 4, CONFIRM = 5, LAST_INPUT = 3;
+
+/* ---- link modes: one app, four ways to open it (chosen by URL params) ----
+   (default)            home -> single-meal booking (2-meals-a-day is hidden)
+   ?meals=2             the "two plans" link: unlocks the 1 vs 2 meals-a-day toggle
+   ?track=<slug>&monthly=1   full flow for a track, Trial Pack hidden (only Monthly)
+   ?express=<slug>      express monthly: only Monthly + add-ons Yes/No -> name+phone -> pay (no address) */
+const Q = new URLSearchParams(location.search);
+const ALLOW_DAILY  = (Q.get('meals') === '2' || Q.has('twoplans'));
+const EXPRESS      = Q.has('express');
+const EXPRESS_SLUG = (function(){ var s = Q.get('express'); return (s && s !== '1') ? s : 'fresh'; })();
+// express is monthly-only by nature; ?monthly=1 (or ?plan=monthly) also hides the Trial Pack
+const MONTHLY_ONLY = EXPRESS || Q.get('monthly') === '1' || Q.get('plan') === 'monthly';
+// step order changes for express (skip slot + days/add-ons + real address step)
+function nextIndex(i){ if(EXPRESS){ if(i===0) return LAST_INPUT; if(i===LAST_INPUT) return REVIEW; } return i+1; }
+function prevIndex(i){ if(EXPRESS){ if(i===REVIEW) return LAST_INPUT; if(i===LAST_INPUT) return 0; } return i-1; }
 
 /* ---- build day-of-week chips (Mon..Sat, all on) ---- */
 const daysEl = document.getElementById('days');
@@ -917,7 +934,7 @@ function updateSlotStep(){
 let advanceTimer=null;
 function maybeAutoAdvance(){
   clearTimeout(advanceTimer);
-  advanceTimer=setTimeout(()=>{ if(stepValid(cur) && cur<REVIEW) go(cur+1); }, 320);
+  advanceTimer=setTimeout(()=>{ if(stepValid(cur) && cur<REVIEW) go(nextIndex(cur)); }, 320);
 }
 
 /* ---- diet ---- */
@@ -964,10 +981,24 @@ document.querySelectorAll('#paneer-size button').forEach(b=>{
 });
 
 /* ---- inputs ---- */
-document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); });
-document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
-document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); });
-document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); });
+// When the customer taps a browser autofill / keyboard suggestion (not manual typing),
+// treat the field as filled and jump to the next still-empty field automatically.
+// A suggestion pick fires 'insertReplacementText' (iOS/Safari) or an input event with no
+// inputType (Chrome autofill); normal keystrokes are 'insertText' and never advance.
+const ADDR_SEQ=['f-house','f-building','f-name','f-phone'];
+function autofillAdvance(e){
+  if(!e || !(e.inputType==='insertReplacementText' || e.inputType==null)) return;
+  var i=ADDR_SEQ.indexOf(e.target.id); if(i<0) return;
+  for(var j=i+1;j<ADDR_SEQ.length;j++){
+    var el=document.getElementById(ADDR_SEQ[j]);
+    if(el && el.offsetParent!==null && !el.value){ el.focus(); return; }   // next visible, empty field
+  }
+  try{ e.target.blur(); }catch(_){}   // everything filled: close the keyboard
+}
+document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); autofillAdvance(e); });
+document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); autofillAdvance(e); });
+document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); autofillAdvance(e); });
+document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); autofillAdvance(e); });
 // pressing Enter jumps to the next field
 [['f-house','f-building'],['f-building','f-name'],['f-name','f-phone']].forEach(([from,to])=>{
   document.getElementById(from).addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); const n=document.getElementById(to); if(n) n.focus(); } });
@@ -1137,7 +1168,9 @@ function stepValid(i){
     case 0: return !!order.plan;
     case 1: return (order.batches||[]).length === batchesNeeded();
     case 2: return order.days.length>=1;
-    case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && order.lat!=null && (order.house||'').length>0 && (order.building||'').length>0;
+    case 3:
+      if(EXPRESS) return order.name.length>1 && order.phone.length===10;   // express = name + phone only, no address
+      return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && order.lat!=null && (order.house||'').length>0 && (order.building||'').length>0;
     default: return true;
   }
 }
@@ -1153,17 +1186,22 @@ function buildSummary(){
   refreshPromoLabels();
   const rows=[];
   rows.push(['Plan', order.planLabel + (order.deliveries? ', '+rupee(Math.round(order.planPrice/order.deliveries))+' x '+order.deliveries : ''), rupee(order.planPrice)]);
-  rows.push([order.perDay===2?'Slots':'Slot', order.batchShort||order.batchLabel, '']);
-  rows.push(['Days', daysText(), '']);
-  rows.push(['Preference', order.dietLabel, '']);
-  rows.push(['Starts', order.dateLabel+' (tomorrow)', '']);
+  if(!EXPRESS){
+    rows.push([order.perDay===2?'Slots':'Slot', order.batchShort||order.batchLabel, '']);
+    rows.push(['Days', daysText(), '']);
+    rows.push(['Preference', order.dietLabel, '']);
+    rows.push(['Starts', order.dateLabel+' (tomorrow)', '']);
+  }
   rows.push(['Deliver to', order.name+', '+order.phone, '']);
-  rows.push(['Address', fullAddress(), '']);
-  if(order.distanceFee>0) rows.push(['Distance fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
-  else rows.push(['Distance fee', '<span class="freetag">Free</span>'+(order.distanceKm? ' ('+order.distanceKm.toFixed(1)+' km)':''), '', true]);
+  if(!EXPRESS){
+    rows.push(['Address', fullAddress(), '']);
+    if(order.distanceFee>0) rows.push(['Distance fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
+    else rows.push(['Distance fee', '<span class="freetag">Free</span>'+(order.distanceKm? ' ('+order.distanceKm.toFixed(1)+' km)':''), '', true]);
+  }
   Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
   if(promoDiscount()>0) rows.push(['Promo', order.promo+' applied', '−'+rupee(promoDiscount())]);
   if(order.note) rows.push(['Notes', order.note, '']);
+  if(EXPRESS) rows.push(['Next', 'We WhatsApp you to confirm your address &amp; delivery time', '', true]);
   document.getElementById('summary').innerHTML = rows.map(r=>{
     const val = r[3] ? r[1] : esc(r[1]);
     return '<div class="sline"><span class="k">'+r[0]+'</span><span class="v">'+val+(r[2]?' &nbsp;<em>'+r[2]+'</em>':'')+'</span></div>';
@@ -1243,13 +1281,13 @@ function go(to){
   refreshFooter();
   // landing on the address step: put the cursor in the search box right away
   if(cur===LAST_INPUT && !order.lat){
-    setTimeout(()=>{ const s=document.getElementById('f-search'); if(s) s.focus(); }, 460);
+    setTimeout(()=>{ const s=document.getElementById(EXPRESS?'f-name':'f-search'); if(s) s.focus(); }, 460);
   }
 }
 
 function refreshFooter(){
   nextBtn.style.display='none'; payBtn.style.display='none'; payHint.style.display='none';
-  msgBtn.style.display='none'; restartBtn.style.display='none';
+  msgBtn.style.display='none'; restartBtn.style.display='none'; seemenuBtn.style.display='none';
   backBtn.style.display = (cur<CONFIRM) ? 'block':'none';
   if(cur===REVIEW){
     buildSummary();
@@ -1257,7 +1295,7 @@ function refreshFooter(){
     payHint.textContent = (CONFIG.PAYMENT_METHOD==='razorpay') ? 'Secure checkout, cards and UPI' : 'GPay, PhonePe, Paytm, any UPI app';
     payHint.style.display='block';
   } else if(cur===CONFIRM){
-    msgBtn.style.display='flex'; restartBtn.style.display='flex'; backBtn.style.display='none';
+    msgBtn.style.display='flex'; restartBtn.style.display='flex'; seemenuBtn.style.display='flex'; backBtn.style.display='none';
   } else {
     nextBtn.style.display='flex';
     nextBtn.textContent = (cur===LAST_INPUT)?'Review order':'Continue';
@@ -1265,8 +1303,8 @@ function refreshFooter(){
   }
 }
 
-nextBtn.addEventListener('click', ()=>{ if(stepValid(cur)) go(cur+1); });
-backBtn.addEventListener('click', ()=>{ if(cur===0){ goHome(); haptic(); } else { go(cur-1); } });
+nextBtn.addEventListener('click', ()=>{ if(stepValid(cur)) go(nextIndex(cur)); });
+backBtn.addEventListener('click', ()=>{ if(cur===0){ goHome(); haptic(); } else { go(prevIndex(cur)); } });
 
 /* ---- payment ---- */
 payBtn.addEventListener('click', ()=>{
@@ -1290,7 +1328,7 @@ async function payRazorpay(amt){
   let rzpOrderId=null;
   if(CONFIG.RAZORPAY_ORDER_ENDPOINT){
     try{
-      const r=await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:order.plan,category:order.category,addons:Object.keys(order.addons),promo:order.promo||'',lat:order.lat,lng:order.lng,receipt:orderNo,name:order.name,phone:order.phone})});
+      const r=await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:order.plan,category:order.category,addons:Object.keys(order.addons),promo:order.promo||'',lat:order.lat,lng:order.lng,express:EXPRESS,receipt:orderNo,name:order.name,phone:order.phone})});
       const d=await r.json(); rzpOrderId=d.id; if(!rzpOrderId) throw new Error(d.error||'no order id'); if(d.amount) amt=d.amount/100;
     }catch(e){ resetPayBtn(amt); alert('Could not start payment. Please try again.'); return; }
   }
@@ -1344,6 +1382,10 @@ function showConfirm(status){
   document.getElementById('c-name').textContent=(order.name? order.name+',':'')+' you are set';
   document.getElementById('c-orderno').textContent=orderNo;
   document.getElementById('c-start').textContent=order.dateLabel;
+  if(EXPRESS){
+    var n=document.getElementById('c-note');
+    if(n) n.innerHTML='Payment received. We will <b style="color:var(--accent-text);">WhatsApp you shortly</b> to confirm your delivery address and time slot, and your meals begin the next day.<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to manage your subscription.';
+  }
   sendOrder(status||'paid'); go(CONFIRM);
 }
 
@@ -1357,7 +1399,8 @@ function sendOrder(status, reason){
     lat:order.lat, lng:order.lng, distanceKm:order.distanceKm? order.distanceKm.toFixed(2):"", deliveryFeePerMeal:order.distanceFee||0, deliveryFeeTotal:deliveryFeeTotal(),
     addons:Object.values(order.addons).map(a=>a.label).join(", "),
     promo:order.promo||"", discount:promoDiscount(),
-    instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
+    instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString(),
+    orderType:EXPRESS?"EXPRESS-MONTHLY (call to confirm address + slot)":""
   };
   const body=JSON.stringify(payload);
   // sendBeacon is built for exactly this: it hands the request to the OS and it goes
@@ -1392,6 +1435,7 @@ restartBtn.addEventListener('click', ()=>{
     window.open("https://wa.me/?text="+encodeURIComponent(msg), '_blank');
   }
 });
+seemenuBtn.addEventListener('click', ()=>{ window.open("https://nosh7.in/menu/", '_blank'); });
 
 function saveOrder(){
   try{ const all=JSON.parse(localStorage.getItem('nosh7_orders')||'[]'); all.push({orderNo,total:grandTotal(),at:new Date().toISOString(),...order}); localStorage.setItem('nosh7_orders',JSON.stringify(all)); }catch(e){}
@@ -1538,9 +1582,11 @@ function fitOneLine(el, max, min){
 }
 window.addEventListener('resize', function(){ if(cur===0 && CURCAT) fitOneLine(planNote, 13, 10.5); });
 function buildPlanStep(c){
+  if(!ALLOW_DAILY) order.perDay=1;              // 2-meals-a-day is off unless the ?meals=2 link is used
+  var showTrial=!MONTHLY_ONLY;                   // monthly-only / express links hide the Trial Pack
   var p=plansFor(c);
   planEyebrow.textContent=c.name;
-  planNote.textContent=c.line||c.note||'Pick weekly or monthly.';
+  planNote.textContent = EXPRESS ? 'Your monthly plan. Add extras if you like, then continue.' : (c.line||c.note||'Pick weekly or monthly.');
   var bens=(BENEFITS[c.key]||[]).map(function(b){ return '<div class="benefit"><b class="statnum">'+b[0]+'</b><small>'+b[1]+'</small></div>'; }).join('');
   var two=order.perDay===2;
   var combo=order.daily==='ld' ? 'Lunch & Dinner' : 'Breakfast & Dinner';
@@ -1556,24 +1602,35 @@ function buildPlanStep(c){
   var trFoot=two?('Rs '+Math.round(trPrice/trUnits)+' per meal'):('Rs '+p.wkPer+' per delivery');
   planBody.innerHTML=
     (bens?'<div class="benefits">'+bens+'</div>':'')+
-    '<div class="seg planseg" id="perDaySeg">'+
-      '<button type="button" data-per="1"'+(two?'':' class="on"')+'>1 meal a day</button>'+
-      '<button type="button" data-per="2"'+(two?' class="on"':'')+'>2 meals a day<span class="save">save 7%</span></button>'+
-    '</div>'+
-    '<div class="seg planseg" id="dailySeg"'+(two?'':' style="display:none"')+'>'+
-      '<button type="button" data-daily="bd"'+(order.daily!=='ld'?' class="on"':'')+'>Breakfast &amp; Dinner</button>'+
-      '<button type="button" data-daily="ld"'+(order.daily==='ld'?' class="on"':'')+'>Lunch &amp; Dinner</button>'+
-    '</div>'+
+    (ALLOW_DAILY ? (
+      '<div class="seg planseg" id="perDaySeg">'+
+        '<button type="button" data-per="1"'+(two?'':' class="on"')+'>1 meal a day</button>'+
+        '<button type="button" data-per="2"'+(two?' class="on"':'')+'>2 meals a day<span class="save">save 7%</span></button>'+
+      '</div>'+
+      '<div class="seg planseg" id="dailySeg"'+(two?'':' style="display:none"')+'>'+
+        '<button type="button" data-daily="bd"'+(order.daily!=='ld'?' class="on"':'')+'>Breakfast &amp; Dinner</button>'+
+        '<button type="button" data-daily="ld"'+(order.daily==='ld'?' class="on"':'')+'>Lunch &amp; Dinner</button>'+
+      '</div>'
+    ) : '')+
     '<button class="plan" data-key="'+moKey+'" data-label="'+moLabel+'" data-price="'+moPrice+'" data-units="'+moUnits+'">'+
       '<div class="plan-top"><div><div class="plan-name">Monthly <span class="badge">Best value</span></div><div class="plan-meals">'+moMeals+'</div></div><div class="dot"></div></div>'+
       '<div class="plan-price"><em>Rs</em>'+moPrice.toLocaleString('en-IN')+'</div>'+
       '<div class="plan-foot">'+moFoot+'</div>'+
     '</button>'+
-    '<button class="plan" data-key="'+trKey+'" data-label="'+trLabel+'" data-price="'+trPrice+'" data-units="'+trUnits+'">'+
-      '<div class="plan-top"><div><div class="plan-name">Trial Pack</div><div class="plan-meals">'+trMeals+'</div></div><div class="dot"></div></div>'+
-      '<div class="plan-price"><em>Rs</em>'+trPrice.toLocaleString('en-IN')+'</div>'+
-      '<div class="plan-foot">'+trFoot+'</div>'+
-    '</button>';
+    (showTrial ? (
+      '<button class="plan" data-key="'+trKey+'" data-label="'+trLabel+'" data-price="'+trPrice+'" data-units="'+trUnits+'">'+
+        '<div class="plan-top"><div><div class="plan-name">Trial Pack</div><div class="plan-meals">'+trMeals+'</div></div><div class="dot"></div></div>'+
+        '<div class="plan-price"><em>Rs</em>'+trPrice.toLocaleString('en-IN')+'</div>'+
+        '<div class="plan-foot">'+trFoot+'</div>'+
+      '</button>'
+    ) : '')+
+    (EXPRESS ? (
+      '<div class="seg planseg" id="addonSeg">'+
+        '<button type="button" data-ax="0" class="on">No extras</button>'+
+        '<button type="button" data-ax="1">Add extras</button>'+
+      '</div>'+
+      '<div id="expAddonWrap" style="display:none;margin-top:9px"><div id="expAddonBox" class="aboxes"></div><div class="ahint" id="expAddonHint"></div></div>'
+    ) : '');
   // meal-frequency toggle (1 vs 2 meals a day). Changing it re-prices, so drop any prior pick.
   planBody.querySelectorAll('#perDaySeg button').forEach(function(b){
     b.addEventListener('click', function(){
@@ -1597,7 +1654,43 @@ function buildPlanStep(c){
       btn.classList.add('sel');
       order.plan=btn.dataset.key; order.planLabel=btn.dataset.label; order.planPrice=+btn.dataset.price; order.deliveries=+btn.dataset.units;
       dpShowPlan();
-      haptic(); validate(); maybeAutoAdvance();
+      haptic(); validate();
+      if(!EXPRESS) maybeAutoAdvance();   // express keeps the add-ons choice on screen; user taps Continue
+    });
+  });
+  // express: the plan is fixed to Monthly, so pre-select it and offer an add-ons Yes/No choice
+  if(EXPRESS){
+    var mo=planBody.querySelector('.plan[data-key="monthly"]');
+    if(mo){ mo.classList.add('sel'); order.plan='monthly'; order.planLabel=mo.dataset.label; order.planPrice=+mo.dataset.price; order.deliveries=+mo.dataset.units; dpShowPlan(); validate(); }
+    var wrap=document.getElementById('expAddonWrap');
+    planBody.querySelectorAll('#addonSeg button').forEach(function(b){
+      b.addEventListener('click', function(){
+        planBody.querySelectorAll('#addonSeg button').forEach(x=>x.classList.remove('on'));
+        b.classList.add('on');
+        if(b.dataset.ax==='1'){ renderExpressAddons(c); wrap.style.display='block'; }
+        else { order.addons={}; wrap.style.display='none'; }
+        validate(); haptic();
+      });
+    });
+  }
+}
+// express add-ons picker (mirrors renderAddons, but lives on the plan page)
+function renderExpressAddons(c){
+  var box=document.getElementById('expAddonBox'), hint=document.getElementById('expAddonHint');
+  if(!box) return;
+  var list=addonsFor(c);
+  box.className='aboxes n'+list.length;
+  box.innerHTML=list.map(function(a){
+    var on=order.addons[a.key]?' on':'';
+    return '<div class="abox'+on+'" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div>';
+  }).join('');
+  if(hint) hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade, nimbu sharbat, chia fresca or green apple detox' : '';
+  box.querySelectorAll('.abox').forEach(function(el){
+    el.addEventListener('click', function(){
+      var k=el.dataset.a, a=ADDONS.find(x=>x.key===k);
+      if(order.addons[k]){ delete order.addons[k]; el.classList.remove('on'); }
+      else { order.addons[k]={label:a.label, price:a.price}; el.classList.add('on'); }
+      haptic();
     });
   });
 }
@@ -1679,10 +1772,26 @@ function dpReset(){
 
 buildHome();
 
-// Deep link: ?track=<slug> (e.g. ?track=high-protein) opens straight to that track's plan page.
+// Turn the address step into a plain name+phone step for the express monthly link.
+function setupExpressUI(){
+  if(!EXPRESS) return;
+  var t=document.getElementById('addrTitle'); if(t) t.innerHTML='Your <span class="accent">details</span>';
+  ['addr-search-block','addr-picked','distfee'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+  var row=document.querySelector('.addr-row'); if(row) row.style.display='none';
+  var extra=document.getElementById('addr-extra'); if(extra) extra.classList.add('show');
+}
+// Deep links open the app straight to the right funnel.
+//   ?express=<slug>        express monthly (name+phone only)
+//   ?track=<slug>          that track's plan page (Trial hidden too if &monthly=1)
 (function(){
   try{
-    var slug=new URLSearchParams(location.search).get('track');
+    if(EXPRESS){
+      setupExpressUI();
+      var ec=CATS.find(function(x){ return x.slug===EXPRESS_SLUG || x.key===EXPRESS_SLUG; }) || CATS[0];
+      startWizard(ec);
+      return;
+    }
+    var slug=Q.get('track');
     if(!slug) return;
     var c=CATS.find(function(x){ return x.slug===slug || x.key===slug; });
     if(c) startWizard(c);
@@ -1738,7 +1847,7 @@ refreshFooter();
     if(!app.classList.contains('home-mode')){
       if(cur===CONFIRM){ showModal(); }     // order placed: do not step back into payment
       else if(cur===0){ goHome(); haptic(); }
-      else { go(cur-1); haptic(); }         // back inside the funnel, never out
+      else { go(prevIndex(cur)); haptic(); } // back inside the funnel, never out
     } else {
       showModal();
     }

@@ -78,7 +78,7 @@ export default {
         const basePlan = DAILY[body.plan] || body.plan;
         const catBase = CATPRICE[cat][basePlan];
         if (!catBase) return json({ error: "invalid plan" }, 400);
-        const base = DAILY[body.plan] ? Math.round(2 * catBase * (1 - DAILY_DISCOUNT)) : catBase;
+        const base = DAILY[body.plan] ? Math.round(2 * catBase * (1 - DAILY_DISCOUNT) / 100) * 100 : catBase;   // 2 meals a day, rounded to nearest Rs 100 (must match index.html d2)
         if (!base) return json({ error: "invalid plan" }, 400);
         // add-ons: trust only WHICH ones were picked, price them ourselves (per meal x units)
         let addonPerMeal = 0;

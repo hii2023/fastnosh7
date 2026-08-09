@@ -1546,7 +1546,7 @@ function plansFor(c){
   var monthly=c.monthly||(c.std?4999:moPer*25);
   var weekly=c.weekly||wkPer*5;
   // 2 meals a day = 2x the plan, minus the daily discount
-  var d2=function(x){ return Math.round(2*x*(1-DAILY_DISCOUNT)); };
+  var d2=function(x){ return Math.round(2*x*(1-DAILY_DISCOUNT)/100)*100; };   // 2 meals a day, rounded to the nearest Rs 100
   return {moPer:moPer, wkPer:wkPer, monthly:monthly, weekly:weekly, monthly2:d2(monthly), trial2:d2(weekly)};
 }
 const ADDONS=[

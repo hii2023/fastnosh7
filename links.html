@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NOSH7 Order Links</title>
+<meta name="description" content="Tap-to-copy directory of every start.nosh7.in order link, grouped by when to send it." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#f5f8ef" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0c100b" media="(prefers-color-scheme: dark)" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<style>
+  :root{
+    --bg:#f5f8ef; --surface:#ffffff; --surface-2:#f1f6e7; --line:#e2ead4;
+    --ink:#10140d; --muted:#5d6a51; --faint:#8a9880;
+    --lime:#c4f546; --accent-text:#3f6a12; --accent-soft:#eaf6cf;
+    --shadow:0 1px 2px rgba(16,24,10,.05), 0 8px 24px rgba(16,24,10,.06);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0c100b; --surface:#141a11; --surface-2:#1a2116; --line:#28311f;
+      --ink:#eef3e6; --muted:#97a58c; --faint:#6d7c62;
+      --lime:#c4f546; --accent-text:#c4f546; --accent-soft:#20301a;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f8ef; --surface:#ffffff; --surface-2:#f1f6e7; --line:#e2ead4;
+    --ink:#10140d; --muted:#5d6a51; --faint:#8a9880;
+    --lime:#c4f546; --accent-text:#3f6a12; --accent-soft:#eaf6cf;
+    --shadow:0 1px 2px rgba(16,24,10,.05), 0 8px 24px rgba(16,24,10,.06);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c100b; --surface:#141a11; --surface-2:#1a2116; --line:#28311f;
+    --ink:#eef3e6; --muted:#97a58c; --faint:#6d7c62;
+    --lime:#c4f546; --accent-text:#c4f546; --accent-soft:#20301a;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  html{color-scheme:light dark;}
+  body{margin:0;}
+  .wrap{
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+    min-height:100vh; padding:34px 18px 72px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:720px; margin:0 auto;}
+
+  .top{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:center; gap:11px;}
+  .mark{width:40px; height:40px; border-radius:12px; border:1.5px solid var(--line);
+    background:var(--surface); display:grid; place-items:center; color:var(--accent-text); flex:none;}
+  .mark svg{width:22px; height:22px;}
+  .wordmark{font-size:22px; font-weight:800; letter-spacing:-.5px; line-height:1;}
+  .wordmark b{color:var(--accent-text);}
+  .brand small{display:block; margin-top:3px; font-size:10.5px; letter-spacing:1.6px; text-transform:uppercase; color:var(--faint); font-weight:600;}
+  .copyall{
+    border:1.5px solid var(--line); background:var(--surface); color:var(--ink);
+    font:inherit; font-size:13px; font-weight:600; padding:9px 14px; border-radius:11px;
+    cursor:pointer; transition:border-color .18s, background .18s, transform .05s;
+  }
+  .copyall:hover{border-color:var(--accent-text);}
+  .copyall:active{transform:scale(.98);}
+
+  h1{font-size:27px; line-height:1.15; letter-spacing:-.7px; margin:26px 0 8px; text-wrap:balance;}
+  .lead{margin:0; color:var(--muted); font-size:15px; line-height:1.55; max-width:60ch;}
+
+  .groups{display:flex; flex-direction:column; gap:16px; margin-top:28px;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;}
+  .card-head{padding:16px 18px 14px; border-bottom:1px solid var(--line);}
+  .eyebrow{display:inline-block; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;
+    color:var(--accent-text); background:var(--accent-soft); padding:4px 9px; border-radius:7px;}
+  .card-head h2{margin:11px 0 5px; font-size:18px; letter-spacing:-.3px;}
+  .card-head p{margin:0; font-size:13.5px; line-height:1.5; color:var(--muted); max-width:58ch;}
+
+  .rows{display:flex; flex-direction:column;}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:12px 18px; border-top:1px solid var(--line);}
+  .row:first-child{border-top:0;}
+  .row:hover{background:var(--surface-2);}
+  .rmeta{min-width:0; display:flex; flex-direction:column; gap:2px;}
+  .rname{font-size:14.5px; font-weight:600; letter-spacing:-.1px;}
+  .rurl{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; color:var(--faint);
+    text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .rurl:hover{color:var(--accent-text); text-decoration:underline;}
+  .ract{display:flex; align-items:center; gap:8px; flex:none;}
+  .copy{
+    border:0; background:var(--lime); color:#10140d; font:inherit; font-size:12.5px; font-weight:700;
+    padding:8px 14px; border-radius:9px; cursor:pointer; transition:filter .15s, transform .05s; min-width:66px;
+  }
+  .copy:hover{filter:brightness(1.05);}
+  .copy:active{transform:scale(.96);}
+  .copy.done{background:var(--accent-soft); color:var(--accent-text);}
+  .open{display:inline-flex; align-items:center; gap:4px; text-decoration:none; color:var(--muted);
+    font-size:12.5px; font-weight:600; padding:8px 6px; border-radius:9px;}
+  .open:hover{color:var(--accent-text);}
+
+  a:focus-visible, button:focus-visible, .rurl:focus-visible{outline:2px solid var(--accent-text); outline-offset:2px; border-radius:6px;}
+
+  .foot{margin-top:26px; color:var(--faint); font-size:12px; line-height:1.6; text-align:center;}
+  .foot code{font-family:ui-monospace,Menlo,monospace; color:var(--muted);}
+
+  .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(14px);
+    background:var(--ink); color:var(--bg); font-size:13px; font-weight:600; padding:11px 18px; border-radius:11px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:520px){
+    .row{flex-direction:column; align-items:stretch; gap:9px;}
+    .rurl{white-space:normal; word-break:break-all;}
+    .ract{justify-content:flex-start;}
+    .copy{flex:1;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="page">
+    <div class="top">
+      <div class="brand">
+        <span class="mark" role="img" aria-label="NOSH7">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"/><path d="M5 16h14"/><path d="M12 4c-1.5 1.5-1.5 4 0 5"/><path d="M12 4c1.5 1.5 3.5 1.5 4.5 0"/></svg>
+        </span>
+        <div>
+          <div class="wordmark">NOSH<b>7</b></div>
+          <small>Order link directory</small>
+        </div>
+      </div>
+      <button class="copyall" id="copyall" type="button">Copy all links</button>
+    </div>
+
+    <h1>Send the right order link for what each customer needs.</h1>
+    <p class="lead">Every link below opens <b>start.nosh7.in</b> straight to a specific funnel. Tap <b>Copy</b> and paste it into WhatsApp. Each group notes when to use it.</p>
+
+    <div class="groups" id="groups"></div>
+
+    <p class="foot">All links point to <code>start.nosh7.in</code>. You can combine options too, e.g. <code>?track=healthy-fresh&monthly=1&meals=2</code> for a monthly-only, two-meals page.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Link copied</div>
+
+<script>
+  const BASE = "https://start.nosh7.in";
+  const TRACKS = [
+    ["Healthy Fresh","healthy-fresh"],
+    ["Muscle Gain (high protein)","high-protein"],
+    ["Low Sugar","low-sugar"],
+    ["Weight Loss","weight-loss"],
+    ["Vegan","vegan"],
+    ["Fruit Dish Pack","fruit-pack"]
+  ];
+  const trackLinks = suffix => TRACKS.map(([n,s]) => [n, BASE + "/?track=" + s + suffix]);
+
+  const GROUPS = [
+    { eyebrow:"Everything", title:"Main page",
+      note:"The full page with all six plans. Good as your default link.",
+      links:[["All plans (home)", BASE]] },
+    { eyebrow:"One plan", title:"Individual plan pages",
+      note:"Opens straight to one plan, showing Monthly and Trial Pack, one meal a day.",
+      links: trackLinks("") },
+    { eyebrow:"No trial shown", title:"Monthly-only pages",
+      note:"The same full flow, but the Trial Pack is hidden. Send when someone specifically wants the monthly plan.",
+      links: trackLinks("&monthly=1") },
+    { eyebrow:"Fast checkout", title:"Express monthly",
+      note:"Only the Monthly plan and add-ons, then name and phone, then pay. No address is asked, so confirm it on WhatsApp afterwards.",
+      links: TRACKS.map(([n,s]) => [n, BASE + "/?express=" + s]) },
+    { eyebrow:"2 meals a day", title:"Two meals a day",
+      note:"Locked to two meals a day with two-meal pricing. The customer picks their two delivery slots on the next step.",
+      links: [["All plans (home)", BASE + "/?meals=2"], ...trackLinks("&meals=2")] }
+  ];
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  document.getElementById("groups").innerHTML = GROUPS.map(g => `
+    <section class="card">
+      <div class="card-head">
+        <span class="eyebrow">${esc(g.eyebrow)}</span>
+        <h2>${esc(g.title)}</h2>
+        <p>${esc(g.note)}</p>
+      </div>
+      <div class="rows">
+        ${g.links.map(([name,url]) => `
+          <div class="row">
+            <div class="rmeta">
+              <span class="rname">${esc(name)}</span>
+              <a class="rurl" href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>
+            </div>
+            <div class="ract">
+              <button class="copy" type="button" data-url="${esc(url)}">Copy</button>
+              <a class="open" href="${esc(url)}" target="_blank" rel="noopener" aria-label="Open ${esc(name)} in a new tab">Open &#8599;</a>
+            </div>
+          </div>`).join("")}
+      </div>
+    </section>`).join("");
+
+  const toast = document.getElementById("toast");
+  let toastTimer = null;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
+  }
+
+  async function copyText(text){
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text); return true;
+      }
+    }catch(e){}
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta); return ok;
+    }catch(e){ return false; }
+  }
+
+  document.getElementById("groups").addEventListener("click", async e => {
+    const btn = e.target.closest(".copy");
+    if(!btn) return;
+    const ok = await copyText(btn.dataset.url);
+    if(ok){
+      const prev = btn.textContent;
+      btn.textContent = "Copied"; btn.classList.add("done");
+      showToast("Link copied");
+      setTimeout(() => { btn.textContent = prev; btn.classList.remove("done"); }, 1400);
+    } else {
+      showToast("Press Ctrl/Cmd+C to copy");
+    }
+  });
+
+  document.getElementById("copyall").addEventListener("click", async () => {
+    const all = GROUPS.flatMap(g => g.links.map(l => l[1])).join("\n");
+    const ok = await copyText(all);
+    showToast(ok ? "All links copied" : "Could not copy");
+  });
+</script>
+</body>
+</html>

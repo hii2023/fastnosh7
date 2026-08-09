@@ -719,7 +719,7 @@
     <section class="step" data-step="2">
       <div class="eyebrow">Days</div>
       <h1>Delivery <span class="accent">days</span></h1>
-      <p class="sub">Monday to Saturday by default.<br><span class="skipnote">Uncheck any day you skip.</span></p>
+      <p class="sub">We deliver Monday to Saturday.<br><span class="skipnote">Tap a day to skip it.</span></p>
       <div class="body">
         <div class="daysmid"><div class="days" id="days"></div></div>
         <div class="addons-wrap" id="addonsWrap">
@@ -1613,36 +1613,27 @@ function fitOneLine(el, max, min){
 }
 window.addEventListener('resize', function(){ if(cur===0 && CURCAT) fitOneLine(planNote, 13, 10.5); });
 function buildPlanStep(c){
-  if(!ALLOW_DAILY) order.perDay=1;              // 2-meals-a-day is off unless the ?meals=2 link is used
+  order.perDay = ALLOW_DAILY ? 2 : 1;           // the ?meals=2 link is always 2 meals a day; every other link is single
   var showTrial=!MONTHLY_ONLY;                   // monthly-only / express links hide the Trial Pack
   var p=plansFor(c);
   planEyebrow.textContent=c.name;
-  planNote.textContent = EXPRESS ? 'Your monthly plan. Add extras if you like, then continue.' : (c.line||c.note||'Pick weekly or monthly.');
+  planNote.textContent = EXPRESS ? 'Your monthly plan. Add extras if you like, then continue.'
+    : ALLOW_DAILY ? 'Two meals a day, delivered fresh. Pick your two time slots next.'
+    : (c.line||c.note||'Pick weekly or monthly.');
   var bens=(BENEFITS[c.key]||[]).map(function(b){ return '<div class="benefit"><b class="statnum">'+b[0]+'</b><small>'+b[1]+'</small></div>'; }).join('');
   var two=order.perDay===2;
-  var combo=order.daily==='ld' ? 'Lunch & Dinner' : 'Breakfast & Dinner';
   // per-plan values switch to the 2-meals-a-day (Daily) pricing when selected
   var moKey=two?'monthly2':'monthly', trKey=two?'trial2':'trial';
   var moPrice=two?p.monthly2:p.monthly, trPrice=two?p.trial2:p.weekly;
   var moUnits=two?50:25, trUnits=two?10:5;
   var moMeals=two?'50 meals, 2 a day':'25 fresh meals';
   var trMeals=two?'10 meals, 2 a day':'5 fresh meals';
-  var moLabel=c.name+' Monthly'+(two?' ('+combo+', 2 meals/day)':'');
-  var trLabel=c.name+' Trial Pack'+(two?' ('+combo+', 2 meals/day)':'');
+  var moLabel=c.name+' Monthly'+(two?' (2 meals/day)':'');
+  var trLabel=c.name+' Trial Pack'+(two?' (2 meals/day)':'');
   var moFoot=two?('Rs '+Math.round(moPrice/moUnits)+' per meal'):('Rs '+p.moPer+' per delivery');
   var trFoot=two?('Rs '+Math.round(trPrice/trUnits)+' per meal'):('Rs '+p.wkPer+' per delivery');
   planBody.innerHTML=
     (bens?'<div class="benefits">'+bens+'</div>':'')+
-    (ALLOW_DAILY ? (
-      '<div class="seg planseg" id="perDaySeg">'+
-        '<button type="button" data-per="1"'+(two?'':' class="on"')+'>1 meal a day</button>'+
-        '<button type="button" data-per="2"'+(two?' class="on"':'')+'>2 meals a day<span class="save">save 7%</span></button>'+
-      '</div>'+
-      '<div class="seg planseg" id="dailySeg"'+(two?'':' style="display:none"')+'>'+
-        '<button type="button" data-daily="bd"'+(order.daily!=='ld'?' class="on"':'')+'>Breakfast &amp; Dinner</button>'+
-        '<button type="button" data-daily="ld"'+(order.daily==='ld'?' class="on"':'')+'>Lunch &amp; Dinner</button>'+
-      '</div>'
-    ) : '')+
     '<button class="plan" data-key="'+moKey+'" data-label="'+moLabel+'" data-price="'+moPrice+'" data-units="'+moUnits+'">'+
       '<div class="plan-top"><div><div class="plan-name">Monthly <span class="badge">Best value</span></div><div class="plan-meals">'+moMeals+'</div></div><div class="dot"></div></div>'+
       '<div class="plan-price"><em>Rs</em>'+moPrice.toLocaleString('en-IN')+'</div>'+
@@ -1660,23 +1651,6 @@ function buildPlanStep(c){
       '<div id="expAddonWrap"><div id="expAddonBox" class="aboxes"></div><div class="ahint" id="expAddonHint"></div></div>'
     ) : '');
   planBody.classList.toggle('one-plan', !showTrial);   // single plan -> centered card + centered price
-  // meal-frequency toggle (1 vs 2 meals a day). Changing it re-prices, so drop any prior pick.
-  planBody.querySelectorAll('#perDaySeg button').forEach(function(b){
-    b.addEventListener('click', function(){
-      order.perDay=+b.dataset.per;
-      order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
-      order.batch=null; order.batches=[]; order.batchLabel=null; order.batchShort=null; syncBatchUI();
-      buildPlanStep(c); dpShowPlan(); validate(); haptic();
-    });
-  });
-  // which two meals (only shown for the Daily Plan)
-  planBody.querySelectorAll('#dailySeg button').forEach(function(b){
-    b.addEventListener('click', function(){
-      order.daily=b.dataset.daily; order.dailyLabel=b.dataset.daily==='ld'?'Lunch & Dinner':'Breakfast & Dinner';
-      order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
-      buildPlanStep(c); dpShowPlan(); validate(); haptic();
-    });
-  });
   planBody.querySelectorAll('.plan').forEach(function(btn){
     btn.addEventListener('click', function(){
       planBody.querySelectorAll('.plan').forEach(b=>b.classList.remove('sel'));

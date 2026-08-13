@@ -832,6 +832,11 @@ const CONFIG = {
   // Google Sheet web app (Apps Script) from order-collector.gs.
   ORDER_WEBHOOK: "https://script.google.com/macros/s/AKfycbyLqKXtSX2xqBmMDtzY8AUkCzLIPaFZKVKEGolgJjfUwmZ644Gu4f0FTa243G5YxuDj/exec",
 
+  // Nosh7 platform ingestion (Supabase). Structured order copy, sent side-by-side with the
+  // Google Sheet above. Additive: if this fails the Sheet flow is unaffected. Activation of a
+  // paid subscription is HMAC-ticket verified server-side (same ticket the Sheet trusts).
+  PLATFORM_INGEST: "https://xoiksbtxoxrifkgvupqp.supabase.co/functions/v1/n7-ingest",
+
   BUSINESS_NAME: "Nosh7",
   WHATSAPP_NUMBER: "919712989498",
 
@@ -1420,7 +1425,32 @@ function showConfirm(status){
   sendOrder(status||'paid'); go(CONFIRM);
 }
 
+function sendPlatform(status){
+  if(!CONFIG.PLATFORM_INGEST || !orderNo) return;
+  try{
+    const pp={
+      orderNo, status:status||"paid", paymentId:order.paymentId||"", ticket:order.orderTicket||"",
+      phone:order.phone, name:order.name,
+      category:order.category||"", plan:order.plan||"", planLabel:order.planLabel||"", perDay:order.perDay||1,
+      deliveries:order.deliveries, diet:order.diet||"regular", slot:order.batchLabel||"",
+      days:order.days||[], startDate:order.date||"",
+      address:fullAddress(), lat:order.lat, lng:order.lng, pincode:order.pincode||"",
+      deliveryFeePerMeal:order.distanceFee||0,
+      addons:Object.keys(order.addons||{}), promo:order.promo||"", discount:promoDiscount(),
+      instructions:order.note||"", total:grandTotal(),
+      orderType:EXPRESS?"EXPRESS-MONTHLY (call to confirm address + slot)":""
+    };
+    const pb=JSON.stringify(pp);
+    if(navigator.sendBeacon){
+      const blob=new Blob([pb],{type:'text/plain;charset=utf-8'});
+      if(navigator.sendBeacon(CONFIG.PLATFORM_INGEST, blob)) return;
+    }
+    fetch(CONFIG.PLATFORM_INGEST,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:pb});
+  }catch(e){}
+}
+
 function sendOrder(status, reason){
+  sendPlatform(status);                 // Supabase platform (structured), side-by-side
   if(!CONFIG.ORDER_WEBHOOK || !orderNo) return;
   const payload={
     orderNo, status:status||"paid", reason:reason||"", paymentId:order.paymentId||"", ticket:order.orderTicket||"", payment:CONFIG.PAYMENT_METHOD,

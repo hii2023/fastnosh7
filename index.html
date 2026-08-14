@@ -539,14 +539,14 @@
     .grid .card .cardfoot{margin-top:auto;}
     /* plan step: the two plans sit side by side instead of stacking */
     section[data-step="0"] .body{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center;}
-    section[data-step="0"] .benefits{grid-column:1/-1;}
+    section[data-step="0"] .benefits-wrap{grid-column:1/-1;}
     section[data-step="0"] .planseg{grid-column:1/-1;}
     section[data-step="0"] .plan:first-of-type{margin-top:0;}
     section[data-step="0"] .plan:last-of-type{margin-bottom:0;}
     /* single plan (monthly-only / express): one centered column, not the 2-col grid */
     section[data-step="0"] .body.one-plan{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
     .body.one-plan .plan{width:100%;max-width:440px;margin:0;}
-    .body.one-plan .benefits{width:100%;max-width:520px;}
+    .body.one-plan .benefits-wrap{width:100%;max-width:520px;}
     .body.one-plan .exp-addon-head{width:100%;max-width:520px;text-align:center;}
     .body.one-plan #expAddonWrap{width:100%;max-width:520px;}
     /* pointer polish: hover states (touch devices never see these) */
@@ -1056,18 +1056,24 @@ document.querySelectorAll('#paneer-size button').forEach(b=>{
 // A suggestion pick fires 'insertReplacementText' (iOS/Safari) or an input event with no
 // inputType (Chrome autofill); normal keystrokes are 'insertText' and never advance.
 const ADDR_SEQ=['f-house','f-building','f-name','f-phone'];
+// Force the browser's autofill/suggestion popup to close on a field: toggling readOnly
+// dismisses it reliably where blur alone does not, then we restore it so nothing breaks.
+function dismissSuggest(el){
+  try{ el.readOnly=true; el.blur(); setTimeout(function(){ try{ el.readOnly=false; }catch(_){} }, 450); }catch(_){}
+}
 function autofillAdvance(e){
-  if(!e || !(e.inputType==='insertReplacementText' || e.inputType==null)) return;
+  if(!e || e.inputType==='insertText' || e.inputType==='deleteContentBackward' || e.inputType==='deleteContentForward') return;  // manual typing: ignore
   var i=ADDR_SEQ.indexOf(e.target.id); if(i<0) return;
+  var cur=e.target;
   for(var j=i+1;j<ADDR_SEQ.length;j++){
     var el=document.getElementById(ADDR_SEQ[j]);
-    if(el && el.offsetParent!==null && !el.value){ el.focus(); return; }   // next visible, empty field
+    if(el && el.offsetParent!==null && !el.value){ dismissSuggest(cur); el.focus(); return; }   // next visible, empty field
   }
-  // last field (phone) picked from a suggestion: dismiss the suggestion bar and move focus
-  // to the Continue button WITHOUT pressing it, so the customer just taps once to advance.
-  try{ e.target.blur(); }catch(_){}
+  // everything filled (e.g. phone picked from a suggestion): kill the suggestion popup and
+  // move focus to Continue WITHOUT pressing it, so one tap advances.
+  dismissSuggest(cur);
   var nb=document.getElementById('next');
-  if(nb && nb.offsetParent!==null && !nb.disabled){ setTimeout(function(){ try{ nb.focus(); }catch(_){} }, 0); }
+  if(nb && nb.offsetParent!==null && !nb.disabled){ setTimeout(function(){ try{ nb.focus(); }catch(_){} }, 60); }
 }
 document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); autofillAdvance(e); });
 document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); autofillAdvance(e); });
@@ -2028,7 +2034,7 @@ refreshFooter();
     'Down here it is just us and the leftovers.',
     'Congrats, you found the basement. It is empty.'
   ];
-  var MAX=210, DAMP=0.62, active=null, startY=0, decided=false;
+  var MAX=210, DAMP=0.62, REFRESH_AT=90, active=null, startY=0, decided=false, curPull=0;
   function pickLine(which){
     if(which==='top') topTxt.textContent=TOP_LINES[Math.floor(Math.random()*TOP_LINES.length)];
     else botTxt.textContent=BOT_LINES[Math.floor(Math.random()*BOT_LINES.length)];
@@ -2048,6 +2054,7 @@ refreshFooter();
   function setPull(which,p){
     var el=which==='top'?top:bot;
     p=Math.min(p, el.offsetHeight);   // reveal up to the band's full height, never past it
+    curPull=p;
     el.classList.remove('snap');
     el.style.transform = which==='top'
       ? 'translate(-50%, calc(-100% + '+p+'px))'
@@ -2060,11 +2067,21 @@ refreshFooter();
       el.classList.add('snap');
       el.style.transform = active==='top' ? 'translate(-50%,-100%)' : 'translate(-50%,100%)';
     }
-    active=null; decided=false;
+    active=null; decided=false; curPull=0;
+  }
+  // touch release: a firm pull-DOWN from the top refreshes the page; everything else snaps back
+  function releaseTouch(){
+    if(active==='top' && curPull>=REFRESH_AT){
+      if(topTxt) topTxt.textContent='Refreshing...';
+      setPull('top', top.offsetHeight);   // hold the band open through the reload
+      setTimeout(function(){ location.reload(); }, 300);
+      return;
+    }
+    release();
   }
   document.addEventListener('touchstart', function(e){
     if(e.touches.length!==1) return;
-    startY=e.touches[0].clientY; decided=false; active=null;
+    startY=e.touches[0].clientY; decided=false; active=null; curPull=0;
   }, {passive:true});
   document.addEventListener('touchmove', function(e){
     if(e.touches.length!==1) return;
@@ -2082,7 +2099,7 @@ refreshFooter();
       setPull(active, Math.min(Math.abs(dy)*DAMP, MAX));
     }
   }, {passive:false});
-  document.addEventListener('touchend', release, {passive:true});
+  document.addEventListener('touchend', releaseTouch, {passive:true});
   document.addEventListener('touchcancel', release, {passive:true});
   // desktop / trackpad: accumulate wheel past the edge, snap back shortly after it stops
   var wheelTimer=null, wheelAcc=0;

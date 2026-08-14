@@ -127,6 +127,18 @@
     section[data-step="1"] .opt .txt b{font-size:15.5px;}
     section[data-step="1"] h1{font-size:26px;margin-bottom:2px;}
     section[data-step="1"] .sub{margin-bottom:8px;}
+    /* short phones: compact the days + horizontal add-ons so nothing overlaps */
+    section[data-step="2"] h1{font-size:26px;margin-bottom:2px;}
+    section[data-step="2"] .sub{margin-bottom:6px;}
+    section[data-step="2"] .day{padding:9px 0;font-size:14.5px;}
+    section[data-step="2"] .day small{font-size:9px;}
+    section[data-step="2"] .abox{padding:7px 32px 7px 9px;gap:9px;}
+    section[data-step="2"] .abox .aic{width:34px;height:34px;border-radius:9px;}
+    section[data-step="2"] .abox .aic svg{width:18px;height:18px;}
+    section[data-step="2"] .abox b{font-size:12px;}
+    section[data-step="2"] .abox .ap{font-size:10.5px;}
+    section[data-step="2"] .addons-wrap .label{margin-top:2px;}
+    section[data-step="2"] .ahint{margin-top:4px;}
   }
   .step.active{opacity:1;transform:none;pointer-events:auto;}
   .step.leaving{opacity:0;transform:translateY(-14px);}
@@ -140,10 +152,18 @@
   .step.top .body{flex:1 1 auto;}
 
   /* benefits strip (plan page) */
-  .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex:none;}
-  .benefit{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;}
+  .benefits-wrap{position:relative;flex:none;}
+  .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .benefit{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
+  .benefit::after{content:'i';position:absolute;top:4px;right:5px;width:12px;height:12px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:8px;font-weight:800;font-style:italic;display:grid;place-items:center;line-height:1;}
+  .benefit.tipopen{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .benefit.tipopen::after{background:var(--accent-text);border-color:var(--accent-text);color:#fff;}
   .benefit .statnum{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;line-height:1;letter-spacing:-.5px;color:var(--accent-text);}
   .benefit small{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:600;line-height:1.15;color:var(--muted);letter-spacing:.2px;}
+  .benefit-tip{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:8;background:var(--surface);border:1px solid var(--accent-text);border-radius:12px;padding:11px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;line-height:1.4;color:var(--ink);box-shadow:0 12px 30px rgba(0,0,0,.22);display:none;}
+  .benefit-tip.show{display:block;animation:tipIn .18s var(--ease) both;}
+  .benefit-tip b{color:var(--accent-text);font-weight:800;}
+  @keyframes tipIn{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:none;}}
   .speccap{flex:none;text-align:center;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.3px;margin-top:-2px;}
 
   /* plan cards (graphic) */
@@ -207,11 +227,12 @@
 
   /* day of week chips */
   .days{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
-  .day{border:1.5px solid var(--line);background:var(--surface);border-radius:13px;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:16px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .2s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);}
+  /* unchecked day = the previous "selected" look (outlined accent + tinted); checked day = solid lime fill */
+  .day{border:1.5px solid var(--accent-text);background:var(--surface-2);border-radius:13px;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .2s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);}
   .day:active{transform:scale(.98);}
-  .day small{font-family:'Plus Jakarta Sans',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.5px;color:var(--muted-2);text-transform:uppercase;}
-  .day.on{border-color:var(--accent-text);background:var(--surface-2);color:var(--ink);box-shadow:var(--glow);}
-  .day.on small{color:var(--accent-text);}
+  .day small{font-family:'Plus Jakarta Sans',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.5px;color:var(--accent-text);text-transform:uppercase;}
+  .day.on{border-color:var(--lime);background:var(--lime);color:#0c0f0b;box-shadow:var(--glow);}
+  .day.on small{color:#0c0f0b;opacity:.72;}
 
   /* next-7-days strip */
   .datestrip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
@@ -375,19 +396,17 @@
   /* small add-on boxes on the days step */
   .addons-wrap{flex:none;}
   .addons-wrap .label{margin-top:4px;}
-  .aboxes{display:grid;gap:8px;}
-  .aboxes.n1{grid-template-columns:1fr;}
-  .aboxes.n2{grid-template-columns:1fr 1fr;}
-  .aboxes.n3{grid-template-columns:1fr 1fr 1fr;}
-  .abox{position:relative;border:1.3px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 8px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
+  .aboxes{display:flex;flex-direction:column;gap:8px;}
+  .abox{position:relative;border:1.3px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 36px 9px 10px;cursor:pointer;display:flex;flex-direction:row;align-items:center;gap:11px;text-align:left;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
   .abox:active{transform:scale(.98);}
-  .abox .aic{width:30px;height:30px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);}
-  .abox .aic svg{width:16px;height:16px;}
-  .abox b{font-size:11px;font-weight:700;text-align:center;line-height:1.1;}
-  .abox .ap{font-size:10.5px;font-weight:800;color:var(--ink);}
-  .abox .ap small{color:var(--muted-2);font-weight:600;font-size:8px;}
-  .abox .tick{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:5px;border:1.4px solid var(--line);display:grid;place-items:center;color:transparent;}
-  .abox .tick svg{width:10px;height:10px;}
+  .abox .aic{width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);flex:none;}
+  .abox .aic svg{width:21px;height:21px;}
+  .abox .atext{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .abox b{font-size:13px;font-weight:700;line-height:1.15;}
+  .abox .ap{font-size:11.5px;font-weight:800;color:var(--ink);}
+  .abox .ap small{color:var(--muted-2);font-weight:600;font-size:9px;}
+  .abox .tick{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:18px;height:18px;border-radius:6px;border:1.4px solid var(--line);display:grid;place-items:center;color:transparent;}
+  .abox .tick svg{width:11px;height:11px;}
   .abox.on{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
   .abox.on .aic{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
   .abox.on .tick{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
@@ -402,9 +421,9 @@
   .one-plan .plan-foot{justify-content:center;}
   .one-plan .plan .dot{display:none;}
   /* express add-on boxes: bigger than the compact day-step ones */
-  #expAddonBox .abox{padding:16px 10px 14px;gap:8px;border-radius:14px;}
-  #expAddonBox .aic{width:42px;height:42px;border-radius:12px;}
-  #expAddonBox .aic svg{width:22px;height:22px;}
+  #expAddonBox .abox{padding:13px 40px 13px 13px;gap:13px;border-radius:14px;}
+  #expAddonBox .aic{width:46px;height:46px;border-radius:13px;}
+  #expAddonBox .aic svg{width:24px;height:24px;}
   #expAddonBox b{font-size:14px;}
   #expAddonBox .ap{font-size:12.5px;}
   #expAddonBox .ap small{font-size:9.5px;}
@@ -719,7 +738,7 @@
     <section class="step" data-step="2">
       <div class="eyebrow">Days</div>
       <h1>Delivery <span class="accent">days</span></h1>
-      <p class="sub">We deliver Monday to Saturday.<br><span class="skipnote">Tap a day to skip it.</span></p>
+      <p class="sub">Monday to Friday are selected.<br><span class="skipnote">Tap to add Saturday or skip any day.</span></p>
       <div class="body">
         <div class="daysmid"><div class="days" id="days"></div></div>
         <div class="addons-wrap" id="addonsWrap">
@@ -768,6 +787,7 @@
       <div class="body" style="justify-content:flex-start;gap:0;overflow-y:auto;min-height:0;">
         <div class="summary" id="summary"></div>
         <div class="promo">
+          <button class="promo-chip" id="promoChip" type="button" style="display:none;">Tap to apply <b>HEALTHY</b></button>
           <div class="promo-hint" id="promoHint">Use code <b>HEALTHY</b>. Type it below and tap Apply.</div>
           <div class="promo-row" id="promoRow">
             <input class="field promo-input" id="f-promo" type="text" placeholder="Promo code" autocomplete="off" autocapitalize="characters" />
@@ -900,7 +920,7 @@ function prevIndex(i){ if(EXPRESS){ if(i===REVIEW) return LAST_INPUT; if(i===LAS
 const daysEl = document.getElementById('days');
 WEEK.forEach(([sh,full])=>{
   const b = document.createElement('button');
-  b.type='button'; b.className='day on'; b.dataset.key=sh;
+  b.type='button'; b.className='day'+(sh==='Sat'?'':' on'); b.dataset.key=sh;   // Mon-Fri on by default, Saturday off (tappable to add)
   b.innerHTML = '<span>'+sh+'</span><small>'+full+'</small>';
   b.addEventListener('click', ()=>{
     b.classList.toggle('on');
@@ -1216,7 +1236,12 @@ function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.
 function deliveryFeeTotal(){ return (order.distanceFee||0) * order.deliveries; }
 function grandTotal(){ return Math.max(0, order.planPrice + addonsPerMeal()*order.deliveries + deliveryFeeTotal() - promoDiscount()); }
 const rupee = n => "Rs "+n.toLocaleString('en-IN');
-function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.join(", "); }
+function daysText(){
+  const d=order.days;
+  if(d.length===6) return "Mon to Sat";
+  if(d.length===5 && d.join()===["Mon","Tue","Wed","Thu","Fri"].join()) return "Mon to Fri";
+  return d.join(", ");
+}
 
 function buildSummary(){
   refreshPromoLabels();
@@ -1253,14 +1278,20 @@ function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandT
 // keep the applied label showing the right amount for the selected plan
 function refreshPromoLabels(){
   const hint=document.getElementById('promoHint');
+  const off=promoOffFor(order.plan);
   if(hint){
-    const off=promoOffFor(order.plan);
     hint.innerHTML = off>0
-      ? 'Use code <b>HEALTHY</b> for Rs '+off+' off. Type it below and tap Apply.'
+      ? 'Have code <b>HEALTHY</b>? Tap the chip above, or type it and Apply.'
       : 'Have a promo code? Type it below and tap Apply.';
   }
+  const chip=document.getElementById('promoChip');
+  if(chip){
+    // show the tap-to-apply chip only when a code applies to this plan and none is applied yet
+    if(off>0 && !order.promo){ chip.innerHTML='Tap to apply <b>HEALTHY</b> &middot; Rs '+off+' off'; chip.style.display=''; }
+    else chip.style.display='none';
+  }
   if(order.promo && promoDiscount()>0){
-    const off=document.getElementById('promoOffLabel'); if(off) off.textContent = rupee(promoDiscount())+' off';
+    const o=document.getElementById('promoOffLabel'); if(o) o.textContent = rupee(promoDiscount())+' off';
   }
 }
 function applyPromo(raw){
@@ -1274,6 +1305,7 @@ function applyPromo(raw){
     document.getElementById('promoOffLabel').textContent = rupee(promoDiscount())+' off';
     document.getElementById('promoHint').style.display = 'none';
     document.getElementById('promoRow').style.display = 'none';
+    const chip=document.getElementById('promoChip'); if(chip) chip.style.display='none';
     const ok = document.getElementById('promoOk');
     ok.classList.remove('show'); void ok.offsetWidth; ok.classList.add('show');  // restart animation
     reviewTotal(); haptic();
@@ -1290,6 +1322,7 @@ function removePromo(){
   document.getElementById('promoHint').style.display = 'block';
   document.getElementById('promoRow').style.display = 'flex';
   document.getElementById('f-promo').value = '';
+  refreshPromoLabels();   // brings the tap-to-apply chip back if a code applies
   reviewTotal();
 }
 function resetPromoUI(){
@@ -1299,8 +1332,16 @@ function resetPromoUI(){
   const row=document.getElementById('promoRow'); if(row) row.style.display='flex';
   const inp=document.getElementById('f-promo'); if(inp) inp.value='';
   const err=document.getElementById('promoErr'); if(err) err.classList.remove('show');
+  refreshPromoLabels();
 }
 document.getElementById('promoApply').addEventListener('click', ()=> applyPromo(document.getElementById('f-promo').value));
+document.getElementById('promoChip').addEventListener('click', ()=>{ const inp=document.getElementById('f-promo'); if(inp) inp.value='HEALTHY'; applyPromo('HEALTHY'); });
+// tap anywhere else closes an open benefit-info strip
+document.addEventListener('click', function(e){
+  if(e.target.closest && e.target.closest('.benefit')) return;
+  const t=document.getElementById('benefitTip'); if(t) t.classList.remove('show');
+  document.querySelectorAll('.benefit.tipopen').forEach(x=>x.classList.remove('tipopen'));
+});
 document.getElementById('promoRemove').addEventListener('click', removePromo);
 document.getElementById('f-promo').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); applyPromo(e.target.value); } });
 
@@ -1435,7 +1476,8 @@ function sendPlatform(status){
       deliveries:order.deliveries, diet:order.diet||"regular", slot:order.batchLabel||"",
       days:order.days||[], startDate:order.date||"",
       address:fullAddress(), lat:order.lat, lng:order.lng, pincode:order.pincode||"",
-      deliveryFeePerMeal:order.distanceFee||0,
+      house:order.house||"", building:order.building||"", area:order.area||"",
+      distanceKm:order.distanceKm||0, deliveryFeePerMeal:order.distanceFee||0, deliveryFeeTotal:deliveryFeeTotal(),
       addons:Object.keys(order.addons||{}), promo:order.promo||"", discount:promoDiscount(),
       instructions:order.note||"", total:grandTotal(),
       orderType:EXPRESS?"EXPRESS-MONTHLY (call to confirm address + slot)":""
@@ -1570,6 +1612,23 @@ const BENEFITS = {
   vegan:      [["~420","Calories"],["Plant","Protein"],["High","Fiber"],["Low","Carb"]],
   fruit:      [["~220","Calories"],["Rich","Vitamins"],["High","Fiber"],["No added","Sugar"]]
 };
+// crisp extra-info copy shown when a benefit chip is tapped (edit numbers/wording freely)
+function benefitTip(cat,label,val){
+  const L=(label||'').toLowerCase(), v=(val||'').replace('~','');
+  if(L.indexOf('cal')>-1) return 'Around '+v+' kcal per meal, a balanced portion that keeps you full without overeating.';
+  if(L.indexOf('protein')>-1){
+    if(cat==='vegan') return 'Complete plant protein from legumes, tofu and seeds to support muscle, 100% dairy-free.';
+    return 'About '+val+' of quality protein per meal to build muscle and stay full for hours.';
+  }
+  if(L.indexOf('fib')>-1) return 'High fibre from fresh vegetables and whole grains, helps digestion and steady energy.';
+  if(L.indexOf('carb')>-1) return 'Lower in refined carbs, so your energy stays steady with no post-meal crash.';
+  if(L.indexOf('paneer')>-1) return 'Low-fat paneer adds an extra protein boost while keeping the meal light.';
+  if(L.indexOf('friendly')>-1||L.indexOf('diabet')>-1) return 'Low glycemic and no added sugar, a safe choice for blood-sugar control.';
+  if(L.indexOf('vitamin')>-1) return 'Fresh seasonal fruit packed with vitamins and antioxidants.';
+  if(L.indexOf('sugar')>-1) return 'No added sugar, the only sweetness comes naturally from the fruit.';
+  if(L.indexOf('plant')>-1) return '100% plant-based, dairy-free ingredients that are gentle and nourishing.';
+  return val+' '+label+', freshly prepared for a balanced, healthy meal.';
+}
 const DAILY_DISCOUNT = 0.07;   // 2-meals-a-day Daily Plan: 7% off the 2x regular price (must match worker)
 function plansFor(c){
   var moPer=c.fromMeal, wkPer=c.wkMeal||(c.fromMeal+50);
@@ -1621,8 +1680,8 @@ function startWizard(c){
   document.querySelectorAll('#diet button').forEach(x=>x.classList.remove('on'));
   var reg=document.querySelector('#diet button[data-key="regular"]'); if(reg) reg.classList.add('on');
   updateDietNote();
-  daysEl.querySelectorAll('.day').forEach(d=>d.classList.add('on'));
-  order.days=WEEK.map(d=>d[0]);
+  daysEl.querySelectorAll('.day').forEach(d=>d.classList.toggle('on', d.dataset.key!=='Sat'));   // default Mon-Fri, Saturday off
+  order.days=WEEK.map(d=>d[0]).filter(d=>d!=='Sat');   // default Mon-Fri
   buildPlanStep(c);
   applyCategory(c);
   dpShowTrack(c);
@@ -1651,6 +1710,7 @@ function buildPlanStep(c){
     : ALLOW_DAILY ? 'Two meals a day, delivered fresh. Pick your two time slots next.'
     : (c.line||c.note||'Pick weekly or monthly.');
   var bens=(BENEFITS[c.key]||[]).map(function(b){ return '<div class="benefit"><b class="statnum">'+b[0]+'</b><small>'+b[1]+'</small></div>'; }).join('');
+  var benData=(BENEFITS[c.key]||[]).map(function(b){ return {label:b[1], tip:benefitTip(c.key,b[1],b[0])}; });
   var two=order.perDay===2;
   // per-plan values switch to the 2-meals-a-day (Daily) pricing when selected
   var moKey=two?'monthly2':'monthly', trKey=two?'trial2':'trial';
@@ -1663,7 +1723,7 @@ function buildPlanStep(c){
   var moFoot=two?('Rs '+Math.round(moPrice/moUnits)+' per meal'):('Rs '+p.moPer+' per delivery');
   var trFoot=two?('Rs '+Math.round(trPrice/trUnits)+' per meal'):('Rs '+p.wkPer+' per delivery');
   planBody.innerHTML=
-    (bens?'<div class="benefits">'+bens+'</div>':'')+
+    (bens?'<div class="benefits-wrap"><div class="benefits">'+bens+'</div><div class="benefit-tip" id="benefitTip"></div></div>':'')+
     '<button class="plan" data-key="'+moKey+'" data-label="'+moLabel+'" data-price="'+moPrice+'" data-units="'+moUnits+'">'+
       '<div class="plan-top"><div><div class="plan-name">Monthly <span class="badge">Best value</span></div><div class="plan-meals">'+moMeals+'</div></div><div class="dot"></div></div>'+
       '<div class="plan-price"><em>Rs</em>'+moPrice.toLocaleString('en-IN')+'</div>'+
@@ -1681,6 +1741,19 @@ function buildPlanStep(c){
       '<div id="expAddonWrap"><div id="expAddonBox" class="aboxes"></div><div class="ahint" id="expAddonHint"></div></div>'
     ) : '');
   planBody.classList.toggle('one-plan', !showTrial);   // single plan -> centered card + centered price
+  // benefit chips: tap to reveal a crisp info strip below the row
+  var tipEl=document.getElementById('benefitTip');
+  planBody.querySelectorAll('.benefit').forEach(function(chip,i){
+    chip.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open=chip.classList.contains('tipopen');
+      planBody.querySelectorAll('.benefit').forEach(x=>x.classList.remove('tipopen'));
+      if(open){ if(tipEl) tipEl.classList.remove('show'); return; }
+      chip.classList.add('tipopen');
+      if(tipEl){ tipEl.innerHTML='<b>'+benData[i].label+'</b> &middot; '+benData[i].tip; tipEl.classList.remove('show'); void tipEl.offsetWidth; tipEl.classList.add('show'); }
+      haptic();
+    });
+  });
   planBody.querySelectorAll('.plan').forEach(function(btn){
     btn.addEventListener('click', function(){
       planBody.querySelectorAll('.plan').forEach(b=>b.classList.remove('sel'));
@@ -1706,7 +1779,7 @@ function renderExpressAddons(c){
   box.className='aboxes n'+list.length;
   box.innerHTML=list.map(function(a){
     var on=order.addons[a.key]?' on':'';
-    return '<div class="abox'+on+'" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div>';
+    return '<div class="abox'+on+'" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><div class="atext"><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div></div>';
   }).join('');
   if(hint) hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade, nimbu sharbat, chia fresca or green apple detox' : '';
   box.querySelectorAll('.abox').forEach(function(el){
@@ -1731,7 +1804,7 @@ function renderAddons(c){
   var list=addonsFor(c);
   wrap.className='aboxes n'+list.length;
   wrap.innerHTML=list.map(function(a){
-    return '<div class="abox" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div>';
+    return '<div class="abox" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><div class="atext"><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div></div>';
   }).join('');
   hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade, nimbu sharbat, chia fresca or green apple detox' : '';
   wrap.querySelectorAll('.abox').forEach(function(el){

@@ -121,25 +121,8 @@
   section[data-step="1"] .opt .txt span{font-size:12.5px;}
   section[data-step="1"] .seg button{font-size:14px;padding:12px 0;}
   /* short phones: compact a touch more so all four slots fit without scrolling */
-  @media (max-width:899px) and (max-height:720px){
-    section[data-step="1"] .opt{padding:11px 14px;gap:12px;}
-    section[data-step="1"] .opt .idx{width:40px;height:40px;font-size:16px;}
-    section[data-step="1"] .opt .txt b{font-size:15.5px;}
-    section[data-step="1"] h1{font-size:26px;margin-bottom:2px;}
-    section[data-step="1"] .sub{margin-bottom:8px;}
-    /* short phones: compact the days + horizontal add-ons so nothing overlaps */
-    section[data-step="2"] h1{font-size:26px;margin-bottom:2px;}
-    section[data-step="2"] .sub{margin-bottom:6px;}
-    section[data-step="2"] .day{padding:9px 0;font-size:14.5px;}
-    section[data-step="2"] .day small{font-size:9px;}
-    section[data-step="2"] .abox{padding:7px 32px 7px 9px;gap:9px;}
-    section[data-step="2"] .abox .aic{width:34px;height:34px;border-radius:9px;}
-    section[data-step="2"] .abox .aic svg{width:18px;height:18px;}
-    section[data-step="2"] .abox b{font-size:12px;}
-    section[data-step="2"] .abox .ap{font-size:10.5px;}
-    section[data-step="2"] .addons-wrap .label{margin-top:2px;}
-    section[data-step="2"] .ahint{margin-top:4px;}
-  }
+  /* NOTE: short-viewport compaction MQs live at the END of this stylesheet so they win the
+     cascade over the base section[data-step] rules (equal specificity, later source wins). */
   .step.active{opacity:1;transform:none;pointer-events:auto;}
   .step.leaving{opacity:0;transform:translateY(-14px);}
 
@@ -603,6 +586,67 @@
   .pullmsg-inner{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:300px;}
   .pullmsg-inner p{margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:600;line-height:1.4;color:var(--muted);}
   .pullmsg-inner b{color:var(--accent-text);font-weight:800;}
+
+  /* ===== short-viewport compaction (placed last so it wins over the base section rules) ===== */
+  /* short phones: keep every step on one screen, no scroll, no overlap */
+  @media (max-width:899px) and (max-height:740px){
+    .step{padding-top:16px;}
+    section[data-step="1"] .opt{padding:11px 14px;gap:12px;}
+    section[data-step="1"] .opt .idx{width:40px;height:40px;font-size:16px;}
+    section[data-step="1"] .opt .txt b{font-size:15.5px;}
+    section[data-step="1"] h1{font-size:26px;margin-bottom:2px;}
+    section[data-step="1"] .sub{margin-bottom:8px;}
+    /* PLAN step: both cards stay fully visible */
+    section[data-step="0"] h1{font-size:24px;margin:2px 0;}
+    section[data-step="0"] .sub{margin-bottom:6px;}
+    section[data-step="0"] .body{gap:7px;}
+    section[data-step="0"] .benefit{padding:8px 3px;}
+    section[data-step="0"] .benefit .statnum{font-size:16px;}
+    section[data-step="0"] .benefit small{font-size:9px;}
+    section[data-step="0"] .plan{padding:11px 16px;}
+    section[data-step="0"] .plan-name{font-size:19px;}
+    section[data-step="0"] .plan-meals{font-size:12px;margin-top:1px;}
+    section[data-step="0"] .plan-price{font-size:34px;}
+    section[data-step="0"] .plan-foot{font-size:11.5px;}
+    /* DAYS step: nothing overlaps */
+    section[data-step="2"] h1{font-size:26px;margin-bottom:2px;}
+    section[data-step="2"] .sub{margin-bottom:6px;}
+    section[data-step="2"] .day{padding:9px 0;font-size:14.5px;}
+    section[data-step="2"] .day small{font-size:9px;}
+    section[data-step="2"] .abox{padding:7px 32px 7px 9px;gap:9px;}
+    section[data-step="2"] .abox .aic{width:34px;height:34px;border-radius:9px;}
+    section[data-step="2"] .abox .aic svg{width:18px;height:18px;}
+    section[data-step="2"] .abox b{font-size:12px;}
+    section[data-step="2"] .abox .ap{font-size:10.5px;}
+    section[data-step="2"] .addons-wrap .label{margin-top:2px;}
+    section[data-step="2"] .ahint{margin-top:4px;}
+  }
+  /* very short viewports (iPhone SE, or Safari with both toolbars showing): compact further */
+  @media (max-width:899px) and (max-height:640px){
+    .step{padding-top:12px;}
+    .footer{padding:8px 20px calc(14px + env(safe-area-inset-bottom));gap:8px;}
+    .cta{padding:13px;font-size:15px;}
+    .back{padding:8px 22px;font-size:12px;}
+    section[data-step="0"] h1{font-size:21px;margin:1px 0;}
+    section[data-step="0"] .sub{font-size:12px;margin-bottom:4px;}
+    section[data-step="0"] .body{gap:6px;}
+    section[data-step="0"] .benefit{padding:5px 3px;border-radius:12px;}
+    section[data-step="0"] .benefit .statnum{font-size:15px;}
+    section[data-step="0"] .benefit small{font-size:8.5px;line-height:1.05;}
+    section[data-step="0"] .plan{padding:8px 14px;border-radius:16px;}
+    section[data-step="0"] .plan-name{font-size:17px;}
+    section[data-step="0"] .plan-meals{font-size:11px;margin-top:0;}
+    section[data-step="0"] .plan-price{font-size:27px;}
+    section[data-step="0"] .plan-foot{font-size:10.5px;}
+    section[data-step="1"] .opt{padding:9px 12px;}
+    section[data-step="1"] .opt .idx{width:36px;height:36px;font-size:15px;}
+    section[data-step="1"] h1{font-size:21px;}
+    section[data-step="2"] h1{font-size:21px;}
+    section[data-step="2"] .day{padding:7px 0;font-size:13.5px;}
+    section[data-step="2"] .abox{padding:6px 30px 6px 8px;}
+    section[data-step="2"] .abox .aic{width:30px;height:30px;}
+    section[data-step="2"] .abox .aic svg{width:16px;height:16px;}
+  }
 
 </style>
 </head>
@@ -1624,7 +1668,7 @@ const CATS = [
   {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true, line:'Diabetic-friendly meals that keep sugar steady'},
   {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:240, std:false, monthly:5999, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal', line:'The best meal plan to lose weight, stay full'},
   {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:239, std:false, monthly:5975, weekly:1445, wkMeal:289, line:'100% plant-based, fully balanced nutrition'},
-  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, line:'Fresh-cut seasonal fruit, naturally sweet'}
+  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:210, std:true, monthly:5250, weekly:1250, wkMeal:250, noJain:true, line:'Fresh-cut seasonal fruit, naturally sweet'}
 ];
 // 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
 const BENEFITS = {
@@ -1662,7 +1706,7 @@ function plansFor(c){
   return {moPer:moPer, wkPer:wkPer, monthly:monthly, weekly:weekly, monthly2:d2(monthly), trial2:d2(weekly)};
 }
 const ADDONS=[
-  {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:149, icon:ICON.fruitbowl},
+  {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:169, icon:ICON.fruitbowl},
   {key:'protein', name:'Low-fat Paneer', label:'Low-fat paneer',price:80,  icon:ICON.protein},
   {key:'drink',   name:'Healthy drink', label:'Healthy drink',       price:49,  icon:ICON.drink}
 ];
@@ -2069,9 +2113,16 @@ refreshFooter();
     }
     active=null; decided=false; curPull=0;
   }
-  // touch release: a firm pull-DOWN from the top refreshes the page; everything else snaps back
+  // pull-to-refresh only on the first page (home grid or the plan step), never mid-funnel
+  function onFirstPage(){
+    var app=document.querySelector('.app');
+    if(app && app.classList.contains('home-mode')) return true;
+    var s=document.querySelector('.step.active');
+    return !!(s && s.getAttribute('data-step')==='0');
+  }
+  // touch release: a firm pull-DOWN from the top refreshes the page (first page only); everything else snaps back
   function releaseTouch(){
-    if(active==='top' && curPull>=REFRESH_AT){
+    if(active==='top' && curPull>=REFRESH_AT && onFirstPage()){
       if(topTxt) topTxt.textContent='Refreshing...';
       setPull('top', top.offsetHeight);   // hold the band open through the reload
       setTimeout(function(){ location.reload(); }, 300);

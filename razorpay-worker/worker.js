@@ -21,14 +21,14 @@ const CATPRICE = {
   lowsugar:   { monthly: 4999, trial: 1250 },
   weightloss: { monthly: 5999, trial: 1445 },
   vegan:      { monthly: 5975, trial: 1445 },
-  fruit:      { monthly: 4999, trial: 1250 },
+  fruit:      { monthly: 5250, trial: 1250 },
 };
 const UNITS = { monthly: 25, trial: 5, monthly2: 50, trial2: 10 };
 // 2-meals-a-day "Daily Plan": maps to its 1-meal base plan; base price = 2x, minus DAILY_DISCOUNT.
 // (must match index.html plansFor / DAILY_DISCOUNT)
 const DAILY = { monthly2: "monthly", trial2: "trial" };
 const DAILY_DISCOUNT = 0.07;
-const ADDON_PRICE = { fruit: 149, protein: 80, drink: 49 }; // per meal
+const ADDON_PRICE = { fruit: 169, protein: 80, drink: 49 }; // per meal
 const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } }; // rupees off per plan (must match index.html PROMOS)
 // Distance-fee constants (must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;

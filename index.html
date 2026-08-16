@@ -79,8 +79,8 @@
   .steps{flex:1;position:relative;min-height:0;}
   .step{
     position:absolute;inset:0;padding:30px 20px 10px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;
-    opacity:0;transform:translateY(14px);pointer-events:none;
-    transition:opacity .4s var(--ease),transform .4s var(--ease);
+    opacity:0;transform:translateY(14px);pointer-events:none;transform-origin:top center;
+    transition:opacity .4s var(--ease);
   }
   .step.top{justify-content:flex-start;}
   .step.center{justify-content:center;}
@@ -123,7 +123,7 @@
   /* short phones: compact a touch more so all four slots fit without scrolling */
   /* NOTE: short-viewport compaction MQs live at the END of this stylesheet so they win the
      cascade over the base section[data-step] rules (equal specificity, later source wins). */
-  .step.active{opacity:1;transform:none;pointer-events:auto;}
+  .step.active{opacity:1;transform:scale(var(--fit,1));pointer-events:auto;}
   .step.leaving{opacity:0;transform:translateY(-14px);}
 
   .eyebrow{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--accent-text);letter-spacing:3px;text-transform:uppercase;flex:none;}
@@ -1422,11 +1422,53 @@ function go(to){
   cstep.textContent = String(Math.min(cur+1,5)).padStart(2,'0');
   if(cur===1) updateSlotStep();
   refreshFooter();
+  scheduleFit();
   // landing on the address step: put the cursor in the search box right away
   if(cur===LAST_INPUT && !order.lat){
     setTimeout(()=>{ const s=document.getElementById(EXPRESS?'f-name':'f-search'); if(s) s.focus(); }, 460);
   }
 }
+
+/* ---- auto-fit: after the CSS lays a step out, if it STILL overflows the screen (unusual zoom,
+   device height, or font metrics), scale that step down just enough so everything stays visible
+   with no scroll. This is the universal safety net on top of the per-size CSS. ---- */
+function fitActiveStep(){
+  var step=document.querySelector('.step.active');
+  if(!step) return;
+  var body=step.querySelector('.body');
+  var daysmid=step.querySelector('.daysmid');           // days step centres this flex:1 block
+  var st=step.getAttribute('data-step');
+  // clear any previous fit state
+  step.style.removeProperty('--fit'); step.style.justifyContent=''; step.style.overflow='';
+  if(body){ body.style.flex=''; body.style.overflow=''; body.style.minHeight=''; }
+  if(daysmid){ daysmid.style.flex=''; }
+  // only the plan/slot/days steps use the flex-fill body; review/address/confirm manage their
+  // own height (they scroll), so leave those alone
+  if(!body || !step.offsetParent || (st!=='0'&&st!=='1'&&st!=='2')) return;
+  // neutralise the flex-fill so the content reports its TRUE natural height (flex children
+  // otherwise shrink and hide the overflow), then measure the whole step
+  body.style.flex='0 0 auto'; body.style.overflow='visible'; body.style.minHeight='0';
+  if(daysmid) daysmid.style.flex='0 0 auto';
+  var avail=step.clientHeight, natural=step.scrollHeight;
+  if(natural>avail+2){
+    var s=Math.max(avail/natural, 0.5);                 // scale the whole step down to fit
+    step.style.overflow='visible';                      // let the full content render; the scale keeps it in bounds
+    step.style.justifyContent='flex-start';             // top-align so nothing spills off-screen
+    step.style.setProperty('--fit', s.toFixed(4));
+  }else{
+    // it already fits: restore the natural flex-fill layout (centring, pinned add-ons, etc.)
+    body.style.flex=''; body.style.overflow=''; body.style.minHeight='';
+    if(daysmid) daysmid.style.flex='';
+  }
+}
+function scheduleFit(){ requestAnimationFrame(function(){ requestAnimationFrame(fitActiveStep); }); }
+(function(){
+  var t=null;
+  window.addEventListener('resize', function(){ clearTimeout(t); t=setTimeout(fitActiveStep, 120); }, {passive:true});
+  window.addEventListener('orientationchange', function(){ clearTimeout(t); t=setTimeout(fitActiveStep, 250); }, {passive:true});
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleFit);
+  window.addEventListener('load', scheduleFit);
+})();
 
 function refreshFooter(){
   nextBtn.style.display='none'; payBtn.style.display='none'; payHint.style.display='none';
@@ -1758,6 +1800,7 @@ function startWizard(c){
   cur=0; bar.style.width='0%'; cstep.textContent='01';
   refreshFooter(); haptic();
   requestAnimationFrame(function(){ fitOneLine(planNote, 13, 10.5); });
+  scheduleFit();
 }
 
 // shrink a one-line label's font until it fits on a single line (down to a floor, then allow wrap)

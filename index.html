@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
 <meta name="theme-color" content="#0c0f0b" />
 <title>Nosh7 Healthy Meals, Subscribe</title>
 <meta name="description" content="Subscribe to Nosh7 fresh healthy meals. High protein, low carb, high fiber. Pick a plan, slot and start date, then pay over UPI or card." />
@@ -2209,6 +2209,36 @@ refreshFooter();
     clearTimeout(wheelTimer);
     wheelTimer=setTimeout(function(){ wheelAcc=0; release(); }, 240);
   }, {passive:true});
+})();
+
+/* ===== keyboard-aware fields: keep the focused input visible above the on-screen keyboard =====
+   The app is locked to 100dvh / overflow:hidden (no-scroll design), so a soft keyboard just
+   covers the bottom fields (Name / Phone). On focus we give the scrollable step temporary
+   bottom room equal to the keyboard height and centre the focused field in the visible area.
+   Works together with viewport interactive-widget=resizes-content (Android Chrome) and covers
+   iOS Safari + in-app browsers (Instagram/WhatsApp) that do NOT resize the layout. */
+(function(){
+  var vv=window.visualViewport; if(!vv) return;
+  var SEL='input,textarea,select';
+  function activeStep(){ return document.querySelector('.step.scroll.active') || document.querySelector('.step.active'); }
+  function kbHeight(){ return Math.max(0, window.innerHeight - vv.height - vv.offsetTop); }
+  function apply(){
+    var step=activeStep(); if(!step) return;
+    var kb=kbHeight();
+    if(kb>90){ step.style.paddingBottom=(kb+24)+'px'; step.classList.add('kb-open'); }
+    else { step.style.paddingBottom=''; step.classList.remove('kb-open'); }
+  }
+  vv.addEventListener('resize', apply);
+  vv.addEventListener('scroll', apply);
+  document.addEventListener('focusin', function(e){
+    var f=e.target; if(!f || !f.matches || !f.matches(SEL)) return;
+    // let the keyboard finish opening, add the bottom room, then centre the field
+    setTimeout(function(){
+      apply();
+      try{ f.scrollIntoView({block:'center', behavior:'smooth'}); }catch(_){ try{ f.scrollIntoView(); }catch(__){} }
+    }, 280);
+  });
+  document.addEventListener('focusout', function(){ setTimeout(apply, 280); });
 })();
 </script>
 </body>

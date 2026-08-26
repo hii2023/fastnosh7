@@ -1338,7 +1338,7 @@ function buildSummary(){
 }
 
 /* ---- promo code ---- */
-const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } };  // rupees off per plan (must match worker PROMOS)
+const PROMOS = { HEALTHY: { monthly: 100, trial: 150 }, RAAKHI: { monthly: 500 } };  // rupees off per plan (must match worker PROMOS)
 // discount for the currently selected code + plan (recomputed live so switching plans stays correct)
 function promoDiscount(){ const p = PROMOS[order.promo]; return p ? (p[order.plan] || 0) : 0; }
 function promoOffFor(plan){ const p = PROMOS.HEALTHY; return p ? (p[plan] || 0) : 0; }

@@ -29,7 +29,7 @@ const UNITS = { monthly: 25, trial: 5, monthly2: 50, trial2: 10 };
 const DAILY = { monthly2: "monthly", trial2: "trial" };
 const DAILY_DISCOUNT = 0.07;
 const ADDON_PRICE = { fruit: 169, protein: 80, drink: 49 }; // per meal
-const PROMOS = { HEALTHY: { monthly: 100, trial: 150 }, RAAKHI: { monthly: 500 } }; // rupees off per plan (must match index.html PROMOS)
+const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } }; // rupees off per plan (must match index.html PROMOS)
 // Distance-fee constants (must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
 const FREE_KM_LIMIT = 5.2, BASE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;

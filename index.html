@@ -1343,8 +1343,14 @@ function buildSummary(){
 }
 
 /* ---- promo code ---- */
-const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } };  // legacy fallback (used only if portal config is unreachable)
-// Promo codes from the portal (admin Settings). null until loaded / on failure -> legacy PROMOS is used.
+// Promos are managed in the portal (admin Settings -> Delivery & promos) and are the SINGLE
+// source of truth. This is deliberately empty: the funnel must never offer a code the backend
+// (n7_quote / the payment worker) won't honour, or the customer sees a discount but is charged
+// full (the pre-promo-charge bug). If the portal config can't load, NO promo is offered
+// (fail-closed) rather than falling back to a code the charge path doesn't know.
+const PROMOS = {};
+// Promo codes from the portal (admin Settings). null until loaded; on failure it stays null and
+// no promo can be applied (fail-closed).
 let PROMO_LIST = null;
 function foodSubtotal(){ return order.planPrice + addonsPerMeal()*order.deliveries; }   // excludes delivery
 function findDbPromo(code){ code=(code||'').trim().toUpperCase(); return (PROMO_LIST||[]).find(p=>String(p.code||'').toUpperCase()===code) || null; }

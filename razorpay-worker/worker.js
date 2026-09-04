@@ -29,10 +29,60 @@ const UNITS = { monthly: 25, trial: 5, monthly2: 50, trial2: 10 };
 const DAILY = { monthly2: "monthly", trial2: "trial" };
 const DAILY_DISCOUNT = 0.07;
 const ADDON_PRICE = { fruit: 169, protein: 80, drink: 49 }; // per meal
-const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } }; // rupees off per plan (must match index.html PROMOS)
-// Distance-fee constants (must match index.html CONFIG).
+// Promos are managed in the portal and applied by n7_quote (the authoritative quote below).
+// The local price tables here are ONLY a fallback for when the portal quote is unreachable, and
+// in that same outage the funnel is fail-closed (offers no promo), so the fallback applies NO
+// promo discount too — the two must never disagree on what the customer was shown vs charged.
+// Distance-fee constants (fallback if the portal quote is unreachable; must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
 const FREE_KM_LIMIT = 5.2, BASE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
+
+// Portal quote (source of truth for delivery charge + promo, configurable from the admin Settings).
+// Public RPC, publishable/anon key (safe in a server; exposes no customer data).
+const SB_URL = "https://xoiksbtxoxrifkgvupqp.supabase.co";
+const SB_ANON = "sb_publishable_UwUNp74KFKUlbqQ7aY0s7Q_toy7kUiD";
+// Ask the portal for the authoritative payable (Rs). Returns null on any problem so the
+// caller falls back to the local price tables below (payments never depend on the portal).
+async function portalQuoteRupees(body) {
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/rpc/n7_quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SB_ANON, Authorization: "Bearer " + SB_ANON },
+      body: JSON.stringify({ p: {
+        category: body.category || "", plan: body.plan,
+        addons: Array.isArray(body.addons) ? body.addons : [],
+        lat: body.lat, lng: body.lng, promo: body.promo || "", express: body.express === true,
+      } }),
+    });
+    if (!r.ok) return null;
+    const q = await r.json();
+    if (q && q.ok === true && Number(q.total) >= 1) return Math.round(Number(q.total));
+    return null;
+  } catch (_e) { return null; }
+}
+
+// Portal backfill safety net. On a captured payment we tell the portal (same n7-ingest edge fn
+// the browser posts to) that the order is paid, carrying the SAME signed ticket the browser path
+// would, so n7-ingest verifies it and activates the subscription. This closes the gap where a
+// dropped post-payment beacon left the order in Excel but missing from the portal. Idempotent:
+// n7_ingest_funnel_order flips the pre-written pending order to paid and dedups the payment/
+// ledger/deliveries, so redelivered webhooks are safe. Returns true on a 2xx.
+async function portalIngestPaid(env, o) {
+  try {
+    const ticket = env.ORDER_TICKET_SECRET
+      ? await hmacHex(env.ORDER_TICKET_SECRET, `${o.orderNo}|${o.paymentId || ""}`)
+      : "";
+    const r = await fetch(SB_URL + "/functions/v1/n7-ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SB_ANON, Authorization: "Bearer " + SB_ANON },
+      body: JSON.stringify({
+        orderNo: o.orderNo, phone: o.phone || "", name: o.name || "",
+        status: "paid", paymentId: o.paymentId || "", ticket, total: o.amountRupees || 0,
+      }),
+    });
+    return r.ok;
+  } catch (_e) { return false; }
+}
 
 function haversineKm(la1, lo1, la2, lo2) {
   const R = 6371, toR = (x) => (x * Math.PI) / 180;
@@ -93,11 +143,15 @@ export default {
         if (!isExpress && (body.lat == null || body.lng == null || isNaN(Number(body.lat)) || isNaN(Number(body.lng))))
           return json({ error: "missing delivery location" }, 400);
         const feePerDelivery = isExpress ? 0 : distanceFeePerDelivery(body.lat, body.lng);
-        // promo: trust only the code, apply our own per-plan discount
-        const code = (body.promo || "").toString().trim().toUpperCase();
-        const discount = (code && PROMOS[code]) ? (PROMOS[code][body.plan] || 0) : 0;
-        const rupees = Math.max(1, base + addonPerMeal * units + feePerDelivery * units - discount);
-        if (!rupees || rupees < 1) return json({ error: "invalid amount" }, 400);
+        // promo: the portal quote below is the source of truth for discounts. The local
+        // fallback intentionally applies NO promo (see PROMOS note above) so it can never
+        // undercharge relative to a fail-closed funnel during a portal outage.
+        const localRupees = Math.max(1, base + addonPerMeal * units + feePerDelivery * units);
+        if (!localRupees || localRupees < 1) return json({ error: "invalid amount" }, 400);
+        // Prefer the portal's configurable quote (delivery charge + promo managed in admin Settings);
+        // fall back to the local price tables above if the portal is unreachable.
+        const portalRupees = await portalQuoteRupees(body);
+        const rupees = (portalRupees != null) ? portalRupees : localRupees;
 
         const auth = "Basic " + btoa(env.RAZORPAY_KEY_ID + ":" + env.RAZORPAY_KEY_SECRET);
         const res = await fetch("https://api.razorpay.com/v1/orders", {
@@ -154,37 +208,56 @@ export default {
         // Act only on a captured (money-in-hand) payment. Ignore authorized/failed/others.
         if (evt && evt.event === "payment.captured" && pay) {
           let orderNo = (pay.notes && pay.notes.order) ? String(pay.notes.order) : "";
-          // Fallback: no checkout note -> read the order's receipt (we set receipt = orderNo).
-          if (!orderNo && pay.order_id) {
+          let phone = pay.contact ? String(pay.contact) : "";
+          let name = (pay.notes && pay.notes.name) ? String(pay.notes.name) : "";
+          // Read the order to recover the receipt (=orderNo) and the {name,phone} notes we set at
+          // create-order time. The order notes carry the exact phone the customer typed on the
+          // funnel, which is the most reliable key for the portal customer upsert.
+          if (pay.order_id) {
             try {
               const auth = "Basic " + btoa(env.RAZORPAY_KEY_ID + ":" + env.RAZORPAY_KEY_SECRET);
               const or = await fetch("https://api.razorpay.com/v1/orders/" + pay.order_id, { headers: { Authorization: auth } });
-              if (or.ok) { const od = await or.json(); orderNo = String(od.receipt || ""); }
-            } catch (e) { /* fall through with empty orderNo */ }
+              if (or.ok) {
+                const od = await or.json();
+                if (!orderNo) orderNo = String(od.receipt || "");
+                if (od.notes && od.notes.phone) phone = String(od.notes.phone);
+                if (od.notes && od.notes.name) name = String(od.notes.name);
+              }
+            } catch (e) { /* fall through with what we have */ }
           }
-          if (orderNo && env.ORDER_WEBHOOK) {
-            // Mint the same signed ticket the browser path would, so the sheet marks this
-            // row "verified" (the webhook signature already proved the payment is genuine).
+          if (orderNo) {
+            // Mint the same signed ticket the browser path would, so both sinks mark this
+            // "verified" (the webhook signature already proved the payment is genuine).
             const ticket = env.ORDER_TICKET_SECRET
               ? await hmacHex(env.ORDER_TICKET_SECRET, `${orderNo}|${pay.id || ""}`)
               : "";
-            const update = { orderNo, status: "paid", paymentId: pay.id || "", ticket, payment: "razorpay" };
-            // The sheet write is the whole point of this safety net, so a failure here MUST
-            // NOT be swallowed: return a non-2xx so Razorpay redelivers the webhook (it retries
-            // for up to ~24h). Previously we always returned 200 and a dropped Apps Script call
-            // lost the order silently (this is exactly how NOSH-214086 went missing).
-            let sheetOk = false;
-            try {
-              const pr = await fetch(env.ORDER_WEBHOOK, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(update),
-              });
-              // Apps Script answers 200 with {ok:true} on success, {ok:false,...} on a caught error.
-              const txt = pr.ok ? await pr.text() : "";
-              sheetOk = pr.ok && /"ok"\s*:\s*true/.test(txt);
-            } catch (e) { sheetOk = false; }
-            if (!sheetOk) return json({ error: "sheet write failed; retry" }, 502);
+            // (a) Excel sheet (unchanged): merges by Order No, flips status/paymentId on the
+            // row the browser pre-wrote; creates a partial row if none exists yet.
+            let sheetOk = true;
+            if (env.ORDER_WEBHOOK) {
+              sheetOk = false;
+              const update = { orderNo, status: "paid", paymentId: pay.id || "", ticket, payment: "razorpay" };
+              try {
+                const pr = await fetch(env.ORDER_WEBHOOK, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(update),
+                });
+                // Apps Script answers 200 with {ok:true} on success, {ok:false,...} on a caught error.
+                const txt = pr.ok ? await pr.text() : "";
+                sheetOk = pr.ok && /"ok"\s*:\s*true/.test(txt);
+              } catch (e) { sheetOk = false; }
+            }
+            // (b) Portal (Supabase) backfill — the missing half of this safety net. Flips the
+            // pre-written pending subscription to paid/active (or creates a last-resort record).
+            const portalOk = await portalIngestPaid(env, {
+              orderNo, phone, name, paymentId: pay.id || "",
+              amountRupees: Math.round((pay.amount || 0) / 100),
+            });
+            // Both writes are idempotent, so a failure here MUST NOT be swallowed: return non-2xx
+            // so Razorpay redelivers the webhook (~24h). The already-written sink simply no-ops on
+            // retry. This is how orders went missing before (money taken, nothing recorded).
+            if (!sheetOk || !portalOk) return json({ error: "backfill incomplete; retry" }, 502);
           }
         }
         // 200 for genuinely-ignored events (non-captured) and successful writes, so Razorpay

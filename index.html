@@ -915,6 +915,11 @@ const CONFIG = {
   // paid subscription is HMAC-ticket verified server-side (same ticket the Sheet trusts).
   PLATFORM_INGEST: "https://xoiksbtxoxrifkgvupqp.supabase.co/functions/v1/n7-ingest",
 
+  // Portal config (delivery charge + promo codes, managed in the admin Settings). Read on load
+  // and merged over the defaults below; if it fails, the hardcoded defaults are used unchanged.
+  PLATFORM_CONFIG: "https://xoiksbtxoxrifkgvupqp.supabase.co/rest/v1/rpc/n7_public_config",
+  SB_ANON: "sb_publishable_UwUNp74KFKUlbqQ7aY0s7Q_toy7kUiD",
+
   BUSINESS_NAME: "Nosh7",
   WHATSAPP_NUMBER: "919712989498",
 
@@ -1338,10 +1343,56 @@ function buildSummary(){
 }
 
 /* ---- promo code ---- */
-const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } };  // rupees off per plan (must match worker PROMOS)
+const PROMOS = { HEALTHY: { monthly: 100, trial: 150 } };  // legacy fallback (used only if portal config is unreachable)
+// Promo codes from the portal (admin Settings). null until loaded / on failure -> legacy PROMOS is used.
+let PROMO_LIST = null;
+function foodSubtotal(){ return order.planPrice + addonsPerMeal()*order.deliveries; }   // excludes delivery
+function findDbPromo(code){ code=(code||'').trim().toUpperCase(); return (PROMO_LIST||[]).find(p=>String(p.code||'').toUpperCase()===code) || null; }
+// discount for a given DB promo against the current order (matches the portal n7_quote logic)
+function dbPromoDiscount(p){
+  if(!p) return 0;
+  if(Array.isArray(p.plans) && p.plans.length && p.plans.indexOf(order.category)<0) return 0;   // not applicable to this track
+  const food = foodSubtotal();
+  if(p.min_order && food < Number(p.min_order)) return 0;
+  const v = Number(p.discount_value)||0;
+  const d = (p.discount_type==='percent') ? Math.round(food*v/100) : Math.min(v, food);
+  return Math.max(0, d);
+}
 // discount for the currently selected code + plan (recomputed live so switching plans stays correct)
-function promoDiscount(){ const p = PROMOS[order.promo]; return p ? (p[order.plan] || 0) : 0; }
-function promoOffFor(plan){ const p = PROMOS.HEALTHY; return p ? (p[plan] || 0) : 0; }
+function promoDiscount(){
+  const dbp = findDbPromo(order.promo);
+  if(dbp) return dbPromoDiscount(dbp);
+  if(PROMO_LIST) return 0;                                   // portal loaded but code not found
+  const p = PROMOS[order.promo]; return p ? (p[order.plan] || 0) : 0;   // legacy fallback
+}
+// best available discount for a plan, for the "tap to apply" chip / hint (HEALTHY-style legacy)
+function promoOffFor(plan){
+  if(PROMO_LIST){ const h=findDbPromo('HEALTHY'); return h ? dbPromoDiscount(h) : 0; }
+  const p = PROMOS.HEALTHY; return p ? (p[plan] || 0) : 0;
+}
+// Pull delivery config + promos from the portal; merge over the defaults. Best-effort, non-blocking.
+(function loadPlatformConfig(){
+  try{
+    fetch(CONFIG.PLATFORM_CONFIG,{method:'POST',headers:{'Content-Type':'application/json',apikey:CONFIG.SB_ANON,Authorization:'Bearer '+CONFIG.SB_ANON},body:'{}'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(cfg){
+        if(!cfg || cfg.ok!==true) return;
+        var d = cfg.delivery||{};
+        var num=function(x,f){ x=parseFloat(x); return isFinite(x)?x:f; };
+        CONFIG.BASE_LAT     = num(d.hub_lat,     CONFIG.BASE_LAT);
+        CONFIG.BASE_LNG     = num(d.hub_lng,     CONFIG.BASE_LNG);
+        CONFIG.FREE_KM_LIMIT= num(d.free_km,     CONFIG.FREE_KM_LIMIT);
+        CONFIG.BASE_KM      = num(d.base_km,     CONFIG.BASE_KM);
+        CONFIG.PER_KM_FEE   = num(d.per_km,      CONFIG.PER_KM_FEE);
+        CONFIG.ROAD_FACTOR  = num(d.road_factor, CONFIG.ROAD_FACTOR);
+        if(Array.isArray(cfg.promos)) PROMO_LIST = cfg.promos;
+        // refresh anything already on screen (fee/summary) now that config changed
+        try{ if(typeof computeDistanceFee==='function' && order && order.lat!=null) computeDistanceFee(); }catch(e){}
+        try{ if(typeof refreshPromoLabels==='function') refreshPromoLabels(); }catch(e){}
+        try{ if(typeof reviewTotal==='function' && order && order.plan) reviewTotal(); }catch(e){}
+      }).catch(function(){});
+  }catch(e){}
+})();
 function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandTotal()); }
 // keep the applied label showing the right amount for the selected plan
 function refreshPromoLabels(){
@@ -1366,8 +1417,15 @@ function applyPromo(raw){
   const code = (raw||'').trim().toUpperCase();
   const errEl = document.getElementById('promoErr');
   if(!code) return;
-  if(PROMOS[code] && (PROMOS[code][order.plan]||0) > 0){
-    order.promo = code;
+  let exists=false, valid=false;
+  if(PROMO_LIST){                                   // portal promos loaded
+    const dbp = findDbPromo(code); exists = !!dbp;
+    if(dbp){ order.promo = code; valid = dbPromoDiscount(dbp) > 0; }
+  } else {                                          // legacy fallback
+    exists = !!PROMOS[code];
+    if(exists){ order.promo = code; valid = (PROMOS[code][order.plan]||0) > 0; }
+  }
+  if(valid){
     errEl.classList.remove('show');
     document.getElementById('promoCodeLabel').textContent = code;
     document.getElementById('promoOffLabel').textContent = rupee(promoDiscount())+' off';
@@ -1378,7 +1436,7 @@ function applyPromo(raw){
     reviewTotal(); haptic();
   } else {
     order.promo = null;
-    errEl.textContent = PROMOS[code] ? 'This code does not apply to this plan.' : 'Invalid code. Try HEALTHY.';
+    errEl.textContent = exists ? 'This code does not apply to this plan.' : 'Invalid code.';
     errEl.classList.add('show');
     reviewTotal();
   }

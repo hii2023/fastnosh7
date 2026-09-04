@@ -35,7 +35,7 @@ const ADDON_PRICE = { fruit: 169, protein: 80, drink: 49 }; // per meal
 // promo discount too — the two must never disagree on what the customer was shown vs charged.
 // Distance-fee constants (fallback if the portal quote is unreachable; must match index.html CONFIG).
 const BASE_LAT = 23.0299, BASE_LNG = 72.5119;
-const FREE_KM_LIMIT = 5.2, BASE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3;
+const BASE_KM = 5, PER_KM_FEE = 10, ROAD_FACTOR = 1.3, LEEWAY_KM = 0.1;
 
 // Portal quote (source of truth for delivery charge + promo, configurable from the admin Settings).
 // Public RPC, publishable/anon key (safe in a server; exposes no customer data).
@@ -90,11 +90,14 @@ function haversineKm(la1, lo1, la2, lo2) {
   const a = Math.sin(dLa / 2) ** 2 + Math.cos(toR(la1)) * Math.cos(toR(la2)) * Math.sin(dLo / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
-// Rupees per delivery; free up to 5.2 km, else Rs 10 per started km beyond 5. Same logic as the app.
+// Rupees per delivery. Charge per started km beyond the free distance (BASE_KM), with a
+// LEEWAY_KM grace before each km rounds up: 8.0->3km, 8.1->3km (grace), 8.15->4km; free up to
+// BASE_KM+LEEWAY_KM. Fallback only — n7_quote (with the admin-configured values) is authoritative.
 function distanceFeePerDelivery(lat, lng) {
   if (lat == null || lng == null || isNaN(Number(lat)) || isNaN(Number(lng))) return 0;
   const km = haversineKm(BASE_LAT, BASE_LNG, Number(lat), Number(lng)) * ROAD_FACTOR;
-  return (km <= FREE_KM_LIMIT) ? 0 : Math.max(0, Math.ceil(km - BASE_KM - 1e-9)) * PER_KM_FEE;
+  const billable = Math.ceil((km - BASE_KM) - LEEWAY_KM - 1e-9);
+  return billable > 0 ? billable * PER_KM_FEE : 0;
 }
 
 export default {

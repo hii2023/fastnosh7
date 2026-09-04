@@ -169,16 +169,26 @@ export default {
               ? await hmacHex(env.ORDER_TICKET_SECRET, `${orderNo}|${pay.id || ""}`)
               : "";
             const update = { orderNo, status: "paid", paymentId: pay.id || "", ticket, payment: "razorpay" };
+            // The sheet write is the whole point of this safety net, so a failure here MUST
+            // NOT be swallowed: return a non-2xx so Razorpay redelivers the webhook (it retries
+            // for up to ~24h). Previously we always returned 200 and a dropped Apps Script call
+            // lost the order silently (this is exactly how NOSH-214086 went missing).
+            let sheetOk = false;
             try {
-              await fetch(env.ORDER_WEBHOOK, {
+              const pr = await fetch(env.ORDER_WEBHOOK, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(update),
               });
-            } catch (e) { /* sheet unreachable; Razorpay will retry the webhook */ }
+              // Apps Script answers 200 with {ok:true} on success, {ok:false,...} on a caught error.
+              const txt = pr.ok ? await pr.text() : "";
+              sheetOk = pr.ok && /"ok"\s*:\s*true/.test(txt);
+            } catch (e) { sheetOk = false; }
+            if (!sheetOk) return json({ error: "sheet write failed; retry" }, 502);
           }
         }
-        // Always 200 so Razorpay does not hammer retries for events we intentionally ignore.
+        // 200 for genuinely-ignored events (non-captured) and successful writes, so Razorpay
+        // does not hammer retries for events we intentionally drop.
         return json({ ok: true });
       }
 

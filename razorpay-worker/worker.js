@@ -268,6 +268,26 @@ export default {
         return json({ ok: true });
       }
 
+      // Portal ingest PROXY. The funnel posts every order (pending / paid / failed) here instead
+      // of straight to the Supabase edge function, because the site CSP connect-src allows this
+      // worker but not the portal's supabase.co host — so a direct browser call was silently
+      // blocked (orders reached Excel but never the portal). We forward server-side (no CSP),
+      // attaching the publishable key the Supabase gateway expects. Body is passed through as-is.
+      if (url.pathname === "/portal-ingest" && request.method === "POST") {
+        const bodyText = await request.text();
+        try {
+          const r = await fetch(SB_URL + "/functions/v1/n7-ingest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: SB_ANON, Authorization: "Bearer " + SB_ANON },
+            body: bodyText,
+          });
+          const t = await r.text();
+          return new Response(t, { status: r.status, headers: { ...cors, "Content-Type": "application/json" } });
+        } catch (e) {
+          return json({ ok: false, error: "portal_forward_failed" }, 502);
+        }
+      }
+
       return json({ error: "not found" }, 404);
     } catch (e) {
       return json({ error: "server error" }, 500);

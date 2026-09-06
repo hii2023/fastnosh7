@@ -1659,11 +1659,15 @@ function sendPlatform(status){
       orderType:EXPRESS?"EXPRESS-MONTHLY (call to confirm address + slot)":""
     };
     const pb=JSON.stringify(pp);
-    if(navigator.sendBeacon){
-      const blob=new Blob([pb],{type:'text/plain;charset=utf-8'});
-      if(navigator.sendBeacon(CONFIG.PLATFORM_INGEST, blob)) return;
-    }
-    fetch(CONFIG.PLATFORM_INGEST,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:pb});
+    // Reliable delivery: a real keepalive fetch actually completes while the page is alive
+    // (the pending pre-write + failed events) and survives the tab closing right after a paid
+    // write. text/plain keeps it a CORS "simple request" (no preflight); the edge fn returns
+    // Access-Control-Allow-Origin. sendBeacon is only a last resort if fetch is blocked, because
+    // a beacon fired right before opening the Razorpay overlay was being dropped (abandoned
+    // orders then landed in Excel but not the portal).
+    return fetch(CONFIG.PLATFORM_INGEST,{method:'POST',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:pb}).catch(function(){
+      try{ if(navigator.sendBeacon){ navigator.sendBeacon(CONFIG.PLATFORM_INGEST, new Blob([pb],{type:'text/plain;charset=utf-8'})); } }catch(e){}
+    });
   }catch(e){}
 }
 

@@ -107,6 +107,11 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     data.verified = verifyTicket_(data);   // authenticate before storing
     delete data.ticket;                     // never store the raw ticket
+    // Stamp Placed At on the server in exact IST (Asia/Kolkata), not the client's
+    // UTC ISO string. This is authoritative regardless of the customer's device
+    // clock/timezone. On updates (pending -> paid) the merge below keeps the
+    // ORIGINAL placedAt, so this only takes effect for the first insert.
+    data.placedAt = Utilities.formatDate(new Date(), "Asia/Kolkata", "dd MMM yyyy, hh:mm a");
     data.map = mapsLink_(data.lat, data.lng); // clickable map link from GPS coords
     var keys = Object.keys(data);
 
@@ -155,6 +160,8 @@ function doPost(e) {
             var current = sheet.getRange(rowNum, 1, 1, headerKeys.length).getValues()[0];
             if (statusCol >= 0) prevStatus = String(current[statusCol] || "");
             var merged = headerKeys.map(function (k, i) {
+              // keep the ORIGINAL placed time; never overwrite it on a later update
+              if (k === "placedAt" && current[i] !== "" && current[i] !== null && current[i] !== undefined) return current[i];
               var incoming = data[k];
               return (incoming !== undefined && incoming !== "" && incoming !== null) ? incoming : current[i];
             });
@@ -199,6 +206,60 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// ===========================================================================
+// ONE-TIME: convert every existing "Placed At" cell from the old UTC ISO string
+// (e.g. "2026-08-05T12:34:56.789Z") to a readable IST string
+// (e.g. "05 Aug 2026, 06:04 PM"). Safe to run more than once: rows already in
+// the new format are left untouched. Run "convertPlacedAtToIST" from the editor.
+// ===========================================================================
+function convertPlacedAtToIST() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Orders");
+  if (!sheet || sheet.getLastRow() < 2) {
+    SpreadsheetApp.getActiveSpreadsheet().toast("No order rows to convert.", "Placed At", 5);
+    return;
+  }
+
+  var header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var col = -1;
+  for (var c = 0; c < header.length; c++) {
+    if (keyForHeader_(header[c]) === "placedAt") { col = c + 1; break; } // 1-based
+  }
+  if (col < 0) {
+    SpreadsheetApp.getActiveSpreadsheet().toast("No 'Placed At' column found.", "Placed At", 5);
+    return;
+  }
+
+  var n = sheet.getLastRow() - 1;
+  var range = sheet.getRange(2, col, n, 1);
+  var vals = range.getValues();
+  var converted = 0;
+
+  for (var r = 0; r < vals.length; r++) {
+    var v = vals[r][0];
+    var d = null;
+
+    if (v instanceof Date) {
+      // sheet auto-parsed the old ISO string into a real Date (stored in UTC)
+      d = v;
+    } else if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}T/.test(v)) {
+      // old UTC ISO text like "2026-08-05T12:34:56.789Z"
+      d = new Date(v);
+    }
+
+    if (d && !isNaN(d.getTime())) {
+      vals[r][0] = Utilities.formatDate(d, "Asia/Kolkata", "dd MMM yyyy, hh:mm a");
+      converted++;
+    }
+    // anything already in the new readable format is left as-is
+  }
+
+  // write back as plain text so the new strings are never re-parsed into dates
+  range.setNumberFormat("@");
+  range.setValues(vals);
+  SpreadsheetApp.getActiveSpreadsheet().toast("Converted " + converted + " row(s) to IST.", "Placed At", 6);
 }
 
 // Opening the /exec URL in a browser confirms it is deployed.

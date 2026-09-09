@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0c0f0b" />
+<title>Nosh7 Healthy Meals, Subscribe</title>
+<meta name="description" content="Subscribe to Nosh7 fresh healthy meals. High protein, low carb, high fiber. Pick a plan, slot and start date, then pay over UPI or card." />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+  /* ============================================================
+     CONFIG (UPI ID, Razorpay, order webhook) is in the <script>.
+     ============================================================ */
+  :root{
+    --bg:#f4f7ee; --bg-2:#eaf1de; --surface:#ffffff; --surface-2:#f2f8e6;
+    --line:#e2e9d5; --lime:#bdec4f; --accent-text:#4d7c16;
+    --ink:#1a2414; --muted:#637058; --muted-2:#a7b399;
+    --shadow:0 12px 28px rgba(70,90,30,.10);
+    --glow:0 0 0 1px var(--accent-text), 0 10px 24px rgba(120,180,40,.18);
+    --radius:16px; --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html[data-theme="dark"]{
+    --bg:#0c0f0b; --bg-2:#10140e; --surface:#161b13; --surface-2:#1c2218;
+    --line:#272f22; --lime:#c4f546; --accent-text:#c4f546;
+    --ink:#f2f6ea; --muted:#8b9683; --muted-2:#5c6657;
+    --shadow:0 18px 40px rgba(0,0,0,.45);
+    --glow:0 0 0 1px var(--lime), 0 12px 34px rgba(196,245,70,.16);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+    background:var(--bg);color:var(--ink);
+    height:100dvh;display:flex;justify-content:center;overflow:hidden;overscroll-behavior:none;
+  }
+  .app{
+    width:100%;max-width:440px;height:100dvh;display:flex;flex-direction:column;
+    position:relative;overflow:hidden;
+    background:radial-gradient(120% 50% at 100% 0%, rgba(120,180,40,.10), transparent 60%),linear-gradient(180deg,var(--bg-2),var(--bg) 26%);
+  }
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 20px 6px;flex:none;}
+  .brand{display:flex;align-items:center;gap:9px;}
+  .brand .logo{width:40px;height:40px;flex:none;display:block;}
+  .brand .logo svg{width:100%;height:100%;display:block;}
+  .brand .bx{display:flex;flex-direction:column;line-height:1.05;}
+  .brand .mark{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.5px;}
+  .brand .mark b{color:var(--accent-text);}
+  .brand .tag{font-size:8.5px;font-weight:600;letter-spacing:1.4px;color:var(--muted-2);text-transform:uppercase;margin-top:2px;}
+  .rightbar{display:flex;align-items:center;gap:10px;}
+  .themebtn{background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:8px;cursor:pointer;}
+  .themebtn:active{transform:scale(.96);}
+  .counter{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:13px;color:var(--muted);letter-spacing:1px;}
+  .counter b{color:var(--accent-text);}
+
+  .progress{height:2px;background:var(--line);margin:4px 20px 0;overflow:hidden;flex:none;}
+  .progress > i{display:block;height:100%;width:0%;background:var(--accent-text);transition:width .5s var(--ease);}
+
+  /* steps fill remaining height, no scroll */
+  .steps{flex:1;position:relative;min-height:0;}
+  .step{
+    position:absolute;inset:0;padding:30px 20px 10px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;
+    opacity:0;transform:translateY(14px);pointer-events:none;
+    transition:opacity .4s var(--ease),transform .4s var(--ease);
+  }
+  .step.top{justify-content:flex-start;}
+  .step.center{justify-content:center;}
+  .step.scroll{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:14px;}
+  .step.scroll h1{margin-bottom:18px;}
+  .step.scroll .body{flex:0 0 auto;gap:20px;}
+  .notebox.picked{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .addr-clear{flex:none;background:transparent;border:1px solid var(--line);color:var(--accent-text);border-radius:8px;padding:5px 11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:11px;cursor:pointer;}
+  .addr-extra{display:none;flex-direction:column;gap:20px;}
+  .addr-extra.show{display:flex;}
+  .search-wrap{position:relative;}
+  .ac-dropdown{display:none;position:absolute;top:100%;left:0;right:0;margin-top:5px;z-index:60;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;max-height:260px;overflow-y:auto;}
+  .ac-item{padding:11px 13px;cursor:pointer;border-top:1px solid var(--line);}
+  .ac-item:first-child{border-top:0;}
+  .ac-item:active,.ac-item:hover{background:var(--surface-2);}
+  .ac-item b{display:block;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .ac-item span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .locbtn{margin-top:8px;display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);color:var(--accent-text);border:1px solid var(--line);border-radius:11px;padding:9px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;}
+  .locbtn svg{width:15px;height:15px;}
+  .locbtn:active{transform:scale(.98);}
+  .locbtn[disabled]{opacity:.6;}
+  /* Google Places autocomplete dropdown */
+  .pac-container{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-top:4px;font-family:'Plus Jakarta Sans',sans-serif;z-index:300;overflow:hidden;}
+  .pac-item{padding:10px 12px;font-size:13px;color:var(--ink);border-top:1px solid var(--line);cursor:pointer;}
+  .pac-item:first-child{border-top:0;}
+  .pac-item:hover,.pac-item-selected{background:var(--surface-2);}
+  .pac-item-query{font-size:13px;color:var(--ink);font-weight:600;}
+  .pac-matched{color:var(--accent-text);}
+  .pac-icon{display:none;}
+  .hdpi .pac-icon{display:none;}
+  /* bigger cards on the Pick a slot step */
+  section[data-step="1"] .opt{padding:17px 16px;gap:16px;}
+  section[data-step="1"] .opt .idx{width:48px;height:48px;font-size:18px;border-radius:13px;}
+  section[data-step="1"] .opt .txt b{font-size:18px;}
+  section[data-step="1"] .opt .txt span{font-size:13px;}
+  section[data-step="1"] .seg button{font-size:15px;padding:13px 0;}
+  .step.active{opacity:1;transform:none;pointer-events:auto;}
+  .step.leaving{opacity:0;transform:translateY(-14px);}
+
+  .eyebrow{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--accent-text);letter-spacing:3px;text-transform:uppercase;flex:none;}
+  h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:30px;line-height:1.05;margin:7px 0 3px;letter-spacing:-1px;font-weight:700;flex:none;}
+  h1 .accent{color:var(--accent-text);}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.4;flex:none;}
+  .body{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-start;gap:11px;}
+  .step.top .body{flex:1 1 auto;}
+
+  /* benefits strip (plan page) */
+  .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex:none;}
+  .benefit{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;}
+  .benefit .statnum{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;line-height:1;letter-spacing:-.5px;color:var(--accent-text);}
+  .benefit small{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:600;line-height:1.15;color:var(--muted);letter-spacing:.2px;}
+  .speccap{flex:none;text-align:center;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.3px;margin-top:-2px;}
+
+  /* plan cards (graphic) */
+  .plan{
+    width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:20px;
+    padding:22px 20px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
+    display:flex;flex-direction:column;gap:12px;
+    transition:transform .2s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);
+  }
+  .plan:active{transform:scale(.99);}
+  .plan-top{display:flex;align-items:center;justify-content:space-between;}
+  .plan-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.4px;display:flex;align-items:center;gap:9px;}
+  .plan-meals{font-size:13px;color:var(--muted);margin-top:3px;}
+  .plan-price{font-family:'Plus Jakarta Sans',sans-serif;font-size:46px;font-weight:700;letter-spacing:-2px;line-height:1;}
+  .plan-price em{font-size:19px;font-style:normal;color:var(--muted);font-weight:600;margin-right:4px;}
+  .plan-foot{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted);}
+  .plan .dot{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--muted-2);position:relative;transition:border-color .25s var(--ease);}
+  .plan .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent-text);transform:scale(0);transition:transform .3s var(--ease);}
+  .plan.sel{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .plan.sel .dot{border-color:var(--accent-text);}
+  .plan.sel .dot::after{transform:scale(1);}
+  .badge{display:inline-block;background:var(--lime);color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:3px 7px;border-radius:6px;}
+
+  /* generic option rows (slot, add ons) */
+  .opt{
+    width:100%;border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:12px 14px;
+    display:flex;align-items:center;gap:13px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;position:relative;
+    transition:transform .2s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);
+  }
+  .opt:active{transform:scale(.99);}
+  .opt .idx{width:40px;height:40px;flex:none;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:15px;transition:all .3s var(--ease);}
+  .opt .txt{flex:1;min-width:0;}
+  .opt .txt b{display:block;font-size:15px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.2px;}
+  .opt .txt span{font-size:12px;color:var(--muted);}
+  .opt .price{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;}
+  .opt .dot{width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--muted-2);position:relative;transition:border-color .25s var(--ease);}
+  .opt .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent-text);transform:scale(0);transition:transform .3s var(--ease);}
+  .opt .chk{width:22px;height:22px;flex:none;border-radius:6px;border:2px solid var(--muted-2);position:relative;transition:background .25s var(--ease),border-color .25s var(--ease);}
+  .opt .chk::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #0c0f0b;border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transform-origin:center;transition:transform .25s var(--ease);}
+  .opt.sel{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .opt.sel .idx{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .opt.sel .dot{border-color:var(--accent-text);}
+  .opt.sel .dot::after{transform:scale(1);}
+  .opt.sel .chk{background:var(--lime);border-color:var(--accent-text);}
+  .opt.sel .chk::after{transform:rotate(45deg) scale(1);}
+
+  /* segmented (diet) */
+  .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;}
+  .seg button{flex:1;border:0;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:14px;padding:11px 0;border-radius:9px;color:var(--muted);cursor:pointer;transition:background .25s var(--ease),color .25s var(--ease);}
+  .seg button.on{background:var(--lime);color:#0c0f0b;}
+
+  .label{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;margin:0 0 4px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;flex:none;}
+
+  /* day of week chips */
+  .days{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+  .day{border:1.5px solid var(--line);background:var(--surface);border-radius:13px;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:16px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .2s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);}
+  .day:active{transform:scale(.98);}
+  .day small{font-family:'Plus Jakarta Sans',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.5px;color:var(--muted-2);text-transform:uppercase;}
+  .day.on{border-color:var(--accent-text);background:var(--surface-2);color:var(--ink);box-shadow:var(--glow);}
+  .day.on small{color:var(--accent-text);}
+
+  /* next-7-days strip */
+  .datestrip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .dcard{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:13px 0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform .2s var(--ease),border-color .25s var(--ease),background .25s var(--ease),box-shadow .25s var(--ease);}
+  .dcard:active{transform:scale(.97);}
+  .dcard .dow{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted-2);}
+  .dcard .dnum{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.5px;color:var(--ink);}
+  .dcard .dmon{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .dcard.sel{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .dcard.sel .dow,.dcard.sel .dmon{color:var(--accent-text);}
+
+  /* inputs */
+  .field, textarea.field{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:12px;padding:14px 15px;font-family:inherit;font-size:15px;color:var(--ink);transition:border-color .25s var(--ease),box-shadow .25s var(--ease),background .25s var(--ease);}
+  .field::placeholder,textarea.field::placeholder{color:var(--muted-2);}
+  textarea.field{resize:none;min-height:70px;}
+  #f-address{min-height:120px;}
+  /* optional instructions box looks different (not mandatory) */
+  #f-note{background:transparent;border:1.5px dashed var(--muted-2);min-height:58px;}
+  #f-note:focus{background:var(--surface-2);border-style:solid;}
+  .field:focus,textarea.field:focus{outline:0;border-color:var(--accent-text);background:var(--surface);box-shadow:0 0 0 3px rgba(120,180,40,.18);}
+  .row2{display:flex;gap:10px;}
+  .row2 > *{flex:1;}
+  .row2.addr-row > *:first-child{flex:0 0 34%;}
+  .row2.addr-row > *:last-child{flex:1;}
+
+  /* review */
+  .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px;overflow-y:auto;min-height:0;flex:1 1 auto;margin-top:12px;}
+  section[data-step="6"]{padding-top:16px;}
+  section[data-step="6"] h1{margin-top:2vh;}
+  .sline{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;gap:13px;}
+  .sline:last-child{border-bottom:1px solid var(--line);}
+  .sline .k{color:var(--muted);font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;}
+  .sline .v{font-weight:600;text-align:right;font-family:'Plus Jakarta Sans',sans-serif;}
+  .sline .v em{font-style:normal;color:var(--accent-text);}
+  .sline .v .freetag{color:var(--accent-text);font-style:italic;font-weight:700;}
+  .total{display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding:15px 18px;background:var(--lime);color:#0c0f0b;border-radius:14px;flex:none;}
+  .total span{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;font-size:12px;}
+  .total b{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;letter-spacing:-1px;}
+
+  /* confirmation */
+  .hero{background:var(--lime);color:#0c0f0b;border-radius:20px;padding:24px 22px;transform:translateY(16px) scale(.97);opacity:0;animation:rise .6s var(--ease) .05s both;}
+  @keyframes rise{to{transform:none;opacity:1;}}
+  .hero .k{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;opacity:.7;}
+  .hero h1{margin:6px 0 16px;color:#0c0f0b;font-size:30px;}
+  .hero .ordlabel{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.6;}
+  .hero .ordno{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:28px;letter-spacing:-.5px;margin-top:2px;}
+  .note{color:var(--muted);font-size:13px;margin:16px 2px 0;line-height:1.5;}
+
+  /* footer (part of column, never fixed, so no page scroll) */
+  .footer{flex:none;padding:12px 20px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;}
+  .cta{width:100%;border:0;border-radius:14px;padding:16px;font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:.2px;color:#0c0f0b;cursor:pointer;background:var(--lime);transition:transform .18s var(--ease),opacity .2s var(--ease),filter .2s var(--ease);display:flex;align-items:center;justify-content:center;gap:9px;}
+  .cta:active{transform:scale(.98);}
+  .cta[disabled]{opacity:.32;filter:grayscale(.5);cursor:not-allowed;}
+  .cta.dark{background:var(--surface-2);color:var(--ink);border:1px solid var(--line);}
+  .cta.ghost{background:transparent;color:var(--accent-text);border:1px solid var(--accent-text);}
+  .back{background:none;border:0;color:var(--muted-2);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px;cursor:pointer;align-self:center;}
+  .hint{text-align:center;font-size:11.5px;color:var(--muted-2);}
+  /* sub choices inside an add-on card (size / drink) */
+  .subseg{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+  .subseg button{border:1px solid var(--line);background:var(--bg);color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:11px;padding:5px 9px;border-radius:7px;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease);}
+  .subseg button.on{background:var(--lime);color:#0c0f0b;border-color:var(--lime);}
+  /* distance fee note */
+  .notebox{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:11.5px;color:var(--muted);line-height:1.45;}
+  .notebox b{color:var(--accent-text);}
+  .notebox.gift{background:var(--lime);border-color:var(--lime);color:#0c0f0b;padding:9px 13px;position:relative;overflow:hidden;}
+  .notebox.gift b{color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;}
+  .notebox.gift small{font-size:11px;color:#0c0f0b;opacity:.72;}
+  .notebox.gift::before{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-18deg);animation:shine 2.8s var(--ease) infinite;}
+  @keyframes shine{0%{left:-60%;}55%,100%{left:135%;}}
+  .gift-spark{position:absolute;top:8px;right:12px;width:15px;height:15px;color:#0c0f0b;animation:twinkle 1.9s ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:.28;transform:scale(.65) rotate(0deg);}50%{opacity:1;transform:scale(1) rotate(90deg);}}
+  @media (prefers-reduced-motion:reduce){.notebox.gift::before,.gift-spark{animation:none;}}
+
+  /* shorter screens (most iPhones with Safari toolbars): compact the address step so it fits in one view, no scroll */
+  @media (max-height:740px){
+    .step.scroll{padding-top:8px;}
+    .step.scroll h1{font-size:25px;margin-bottom:10px;}
+    .step.scroll .body{gap:13px;}
+    .addr-extra{gap:13px;}
+    .step.scroll .field{padding:11px 14px;}
+    .step.scroll .label{margin-bottom:3px;}
+    .locbtn{margin-top:6px;padding:8px 12px;}
+    .notebox{padding:8px 12px;}
+  }
+  @media (max-height:640px){
+    .step.scroll h1{font-size:23px;margin-bottom:7px;}
+    .step.scroll .body{gap:10px;}
+    .addr-extra{gap:10px;}
+    .step.scroll .field{padding:9px 13px;}
+  }
+
+  /* in-app browser banner (Instagram etc.) */
+  #iabanner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#0c0f0b;color:#fff;padding:9px 12px;align-items:center;gap:8px;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:500;}
+  #iabanner.show{display:flex;}
+  #iabanner button{font-family:inherit;font-weight:700;font-size:12px;border:0;border-radius:8px;padding:6px 12px;cursor:pointer;}
+  #iaopen{background:var(--lime);color:#0c0f0b;}
+  #iaclose{background:transparent;color:#fff;opacity:.55;font-weight:600;}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;}}
+
+  /* ============== ADDED: category home + add-ons (preview) ============== */
+  .brand{cursor:pointer;}
+  .brand:active{transform:scale(.97);}
+  .app.home-mode .progress,.app.home-mode .steps,.app.home-mode .footer{display:none;}
+  .app.home-mode .counter{display:none;}
+
+  .homescreen{display:none;flex-direction:column;flex:1;min-height:0;padding:6px 20px 14px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .app.home-mode .homescreen{display:flex;}
+  .homescreen .lead{margin:6px 2px 12px;flex:none;}
+  .homescreen .lead h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;line-height:1.08;margin:0;letter-spacing:-1px;font-weight:700;}
+  .homescreen .lead h1 .accent{color:var(--accent-text);}
+  .homescreen .lead p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.4;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,minmax(min-content,1fr));gap:10px;flex:1;min-height:0;}
+  .card{position:relative;border:1px solid var(--line);background:var(--surface);border-radius:17px;padding:15px 15px 14px;cursor:pointer;text-align:left;font-family:inherit;color:inherit;display:flex;flex-direction:column;gap:7px;overflow:hidden;transition:transform .18s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease);}
+  .card:active{transform:scale(.985);}
+  .card .ic{width:40px;height:40px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);}
+  .card .ic svg{width:22px;height:22px;}
+  .card .nm{font-size:17px;font-weight:700;letter-spacing:-.3px;line-height:1.12;}
+  .card .tg{font-size:12px;color:var(--muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card .cardfoot{margin-top:auto;}
+  .card .from{font-size:9px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:4px;}
+  .card .pr{display:flex;align-items:baseline;gap:4px;}
+  .card .pr b{font-size:18px;font-weight:800;letter-spacing:-.5px;color:var(--ink);}
+  .card .pr small{font-size:11px;color:var(--muted-2);font-weight:600;}
+  .pill{position:absolute;top:11px;right:11px;background:var(--lime);color:#0c0f0b;font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:6px;}
+  .pill.soft{background:var(--surface-2);color:var(--accent-text);border:1px solid var(--line);}
+  .homescreen .foot{flex:none;margin:10px 2px 0;text-align:center;color:var(--muted-2);font-size:10.5px;}
+  .card[data-key="fruit"]{border-color:rgba(168,85,247,.40);background:linear-gradient(150deg, rgba(139,92,246,.16), rgba(239,68,68,.13));}
+  .card[data-key="fruit"] .ic{background:linear-gradient(135deg,#8b5cf6,#ef4444);border-color:transparent;color:#fff;}
+  .card[data-key="fruit"] .pill{background:linear-gradient(135deg,#8b5cf6,#ef4444);color:#fff;border:0;}
+
+  /* days step: days centered in the middle, add-ons pinned at the bottom above Continue */
+  section[data-step="2"] .body{flex:1 1 auto;min-height:0;}
+  section[data-step="2"] .daysmid{flex:1;display:flex;align-items:center;min-height:0;}
+  section[data-step="2"] .daysmid .days{width:100%;}
+  section[data-step="2"] .addons-wrap{margin-top:0;}
+  /* plan step: center the two plan cards in the available space */
+  section[data-step="0"] .body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;gap:13px;}
+  section[data-step="0"] .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px;}
+  section[data-step="0"] .benefit{padding:16px 4px;border-radius:15px;justify-content:center;gap:4px;}
+  section[data-step="0"] .benefit .statnum{font-size:19px;}
+  section[data-step="0"] .benefit small{font-size:10px;line-height:1.15;}
+  section[data-step="0"] .plan:first-of-type{margin-top:auto;}
+  section[data-step="0"] .plan:last-of-type{margin-bottom:auto;}
+  /* small add-on boxes on the days step */
+  .addons-wrap{flex:none;}
+  .addons-wrap .label{margin-top:4px;}
+  .aboxes{display:grid;gap:8px;}
+  .aboxes.n1{grid-template-columns:1fr;}
+  .aboxes.n2{grid-template-columns:1fr 1fr;}
+  .aboxes.n3{grid-template-columns:1fr 1fr 1fr;}
+  .abox{position:relative;border:1.3px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 8px 9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
+  .abox:active{transform:scale(.98);}
+  .abox .aic{width:30px;height:30px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);}
+  .abox .aic svg{width:16px;height:16px;}
+  .abox b{font-size:11px;font-weight:700;text-align:center;line-height:1.1;}
+  .abox .ap{font-size:10.5px;font-weight:800;color:var(--ink);}
+  .abox .ap small{color:var(--muted-2);font-weight:600;font-size:8px;}
+  .abox .tick{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:5px;border:1.4px solid var(--line);display:grid;place-items:center;color:transparent;}
+  .abox .tick svg{width:10px;height:10px;}
+  .abox.on{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .abox.on .aic{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .abox.on .tick{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .ahint{font-size:9.5px;color:var(--muted-2);margin:7px 2px 0;text-align:center;line-height:1.3;}
+
+  /* promo code (review page) */
+  .promo{flex:none;margin-top:16px;display:flex;flex-direction:column;gap:9px;}
+  .promo-chip{align-self:flex-start;background:var(--surface-2);border:1px dashed var(--accent-text);color:var(--accent-text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12px;padding:8px 13px;border-radius:10px;cursor:pointer;}
+  .promo-chip b{font-weight:800;letter-spacing:.6px;}
+  .promo-chip:active{transform:scale(.98);}
+  .promo-row{display:flex;gap:8px;}
+  .promo-input{flex:1;text-transform:uppercase;letter-spacing:1px;}
+  .promo-input::placeholder{letter-spacing:0;text-transform:none;}
+  .promo-apply{flex:none;border:0;border-radius:12px;padding:0 20px;background:var(--lime);color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  .promo-apply:active{transform:scale(.97);}
+  .promo-err{display:none;color:#e0726e;font-size:12px;font-weight:600;padding-left:2px;}
+  .promo-err.show{display:block;}
+  .promo-ok{display:none;align-items:center;gap:11px;background:var(--lime);color:#0c0f0b;border-radius:13px;padding:12px 14px;}
+  .promo-ok.show{display:flex;animation:promoPop .42s var(--ease) both, promoGlow .75s ease-out both;}
+  .promo-ok svg{width:23px;height:23px;flex:none;}
+  .promo-ok .chk-circle{stroke-dasharray:64;stroke-dashoffset:64;animation:promoDash .5s var(--ease) .1s forwards;}
+  .promo-ok .chk-tick{stroke-dasharray:22;stroke-dashoffset:22;animation:promoDash .3s var(--ease) .42s forwards;}
+  .promo-ok span{flex:1;font-size:13px;font-weight:600;line-height:1.3;}
+  .promo-ok span b{font-weight:800;}
+  .promo-remove{flex:none;background:rgba(0,0,0,.14);border:0;color:#0c0f0b;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:11px;padding:6px 11px;border-radius:8px;cursor:pointer;}
+  @keyframes promoPop{0%{transform:scale(.9);opacity:0;}60%{transform:scale(1.03);}100%{transform:scale(1);opacity:1;}}
+  @keyframes promoGlow{0%{box-shadow:0 0 0 0 rgba(196,245,70,.55);}100%{box-shadow:0 0 0 16px rgba(196,245,70,0);}}
+  @keyframes promoDash{to{stroke-dashoffset:0;}}
+</style>
+</head>
+<body>
+<div id="iabanner">
+  <span>For smooth payment, open in your browser</span>
+  <button id="iaopen" type="button">Open</button>
+  <button id="iaclose" type="button">Later</button>
+</div>
+<div class="app home-mode">
+  <div class="topbar">
+    <div class="brand" id="brandHome">
+      <span class="logo" aria-label="Nosh7 logo"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2fb6a3"/><stop offset=".55" stop-color="#5cbf57"/><stop offset="1" stop-color="#9ad13f"/></linearGradient></defs>
+        <circle cx="50" cy="50" r="45" fill="none" stroke="url(#lg)" stroke-width="7"/>
+        <path d="M50 26c-7 7-9 17-3 26 7-7 9-17 3-26z" fill="#7cc242"/>
+        <path d="M47 54c-5-9-14-13-24-11 4 10 14 15 24 11z" fill="#3aa94a"/>
+        <path d="M53 54c5-9 14-13 24-11-4 10-14 15-24 11z" fill="#9ad13f"/>
+        <path d="M50 50v18" stroke="#3aa94a" stroke-width="4" stroke-linecap="round"/>
+      </svg></span>
+      <span class="bx"><span class="mark">NOSH<b>7</b></span><span class="tag">Eat healthy, feel great</span></span>
+    </div>
+    <div class="rightbar">
+      <button class="themebtn" id="themebtn" type="button">Dark</button>
+      <div class="counter"><b id="cstep">01</b> / 05</div>
+    </div>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+
+  <!-- ADDED: category home (preview) -->
+  <div class="homescreen" id="homeScreen">
+    <div class="lead">
+      <h1>What are you <span class="accent">eating for</span>?</h1>
+      <p>Pick a meal track. Same fresh kitchen, tuned to your goal.</p>
+    </div>
+    <div class="grid" id="catGrid"></div>
+  </div>
+
+  <div class="steps" id="steps">
+
+    <!-- STEP 1: PLAN (per-category, filled by JS) -->
+    <section class="step" data-step="0">
+      <div class="eyebrow" id="planEyebrow">Plan</div>
+      <h1>Choose your <span class="accent">plan</span></h1>
+      <p class="sub" id="planNote">Pick weekly or monthly.</p>
+      <div class="body" id="planBody"></div>
+    </section>
+
+    <!-- STEP 2: SLOT + DIET -->
+    <section class="step" data-step="1">
+      <div class="eyebrow">Batch</div>
+      <h1>Pick a <span class="accent">slot</span></h1>
+      <p class="sub">Set your preference, then tap a delivery slot.</p>
+      <div class="body">
+        <div class="seg" id="diet">
+          <button data-key="regular" class="on">Regular</button>
+          <button data-key="jain" id="dietJain">Jain</button>
+        </div>
+        <button class="opt" data-group="batch" data-key="b1" data-label="Morning, 9:30 AM to 11:30 AM">
+          <div class="idx">01</div><div class="txt"><b>9:30 AM to 11:30 AM</b><span>Morning batch</span></div><div class="dot"></div>
+        </button>
+        <button class="opt" data-group="batch" data-key="b2" data-label="Lunch, 11:30 AM to 1:30 PM">
+          <div class="idx">02</div><div class="txt"><b>11:30 AM to 1:30 PM</b><span>Lunch batch</span></div><div class="dot"></div>
+        </button>
+        <button class="opt" data-group="batch" data-key="b3" data-label="Evening, 4:30 PM to 6:30 PM">
+          <div class="idx">03</div><div class="txt"><b>4:30 PM to 6:30 PM</b><span>Evening batch</span></div><div class="dot"></div>
+        </button>
+        <button class="opt" data-group="batch" data-key="b4" data-label="Dinner, 6:30 PM to 8:30 PM">
+          <div class="idx">04</div><div class="txt"><b>6:30 PM to 8:30 PM</b><span>Dinner batch</span></div><div class="dot"></div>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3: DELIVERY DAYS + ADD-ONS -->
+    <section class="step" data-step="2">
+      <div class="eyebrow">Days</div>
+      <h1>Delivery <span class="accent">days</span></h1>
+      <p class="sub">Monday to Saturday by default. Uncheck any day you skip.</p>
+      <div class="body">
+        <div class="daysmid"><div class="days" id="days"></div></div>
+        <div class="addons-wrap" id="addonsWrap">
+          <div class="label">Add-ons (optional, per meal)</div>
+          <div class="aboxes" id="aboxes"></div>
+          <div class="ahint" id="ahint"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4: ADDRESS + DETAILS -->
+    <section class="step scroll" data-step="3">
+      <h1>Delivery <span class="accent">address</span></h1>
+      <div class="body" style="justify-content:flex-start;">
+        <div>
+          <div class="label">Search address (Ahmedabad)</div>
+          <div class="search-wrap">
+            <input class="field" id="f-search" type="text" placeholder="Society, area, road, landmark" autocomplete="off" />
+            <div id="ac-dropdown" class="ac-dropdown"></div>
+          </div>
+          <button class="locbtn" id="useloc" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            Use my current location
+          </button>
+        </div>
+        <div id="addr-extra" class="addr-extra">
+          <div id="addr-picked" class="notebox picked"><span id="addr-picked-text"></span><button type="button" id="addr-clear" class="addr-clear">Clear</button></div>
+          <div class="row2 addr-row">
+            <div><div class="label">House / Flat no</div><input class="field" id="f-house" type="text" placeholder="e.g. B-204" /></div>
+            <div><div class="label">Building / Apartment</div><input class="field" id="f-building" type="text" placeholder="e.g. Shivalik Shilp" /></div>
+          </div>
+          <div class="row2">
+            <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
+            <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
+          </div>
+          <div id="distfee" class="notebox" style="display:none"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 5: REVIEW + PAY -->
+    <section class="step top" data-step="4">
+      <div class="eyebrow">Review</div>
+      <h1>Confirm &amp; <span class="accent">pay</span></h1>
+      <div class="body" style="justify-content:flex-start;gap:0;overflow-y:auto;min-height:0;">
+        <div class="summary" id="summary"></div>
+        <div class="promo">
+          <button class="promo-chip" id="promoChip" type="button">Tap to use code <b>HEALTHY</b> &middot; flat Rs 150 off</button>
+          <div class="promo-row" id="promoRow">
+            <input class="field promo-input" id="f-promo" type="text" placeholder="Promo code" autocomplete="off" autocapitalize="characters" />
+            <button class="promo-apply" id="promoApply" type="button">Apply</button>
+          </div>
+          <div class="promo-err" id="promoErr"></div>
+          <div class="promo-ok" id="promoOk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0c0f0b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle class="chk-circle" cx="12" cy="12" r="10"/><path class="chk-tick" d="M7 12.5l3.2 3.2L17 9"/></svg>
+            <span>Code <b id="promoCodeLabel">HEALTHY</b> applied &middot; <b id="promoOffLabel">Rs 150 off</b></span>
+            <button class="promo-remove" id="promoRemove" type="button">Remove</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6: CONFIRMATION -->
+    <section class="step top" data-step="5">
+      <div class="body" style="justify-content:flex-start;">
+        <div class="hero">
+          <div class="k">You are in</div>
+          <h1 id="c-name">Welcome</h1>
+          <div class="ordlabel">Order number</div>
+          <div class="ordno" id="c-orderno">NOSH-000000</div>
+        </div>
+        <p class="note">Your meals start tomorrow (<b id="c-start" style="color:var(--accent-text);">tomorrow</b>). Keep this number safe, we will WhatsApp you shortly. If your address is beyond 5 KM of Iscon Cross Roads, our team will call about a small distance fee (Rs 10 / KM).<br><br>Visit <a href="https://www.nosh7.com" target="_blank" rel="noopener" style="color:var(--accent-text);font-weight:600;">www.nosh7.com</a> to log into your account tomorrow and manage your subscription.</p>
+      </div>
+    </section>
+
+  </div><!-- /steps -->
+
+  <div class="footer" id="footer">
+    <button class="cta" id="next" disabled>Continue</button>
+    <button class="cta" id="pay" style="display:none">Pay</button>
+    <div class="hint" id="payhint" style="display:none"></div>
+    <button class="cta" id="msg" style="display:none">Message us on WhatsApp</button>
+    <button class="cta ghost" id="restart" style="display:none">Place another order</button>
+    <button class="back" id="back" style="display:none">Back</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   NOSH7 CONFIG
+   ============================================================ */
+const CONFIG = {
+  // Choose how customers pay: "upi" (opens any UPI app) or "razorpay" (hosted checkout)
+  PAYMENT_METHOD: "razorpay",
+
+  // UPI method (works on a phone, opens GPay / PhonePe / Paytm / any UPI app)
+  UPI_ID: "sapnakm71@okicici",
+
+  // Razorpay method. LIVE mode (rzp_live key) - real payments. Test cards no longer work.
+  // Key id is public and safe in the browser. The SECRET only lives in the worker.
+  // To go back to test: set this to the rzp_test key id AND set the worker's two secrets
+  // back to test via `wrangler secret put`. See razorpay-worker/README.md.
+  RAZORPAY_KEY_ID: "rzp_live_T2c7dv6cCGVIIE",
+  RAZORPAY_ORDER_ENDPOINT: "https://nosh7-pay.altafsimavatwala1991.workers.dev/create-order",
+  RAZORPAY_VERIFY_ENDPOINT: "https://nosh7-pay.altafsimavatwala1991.workers.dev/verify",
+
+  // Where each completed order is sent so you can automate it into your system.
+  // Google Sheet web app (Apps Script) from order-collector.gs.
+  ORDER_WEBHOOK: "",  // PREVIEW: disabled so test orders do not hit the live order sheet
+
+  BUSINESS_NAME: "Nosh7",
+  WHATSAPP_NUMBER: "919712989498",
+
+  // Address search + auto distance fee (Google Maps Places).
+  // Needs a Google Maps JS API key with "Maps JavaScript API", "Places API" and "Geocoding API"
+  // enabled, billing on, key restricted to start.nosh7.in. Leave blank to fall back to a plain
+  // text address box (no autocomplete / no auto fee).
+  GOOGLE_MAPS_API_KEY: "AIzaSyDb_oJ-cs65Ace4wBETtocwk57Cx5qODx4",
+  // Nosh7 base location, distance is measured from here. When a Google key is set the app
+  // geocodes BASE_ADDRESS to get exact coords; BASE_LAT/LNG below are the fallback if it can't.
+  BASE_ADDRESS: "5A Akshat Avenue, Ramdevnagar Road, Satellite, Ahmedabad 380015",
+  BASE_LAT: 23.0299, BASE_LNG: 72.5119,
+  FREE_KM: 5, PER_KM_FEE: 10, ROAD_FACTOR: 1.3   // free within 5 km, then Rs 10 per extra km
+};
+/* ============================================================ */
+
+const WEEK = [["Mon","Monday"],["Tue","Tuesday"],["Wed","Wednesday"],["Thu","Thursday"],["Fri","Friday"],["Sat","Saturday"]];
+
+const order = {
+  plan:null, planLabel:null, planPrice:0, deliveries:0,
+  batch:null, batchLabel:null,
+  diet:"regular", dietLabel:"Regular",
+  days: WEEK.map(d=>d[0]),     // all of Mon..Sat by default
+  date:"", dateLabel:"", note:"",
+  name:"", phone:"",
+  area:"", house:"", building:"", pincode:"", lat:null, lng:null, distanceKm:0, distanceFee:0,
+  addons:{}, promo:null, discount:0
+};
+
+const steps = [...document.querySelectorAll('.step')];
+const bar = document.getElementById('bar');
+const cstep = document.getElementById('cstep');
+const nextBtn = document.getElementById('next');
+const backBtn = document.getElementById('back');
+const payBtn = document.getElementById('pay');
+const payHint = document.getElementById('payhint');
+const msgBtn = document.getElementById('msg');
+const restartBtn = document.getElementById('restart');
+let cur = 0, orderNo = "";
+
+const REVIEW = 4, CONFIRM = 5, LAST_INPUT = 3;
+
+/* ---- build day-of-week chips (Mon..Sat, all on) ---- */
+const daysEl = document.getElementById('days');
+WEEK.forEach(([sh,full])=>{
+  const b = document.createElement('button');
+  b.type='button'; b.className='day on'; b.dataset.key=sh;
+  b.innerHTML = '<span>'+sh+'</span><small>'+full+'</small>';
+  b.addEventListener('click', ()=>{
+    b.classList.toggle('on');
+    order.days = [...daysEl.querySelectorAll('.day.on')].map(x=>x.dataset.key);
+    haptic(); validate();
+  });
+  daysEl.appendChild(b);
+});
+
+/* ---- start date = next day after payment (skip Sunday), set automatically ---- */
+(function(){
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d=new Date(); d.setDate(d.getDate()+1);
+  if(d.getDay()===0) d.setDate(d.getDate()+1);   // if tomorrow is Sunday, start Monday
+  order.date=d.toISOString().split('T')[0];
+  order.dateLabel=dows[d.getDay()]+', '+d.getDate()+' '+mons[d.getMonth()];
+})();
+
+/* ---- single select cards (plan, batch) ---- */
+document.querySelectorAll('[data-group]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const group = btn.dataset.group;
+    document.querySelectorAll('[data-group="'+group+'"]').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+    if(group==='plan'){ order.plan=btn.dataset.key; order.planLabel=btn.dataset.label; order.planPrice=+btn.dataset.price; order.deliveries=+btn.dataset.units; }
+    if(group==='batch'){ order.batch=btn.dataset.key; order.batchLabel=btn.dataset.label; }
+    haptic(); validate(); maybeAutoAdvance();
+  });
+});
+
+let advanceTimer=null;
+function maybeAutoAdvance(){
+  clearTimeout(advanceTimer);
+  advanceTimer=setTimeout(()=>{ if(stepValid(cur) && cur<REVIEW) go(cur+1); }, 320);
+}
+
+/* ---- diet ---- */
+document.querySelectorAll('#diet button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#diet button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); order.diet=b.dataset.key; order.dietLabel=b.textContent; haptic();
+  });
+});
+
+/* ---- add ons ---- */
+function paneerSel(){ const b=document.querySelector('#paneer-size button.on'); return {label:'Paneer ('+b.dataset.size+')', price:+b.dataset.price}; }
+
+document.querySelectorAll('.opt.addon').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    const k=card.dataset.addon;
+    if(order.addons[k]){ delete order.addons[k]; card.classList.remove('sel'); }
+    else { order.addons[k]=(k==='paneer'? paneerSel() : {label:'Healthy Drink', price:49}); card.classList.add('sel'); }
+    haptic();
+  });
+});
+document.querySelectorAll('#paneer-size button').forEach(b=>{
+  b.addEventListener('click', e=>{
+    e.stopPropagation();
+    document.querySelectorAll('#paneer-size button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById('paneer-price').textContent='+'+b.dataset.price+' / meal';
+    order.addons.paneer=paneerSel();
+    document.querySelector('.opt.addon[data-addon="paneer"]').classList.add('sel');
+    haptic();
+  });
+});
+
+/* ---- inputs ---- */
+document.getElementById('f-name').addEventListener('input', e=>{ order.name=e.target.value.trim(); validate(); });
+document.getElementById('f-phone').addEventListener('input', e=>{ order.phone=e.target.value.replace(/\D/g,''); validate(); });
+document.getElementById('f-house').addEventListener('input', e=>{ order.house=e.target.value.trim(); validate(); });
+document.getElementById('f-building').addEventListener('input', e=>{ order.building=e.target.value.trim(); validate(); });
+// pressing Enter jumps to the next field
+[['f-house','f-building'],['f-building','f-name'],['f-name','f-phone']].forEach(([from,to])=>{
+  document.getElementById(from).addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); const n=document.getElementById(to); if(n) n.focus(); } });
+});
+let gPlaces=null, gAcToken=null, acTimer=null;
+document.getElementById('f-search').addEventListener('input', e=>{
+  order.area=e.target.value.trim(); order.lat=null; order.lng=null;  // typing = not a confirmed point yet
+  if(order.area) document.getElementById('addr-extra').classList.add('show');
+  computeDistanceFee(); validate();
+  clearTimeout(acTimer);
+  if(!gPlaces || order.area.length<3){ hideAcDropdown(); return; }
+  acTimer=setTimeout(()=>fetchSuggestions(order.area), 250);
+});
+document.addEventListener('click', e=>{ if(!e.target.closest('.search-wrap')) hideAcDropdown(); });
+function hideAcDropdown(){ const dd=document.getElementById('ac-dropdown'); if(dd){ dd.style.display='none'; dd.innerHTML=''; } }
+async function fetchSuggestions(q){
+  try{
+    if(!gAcToken) gAcToken=new gPlaces.AutocompleteSessionToken();
+    const {suggestions}=await gPlaces.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input:q, sessionToken:gAcToken, includedRegionCodes:['in'],
+      locationRestriction:{ west:72.38, south:22.82, east:72.80, north:23.22 }   // Ahmedabad box
+    });
+    renderAcDropdown(suggestions||[]);
+  }catch(err){ hideAcDropdown(); }
+}
+function renderAcDropdown(suggestions){
+  const dd=document.getElementById('ac-dropdown');
+  const preds=suggestions.map(s=>s.placePrediction).filter(Boolean);
+  if(!preds.length){ hideAcDropdown(); return; }
+  dd.innerHTML='';
+  preds.forEach(pp=>{
+    const main=pp.mainText? pp.mainText.text : (pp.text? pp.text.text : '');
+    const sec=pp.secondaryText? pp.secondaryText.text : '';
+    const it=document.createElement('div'); it.className='ac-item';
+    it.innerHTML='<b>'+esc(main)+'</b>'+(sec?'<span>'+esc(sec)+'</span>':'');
+    it.addEventListener('click', ()=>selectPrediction(pp));
+    dd.appendChild(it);
+  });
+  dd.style.display='block';
+}
+async function selectPrediction(pp){
+  hideAcDropdown();
+  try{
+    const place=pp.toPlace();
+    await place.fetchFields({ fields:['formattedAddress','location','addressComponents'] });
+    gAcToken=null;
+    const loc=place.location;
+    order.pincode=pinFromComponents(place.addressComponents);
+    document.getElementById('f-search').value=place.formattedAddress||'';
+    setSelectedAddress(place.formattedAddress||order.area, loc.lat(), loc.lng());
+  }catch(err){}
+}
+function pinFromComponents(comps){
+  if(!comps) return '';
+  for(const c of comps){ const t=c.types||[]; if(t.indexOf('postal_code')>=0) return c.longText||c.long_name||''; }
+  return '';
+}
+
+/* ---- address selection + distance fee ---- */
+function fullAddress(){ return [order.house, order.building, order.area].filter(Boolean).join(', '); }
+function haversineKm(la1,lo1,la2,lo2){
+  const R=6371, toR=x=>x*Math.PI/180;
+  const dLa=toR(la2-la1), dLo=toR(lo2-lo1);
+  const a=Math.sin(dLa/2)**2 + Math.cos(toR(la1))*Math.cos(toR(la2))*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function computeDistanceFee(){
+  const el=document.getElementById('distfee');
+  if(order.lat==null){ order.distanceKm=0; order.distanceFee=0; el.style.display='none'; return; }
+  const km = haversineKm(CONFIG.BASE_LAT, CONFIG.BASE_LNG, order.lat, order.lng) * CONFIG.ROAD_FACTOR;
+  order.distanceKm = km;
+  // round the distance DOWN to whole km (e.g. 5.19 km counts as 5, stays free)
+  order.distanceFee = Math.max(0, Math.floor(km) - CONFIG.FREE_KM) * CONFIG.PER_KM_FEE;
+  el.style.display='block';
+  if(order.distanceFee>0){
+    el.className='notebox';
+    const tot=deliveryFeeTotal();
+    el.innerHTML='About <b>'+km.toFixed(1)+' km</b> from Nosh7. Distance fee <b>'+rupee(order.distanceFee)+' per delivery</b>'+(order.deliveries?' ('+rupee(tot)+' for '+order.deliveries+' meals)':'')+', added to your total.';
+  } else {
+    el.className='notebox gift';
+    el.innerHTML='<svg class="gift-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.1L20 10l-6.3 1.9L12 18l-1.7-6.1L4 10l6.3-1.9z"/></svg><b>Free delivery</b><br><small>you are within our free delivery zone</small>';
+  }
+}
+function setSelectedAddress(addr, lat, lng){
+  order.area=addr; order.lat=lat; order.lng=lng;
+  document.getElementById('addr-picked-text').textContent=addr;
+  document.getElementById('addr-extra').classList.add('show');
+  computeDistanceFee();
+  validate();
+  hideAcDropdown();
+  setTimeout(()=>{ const h=document.getElementById('f-house'); if(h && !h.value){ h.focus(); } }, 120);
+  // if the picked place had no pincode (broad area), reverse-geocode the point to get it
+  if(!order.pincode && window.gGeocoder){
+    gGeocoder.geocode({location:{lat,lng}}, (res,status)=>{
+      if(status==='OK' && res){ for(const r of res){ const p=pinFromComponents(r.address_components); if(p){ order.pincode=p; break; } } }
+    });
+  }
+}
+
+// small "Clear" button on the picked-address note: reset the search and start over
+document.getElementById('addr-clear').addEventListener('click', ()=>{
+  order.area=''; order.lat=null; order.lng=null; order.pincode='';
+  const s=document.getElementById('f-search'); s.value='';
+  document.getElementById('addr-picked-text').textContent='';
+  document.getElementById('addr-extra').classList.remove('show');
+  computeDistanceFee(); validate(); hideAcDropdown(); s.focus();
+});
+
+document.getElementById('useloc').addEventListener('click', ()=>{
+  if(!navigator.geolocation){ alert('Location is not available on this device. Please search your address.'); return; }
+  const btn=document.getElementById('useloc');
+  const label=btn.innerHTML; btn.disabled=true; btn.textContent='Locating...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude, lng=pos.coords.longitude;
+    const done=(addr)=>{ document.getElementById('f-search').value=addr; setSelectedAddress(addr, lat, lng); btn.disabled=false; btn.innerHTML=label; };
+    if(window.gGeocoder){
+      gGeocoder.geocode({location:{lat,lng}}, (res,status)=>{
+        if(status==='OK'&&res[0]){ order.pincode=pinFromComponents(res[0].address_components); done(res[0].formatted_address); }
+        else done(lat.toFixed(5)+', '+lng.toFixed(5));
+      });
+    } else { done(lat.toFixed(5)+', '+lng.toFixed(5)); }
+  }, err=>{
+    alert('Could not get your location. Please allow location access or search your address.');
+    btn.disabled=false; btn.innerHTML=label;
+  }, {enableHighAccuracy:true, timeout:10000});
+});
+
+/* Google Maps (new Places API), loads only if a key is set */
+window.gGeocoder=null;
+window.initMaps=async function(){
+  try{
+    await google.maps.importLibrary("geocoding");
+    gGeocoder=new google.maps.Geocoder();
+    // base coords are fixed (BASE_LAT/LNG) so the fee shown here always matches
+    // what the payment Worker recomputes and charges. Do not refine at runtime.
+    gPlaces=await google.maps.importLibrary("places");
+  }catch(e){}
+};
+if(CONFIG.GOOGLE_MAPS_API_KEY){
+  const gs=document.createElement('script');
+  gs.src='https://maps.googleapis.com/maps/api/js?key='+CONFIG.GOOGLE_MAPS_API_KEY+'&loading=async&callback=initMaps&v=weekly';
+  gs.async=true; document.head.appendChild(gs);
+}
+
+function stepValid(i){
+  switch(i){
+    case 0: return !!order.plan;
+    case 1: return !!order.batch;
+    case 2: return order.days.length>=1;
+    case 3: return order.name.length>1 && order.phone.length===10 && (order.area||'').length>3 && (order.house||'').length>0;
+    default: return true;
+  }
+}
+function validate(){ nextBtn.disabled = !stepValid(cur); }
+
+function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.price); return s; }
+function deliveryFeeTotal(){ return (order.distanceFee||0) * order.deliveries; }
+function grandTotal(){ return Math.max(0, order.planPrice + addonsPerMeal()*order.deliveries + deliveryFeeTotal() - (order.discount||0)); }
+const rupee = n => "Rs "+n.toLocaleString('en-IN');
+function daysText(){ return order.days.length===6 ? "Mon to Sat" : order.days.join(", "); }
+
+function buildSummary(){
+  const rows=[];
+  rows.push(['Plan', order.planLabel + (order.deliveries? ', '+rupee(Math.round(order.planPrice/order.deliveries))+' x '+order.deliveries : ''), rupee(order.planPrice)]);
+  rows.push(['Slot', order.batchLabel, '']);
+  rows.push(['Days', daysText(), '']);
+  rows.push(['Preference', order.dietLabel, '']);
+  rows.push(['Starts', order.dateLabel+' (tomorrow)', '']);
+  rows.push(['Deliver to', order.name+', '+order.phone, '']);
+  rows.push(['Address', fullAddress(), '']);
+  if(order.distanceFee>0) rows.push(['Distance fee', 'Rs '+order.distanceFee+' x '+order.deliveries+' ('+order.distanceKm.toFixed(1)+' km)', '+'+rupee(deliveryFeeTotal())]);
+  else rows.push(['Distance fee', '<span class="freetag">Free</span>'+(order.distanceKm? ' ('+order.distanceKm.toFixed(1)+' km)':''), '', true]);
+  Object.values(order.addons).forEach(a=> rows.push(['Add on', a.label+' (Rs '+a.price+' x '+order.deliveries+')', '+'+rupee(a.price*order.deliveries)]));
+  if(order.discount>0) rows.push(['Promo', order.promo+' applied', '−'+rupee(order.discount)]);
+  if(order.note) rows.push(['Notes', order.note, '']);
+  document.getElementById('summary').innerHTML = rows.map(r=>{
+    const val = r[3] ? r[1] : esc(r[1]);
+    return '<div class="sline"><span class="k">'+r[0]+'</span><span class="v">'+val+(r[2]?' &nbsp;<em>'+r[2]+'</em>':'')+'</span></div>';
+  }).join('');
+}
+
+/* ---- promo code ---- */
+const PROMOS = { HEALTHY: 150 };  // flat rupees off (must match worker PROMOS)
+function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandTotal()); }
+function applyPromo(raw){
+  const code = (raw||'').trim().toUpperCase();
+  const errEl = document.getElementById('promoErr');
+  if(!code) return;
+  if(PROMOS[code]){
+    order.promo = code; order.discount = PROMOS[code];
+    errEl.classList.remove('show');
+    document.getElementById('promoCodeLabel').textContent = code;
+    document.getElementById('promoOffLabel').textContent = rupee(PROMOS[code])+' off';
+    document.getElementById('promoChip').style.display = 'none';
+    document.getElementById('promoRow').style.display = 'none';
+    const ok = document.getElementById('promoOk');
+    ok.classList.remove('show'); void ok.offsetWidth; ok.classList.add('show');  // restart animation
+    reviewTotal(); haptic();
+  } else {
+    order.promo = null; order.discount = 0;
+    errEl.textContent = 'Invalid code. Try HEALTHY for Rs 150 off.';
+    errEl.classList.add('show');
+    reviewTotal();
+  }
+}
+function removePromo(){
+  order.promo = null; order.discount = 0;
+  document.getElementById('promoOk').classList.remove('show');
+  document.getElementById('promoChip').style.display = 'inline-block';
+  document.getElementById('promoRow').style.display = 'flex';
+  document.getElementById('f-promo').value = '';
+  reviewTotal();
+}
+function resetPromoUI(){
+  order.promo = null; order.discount = 0;
+  const ok=document.getElementById('promoOk'); if(ok) ok.classList.remove('show');
+  const chip=document.getElementById('promoChip'); if(chip) chip.style.display='inline-block';
+  const row=document.getElementById('promoRow'); if(row) row.style.display='flex';
+  const inp=document.getElementById('f-promo'); if(inp) inp.value='';
+  const err=document.getElementById('promoErr'); if(err) err.classList.remove('show');
+}
+document.getElementById('promoApply').addEventListener('click', ()=> applyPromo(document.getElementById('f-promo').value));
+document.getElementById('promoChip').addEventListener('click', ()=> applyPromo('HEALTHY'));
+document.getElementById('promoRemove').addEventListener('click', removePromo);
+document.getElementById('f-promo').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); applyPromo(e.target.value); } });
+
+function go(to){
+  if(to===cur) return;
+  const out=steps[cur], inn=steps[to];
+  out.classList.add('leaving'); out.classList.remove('active');
+  setTimeout(()=>out.classList.remove('leaving'),420);
+  inn.classList.add('active');
+  cur=to;
+  bar.style.width = (cur/(steps.length-1))*100 + '%';
+  cstep.textContent = String(Math.min(cur+1,5)).padStart(2,'0');
+  refreshFooter();
+  // landing on the address step: put the cursor in the search box right away
+  if(cur===LAST_INPUT && !order.lat){
+    setTimeout(()=>{ const s=document.getElementById('f-search'); if(s) s.focus(); }, 460);
+  }
+}
+
+function refreshFooter(){
+  nextBtn.style.display='none'; payBtn.style.display='none'; payHint.style.display='none';
+  msgBtn.style.display='none'; restartBtn.style.display='none';
+  backBtn.style.display = (cur>0 && cur<CONFIRM) ? 'block':'none';
+  if(cur===REVIEW){
+    buildSummary();
+    payBtn.textContent = 'Pay '+rupee(grandTotal()); payBtn.style.display='flex';
+    payHint.textContent = (CONFIG.PAYMENT_METHOD==='razorpay') ? 'Secure checkout, cards and UPI' : 'GPay, PhonePe, Paytm, any UPI app';
+    payHint.style.display='block';
+  } else if(cur===CONFIRM){
+    msgBtn.style.display='flex'; restartBtn.style.display='flex'; backBtn.style.display='none';
+  } else {
+    nextBtn.style.display='flex';
+    nextBtn.textContent = (cur===LAST_INPUT)?'Review order':'Continue';
+    validate();
+  }
+}
+
+nextBtn.addEventListener('click', ()=>{ if(stepValid(cur)) go(cur+1); });
+backBtn.addEventListener('click', ()=> go(Math.max(0,cur-1)) );
+
+/* ---- payment (PREVIEW: stubbed, no real charge) ---- */
+payBtn.addEventListener('click', ()=>{
+  orderNo="NOSH-"+Math.floor(100000+Math.random()*900000);
+  alert('PREVIEW MODE\nNo real payment. Grand total would be '+rupee(grandTotal())+'.');
+  showConfirm('paid');
+});
+
+function payUPI(amt){
+  const note=encodeURIComponent(CONFIG.BUSINESS_NAME+" "+orderNo);
+  const upi="upi://pay?pa="+encodeURIComponent(CONFIG.UPI_ID)+"&pn="+encodeURIComponent(CONFIG.BUSINESS_NAME)+"&am="+amt+"&cu=INR&tn="+note;
+  try{ window.location.href=upi; }catch(e){}
+  saveOrder();
+  setTimeout(()=>showConfirm('submitted'), 800);
+}
+
+async function payRazorpay(amt){
+  payBtn.disabled=true; payBtn.textContent='Starting payment...';
+  let rzpOrderId=null;
+  if(CONFIG.RAZORPAY_ORDER_ENDPOINT){
+    try{
+      const r=await fetch(CONFIG.RAZORPAY_ORDER_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:order.plan,category:order.category,addons:Object.keys(order.addons),promo:order.promo||'',lat:order.lat,lng:order.lng,receipt:orderNo,name:order.name,phone:order.phone})});
+      const d=await r.json(); rzpOrderId=d.id; if(!rzpOrderId) throw new Error(d.error||'no order id'); if(d.amount) amt=d.amount/100;
+    }catch(e){ resetPayBtn(amt); alert('Could not start payment. Please try again.'); return; }
+  }
+  const opts={
+    key:CONFIG.RAZORPAY_KEY_ID, amount:amt*100, currency:"INR",
+    name:CONFIG.BUSINESS_NAME, description:"Healthy meal subscription "+orderNo,
+    prefill:{name:order.name, contact:order.phone},
+    notes:{order:orderNo, plan:order.planLabel, slot:order.batchLabel, diet:order.dietLabel, days:daysText(), instructions:order.note||""},
+    theme:{color:"#bdec4f"},
+    modal:{ondismiss:function(){ resetPayBtn(amt); }},
+    handler:async function(resp){
+      if(CONFIG.RAZORPAY_VERIFY_ENDPOINT && rzpOrderId){
+        try{
+          const v=await fetch(CONFIG.RAZORPAY_VERIFY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:resp.razorpay_order_id,razorpay_payment_id:resp.razorpay_payment_id,razorpay_signature:resp.razorpay_signature,orderNo})});
+          const vd=await v.json();
+          if(!vd.valid){ resetPayBtn(amt); alert('Payment could not be verified. Please contact us on WhatsApp.'); return; }
+          order.orderTicket = vd.ticket || "";   // signed proof the order sheet can trust
+        }catch(e){ resetPayBtn(amt); alert('Verification error. Please contact us on WhatsApp.'); return; }
+      }
+      order.paymentId=resp.razorpay_payment_id; saveOrder(); showConfirm('paid');
+    }
+  };
+  if(rzpOrderId) opts.order_id=rzpOrderId;
+  const rzp=new Razorpay(opts);
+  rzp.on('payment.failed', function(resp){
+    const reason=(resp && resp.error && resp.error.description) || "payment failed or cancelled";
+    sendOrder('failed', reason);
+    resetPayBtn(amt);
+    alert('Payment failed or cancelled. You can try again.');
+  });
+  rzp.open();
+}
+function resetPayBtn(amt){ payBtn.disabled=false; payBtn.textContent='Pay '+rupee(amt); }
+
+function showConfirm(status){
+  document.getElementById('c-name').textContent=(order.name? order.name+',':'')+' you are set';
+  document.getElementById('c-orderno').textContent=orderNo;
+  document.getElementById('c-start').textContent=order.dateLabel;
+  sendOrder(status||'paid'); go(CONFIRM);
+}
+
+function sendOrder(status, reason){
+  if(!CONFIG.ORDER_WEBHOOK || !orderNo) return;
+  const payload={
+    orderNo, status:status||"paid", reason:reason||"", paymentId:order.paymentId||"", ticket:order.orderTicket||"", payment:CONFIG.PAYMENT_METHOD,
+    category:order.categoryName||"", plan:order.planLabel, deliveries:order.deliveries, slot:order.batchLabel,
+    preference:order.dietLabel, days:daysText(), startDate:order.dateLabel||order.date,
+    name:order.name, phone:order.phone, address:fullAddress(), house:order.house, building:order.building, area:order.area, pincode:order.pincode||"",
+    lat:order.lat, lng:order.lng, distanceKm:order.distanceKm? order.distanceKm.toFixed(2):"", deliveryFeePerMeal:order.distanceFee||0, deliveryFeeTotal:deliveryFeeTotal(),
+    addons:Object.values(order.addons).map(a=>a.label).join(", "),
+    promo:order.promo||"", discount:order.discount||0,
+    instructions:order.note||"", total:grandTotal(), placedAt:new Date().toISOString()
+  };
+  try{ fetch(CONFIG.ORDER_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }catch(e){}
+}
+
+msgBtn.addEventListener('click', ()=>{
+  const lines=["Hi Nosh7, I just placed an order.","Order: "+orderNo,"Name: "+order.name,
+    "Plan: "+order.planLabel,"Slot: "+order.batchLabel,"Days: "+daysText(),
+    "Preference: "+order.dietLabel,"Start: "+order.dateLabel,"Address: "+fullAddress(),"Total: "+rupee(grandTotal())];
+  if(order.distanceFee>0) lines.push("Distance fee: "+rupee(order.distanceFee)+" ("+order.distanceKm.toFixed(1)+" km)");
+  if(order.note) lines.push("Notes: "+order.note);
+  window.open("https://wa.me/"+CONFIG.WHATSAPP_NUMBER+"?text="+encodeURIComponent(lines.join("\n")), '_blank');
+});
+restartBtn.addEventListener('click', ()=> location.reload());
+
+function saveOrder(){
+  try{ const all=JSON.parse(localStorage.getItem('nosh7_orders')||'[]'); all.push({orderNo,total:grandTotal(),at:new Date().toISOString(),...order}); localStorage.setItem('nosh7_orders',JSON.stringify(all)); }catch(e){}
+}
+function esc(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
+
+/* ---- theme ---- */
+const themeBtn=document.getElementById('themebtn');
+const themeColorMeta=document.querySelector('meta[name="theme-color"]');
+function setTheme(t){
+  if(t==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeBtn.textContent='Light'; themeColorMeta.setAttribute('content','#0c0f0b'); }
+  else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent='Dark'; themeColorMeta.setAttribute('content','#f4f7ee'); }
+  localStorage.setItem('nosh7_theme', t);
+}
+setTheme(localStorage.getItem('nosh7_theme') || 'dark');
+themeBtn.addEventListener('click', ()=> setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'));
+
+/* ---- nudge users out of in-app browsers (Instagram, Facebook, etc.) ---- */
+(function(){
+  const ua = navigator.userAgent || '';
+  const inApp = /Instagram|FBAN|FBAV|FB_IAB|Line|Snapchat|Twitter|MicroMessenger/i.test(ua);
+  if(!inApp) return;
+  const banner = document.getElementById('iabanner');
+  banner.classList.add('show');
+  const isAndroid = /Android/i.test(ua);
+  document.getElementById('iaopen').addEventListener('click', ()=>{
+    if(isAndroid){
+      window.location.href = 'intent://start.nosh7.in/' + window.location.search + '#Intent;scheme=https;package=com.android.chrome;end';
+    } else {
+      alert('Tap the menu (three dots, top right) and choose "Open in browser" / "Open in Safari".');
+    }
+  });
+  document.getElementById('iaclose').addEventListener('click', ()=> banner.classList.remove('show'));
+})();
+
+/* ===================== ADDED: category home + per-category plans + add-ons (preview) ===================== */
+const app = document.querySelector('.app');
+const planBody = document.getElementById('planBody');
+const planEyebrow = document.getElementById('planEyebrow');
+const planNote = document.getElementById('planNote');
+
+const ICON = {
+  fresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"/><path d="M5 16h14"/><path d="M12 4c-1.5 1.5-1.5 4 0 5"/><path d="M12 4c1.5 1.5 3.5 1.5 4.5 0"/></svg>',
+  protein:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.4 13a5 5 0 0 1 9.6 2c0 3.5-2.5 6-7.5 8h-8a4 4 0 0 1-4-3.5"/><path d="M15 14a5 5 0 0 0-7.6 2"/><path d="M10 6.8C8 8 9.5 13 8 15"/><path d="M17.5 5A3.5 3.5 0 0 0 14 9a8 8 0 0 0-6-1c0-2 .5-3 1.5-4"/></svg>',
+  lowsugar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0C6.5 9 12 3 12 3Z"/><path d="M5 19 19 5"/></svg>',
+  vegan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20C6 20 4 16 4 11c5 0 9 1 11 5"/><path d="M4 11C4 6 8 2 20 2c0 12-6 18-13 18"/></svg>',
+  weightloss:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8.5l-2.2 3.5"/><path d="M9.2 8.5h5.6"/></svg>',
+  fruit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-2-3-7-2-7 3 0 5 4 9 7 9s7-4 7-9c0-5-5-6-7-3Z"/><path d="M12 7V4c0-1 1-2 2.5-2"/></svg>',
+  drink:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1.4 16.2A2 2 0 0 1 14.6 21H9.4a2 2 0 0 1-2-1.8L6 3Z"/><path d="M6.5 8h11"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>'
+};
+
+const CATS = [
+  {key:'fresh',     slug:'healthy-fresh', name:'Healthy Fresh',   tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true},
+  {key:'protein',   slug:'high-protein',  name:'High Protein',    tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein', note:'40g+ protein per meal'},
+  {key:'lowsugar',  slug:'low-sugar',     name:'Low Sugar',       tag:'For pre-diabetic & diabetic', fromMeal:200, std:true},
+  {key:'weightloss',slug:'weight-loss',   name:'Weight Loss',     tag:'Stay full on fewer calories', fromMeal:239, std:false, monthly:5974, weekly:1445, wkMeal:289, pill:'30g+ protein', note:'30g+ protein per meal'},
+  {key:'vegan',     slug:'vegan',         name:'Vegan',           tag:'100% plant-based, dairy-free meals', fromMeal:200, std:true},
+  {key:'fruit',     slug:'fruit-pack',    name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New'}
+];
+// 4 condition-specific benefit chips per track (shown on the plan page). Easy to edit.
+const BENEFITS = {
+  fresh:      [["280-380","Calories"],["20g+","Protein"],["High","Fiber"],["High","Energy"]],
+  protein:    [["40g","Protein"],["Lean","Muscle"],["Low","Carbs"],["High","Fiber"]],
+  lowsugar:   [["Low","GI"],["No","Added sugar"],["High","Fiber"],["Diabetic","Safe"]],
+  weightloss: [["Low","Calorie"],["30g","Protein"],["High","Fiber"],["Low","Carbs"]],
+  vegan:      [["100%","Plant"],["Plant","Protein"],["Iron","Rich"],["High","Fiber"]],
+  fruit:      [["Fresh","Fruit"],["Rich","Vitamins"],["High","Fiber"],["Natural","Energy"]]
+};
+function plansFor(c){
+  var moPer=c.fromMeal, wkPer=c.wkMeal||(c.fromMeal+50);
+  var monthly=c.monthly||(c.std?4999:moPer*25);
+  var weekly=c.weekly||wkPer*5;
+  return {moPer:moPer, wkPer:wkPer, monthly:monthly, weekly:weekly};
+}
+const ADDONS=[
+  {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:149, icon:ICON.fruit},
+  {key:'protein', name:'20g+ Protein', label:'Extra protein (20g+)',price:79,  icon:ICON.protein},
+  {key:'drink',   name:'Healthy drink', label:'Healthy drink',       price:49,  icon:ICON.drink}
+];
+function addonsFor(c){
+  if(c.key==='fruit') return ADDONS.filter(a=>a.key==='drink');
+  if(c.key==='protein'||c.key==='weightloss') return ADDONS.filter(a=>a.key!=='protein');
+  return ADDONS;
+}
+
+const catGrid=document.getElementById('catGrid');
+function buildHome(){
+  catGrid.innerHTML='';
+  CATS.forEach(function(c){
+    var p=plansFor(c);
+    var b=document.createElement('button');
+    b.type='button'; b.className='card'; b.dataset.key=c.key;
+    var pill=c.pill?'<span class="pill'+(c.pill==='New'?' soft':'')+'">'+c.pill+'</span>':'';
+    b.innerHTML=pill+
+      '<div class="ic">'+ICON[c.key]+'</div>'+
+      '<div class="nm">'+c.name+'</div>'+
+      '<div class="tg">'+c.tag+'</div>'+
+      '<div class="cardfoot"><div class="from">from</div><div class="pr"><b>'+rupee(p.moPer)+'</b><small>/ meal</small></div></div>';
+    b.addEventListener('click', function(){ startWizard(c); });
+    catGrid.appendChild(b);
+  });
+}
+
+let CURCAT=null;
+function startWizard(c){
+  CURCAT=c;
+  order.plan=null; order.planLabel=null; order.planPrice=0; order.deliveries=0;
+  order.batch=null; order.batchLabel=null;
+  order.diet='regular'; order.dietLabel='Regular';
+  order.addons={};
+  resetPromoUI();
+  order.category=c.key; order.categoryName=c.name;
+  document.querySelectorAll('#diet button').forEach(x=>x.classList.remove('on'));
+  var reg=document.querySelector('#diet button[data-key="regular"]'); if(reg) reg.classList.add('on');
+  daysEl.querySelectorAll('.day').forEach(d=>d.classList.add('on'));
+  order.days=WEEK.map(d=>d[0]);
+  buildPlanStep(c);
+  applyCategory(c);
+  app.classList.remove('home-mode');
+  steps.forEach(s=>s.classList.remove('active','leaving'));
+  steps[0].classList.add('active');
+  cur=0; bar.style.width='0%'; cstep.textContent='01';
+  refreshFooter(); haptic();
+}
+
+function buildPlanStep(c){
+  var p=plansFor(c);
+  planEyebrow.textContent=c.name;
+  planNote.textContent=c.note||'Pick weekly or monthly.';
+  var bens=(BENEFITS[c.key]||[]).map(function(b){ return '<div class="benefit"><b class="statnum">'+b[0]+'</b><small>'+b[1]+'</small></div>'; }).join('');
+  planBody.innerHTML=
+    (bens?'<div class="benefits">'+bens+'</div>':'')+
+    '<button class="plan" data-key="monthly" data-label="'+c.name+' Monthly" data-price="'+p.monthly+'" data-units="25">'+
+      '<div class="plan-top"><div><div class="plan-name">Monthly <span class="badge">Best value</span></div><div class="plan-meals">25 fresh meals</div></div><div class="dot"></div></div>'+
+      '<div class="plan-price"><em>Rs</em>'+p.monthly.toLocaleString('en-IN')+'</div>'+
+      '<div class="plan-foot">Rs '+p.moPer+' per delivery</div>'+
+    '</button>'+
+    '<button class="plan" data-key="trial" data-label="'+c.name+' Trial Pack" data-price="'+p.weekly+'" data-units="5">'+
+      '<div class="plan-top"><div><div class="plan-name">Trial Pack</div><div class="plan-meals">5 fresh meals</div></div><div class="dot"></div></div>'+
+      '<div class="plan-price"><em>Rs</em>'+p.weekly.toLocaleString('en-IN')+'</div>'+
+      '<div class="plan-foot">Rs '+p.wkPer+' per delivery</div>'+
+    '</button>';
+  planBody.querySelectorAll('.plan').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      planBody.querySelectorAll('.plan').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+      order.plan=btn.dataset.key; order.planLabel=btn.dataset.label; order.planPrice=+btn.dataset.price; order.deliveries=+btn.dataset.units;
+      haptic(); validate(); maybeAutoAdvance();
+    });
+  });
+}
+
+function applyCategory(c){
+  var jain=document.getElementById('dietJain');
+  if(jain) jain.style.display=c.noJain?'none':'';
+  renderAddons(c);
+}
+function renderAddons(c){
+  var wrap=document.getElementById('aboxes'), hint=document.getElementById('ahint');
+  var list=addonsFor(c);
+  wrap.className='aboxes n'+list.length;
+  wrap.innerHTML=list.map(function(a){
+    return '<div class="abox" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div>';
+  }).join('');
+  hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade or nimbu sharbat' : '';
+  wrap.querySelectorAll('.abox').forEach(function(el){
+    el.addEventListener('click', function(){
+      var k=el.dataset.a, a=ADDONS.find(x=>x.key===k);
+      if(order.addons[k]){ delete order.addons[k]; el.classList.remove('on'); }
+      else { order.addons[k]={label:a.label, price:a.price}; el.classList.add('on'); }
+      haptic();
+    });
+  });
+}
+
+function goHome(){
+  app.classList.add('home-mode');
+  steps.forEach(s=>s.classList.remove('active','leaving'));
+  steps[0].classList.add('active'); cur=0;
+}
+document.getElementById('brandHome').addEventListener('click', goHome);
+
+buildHome();
+
+// Deep link: ?track=<slug> (e.g. ?track=high-protein) opens straight to that track's plan page.
+(function(){
+  try{
+    var slug=new URLSearchParams(location.search).get('track');
+    if(!slug) return;
+    var c=CATS.find(function(x){ return x.slug===slug || x.key===slug; });
+    if(c) startWizard(c);
+  }catch(e){}
+})();
+/* ====================================================================================================== */
+
+steps[0].classList.add('active');
+bar.style.width='0%';
+refreshFooter();
+</script>
+</body>
+</html>

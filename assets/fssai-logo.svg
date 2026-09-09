@@ -1,0 +1,6 @@
+<svg viewBox="0 0 150 44" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FSSAI">
+  <circle cx="22" cy="22" r="9" fill="none" stroke="#1B3E93" stroke-width="2.6"/>
+  <path d="M22 4 a18 18 0 0 1 18 18" fill="none" stroke="#F58220" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M22 40 a18 18 0 0 1 -18 -18" fill="none" stroke="#189A46" stroke-width="5.5" stroke-linecap="round"/>
+  <text x="46" y="32" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="27" fill="#1B3E93" letter-spacing="-1">fssai</text>
+</svg>

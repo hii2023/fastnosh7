@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Nosh7 home preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f4f7ee; --bg-2:#eaf1de; --surface:#ffffff; --surface-2:#f2f8e6;
+    --line:#e2e9d5; --lime:#bdec4f; --accent-text:#4d7c16;
+    --ink:#1a2414; --muted:#637058; --muted-2:#a7b399;
+    --shadow:0 12px 28px rgba(70,90,30,.10);
+    --glow:0 0 0 1px var(--accent-text), 0 10px 24px rgba(120,180,40,.18);
+    --radius:16px; --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html[data-theme="dark"]{
+    --bg:#0c0f0b; --bg-2:#10140e; --surface:#161b13; --surface-2:#1c2218;
+    --line:#272f22; --lime:#c4f546; --accent-text:#c4f546;
+    --ink:#f2f6ea; --muted:#8b9683; --muted-2:#5c6657;
+    --shadow:0 18px 40px rgba(0,0,0,.45);
+    --glow:0 0 0 1px var(--lime), 0 12px 34px rgba(196,245,70,.16);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+    background:#05070a;color:var(--ink);
+    min-height:100dvh;display:flex;justify-content:center;align-items:flex-start;
+    gap:40px;flex-wrap:wrap;padding:30px 16px;
+  }
+  .app{
+    width:100%;max-width:412px;height:860px;display:flex;flex-direction:column;
+    position:relative;overflow:hidden;border-radius:34px;
+    box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 9px #16181a,0 0 0 11px #2a2c2e;
+    background:radial-gradient(120% 50% at 100% 0%, rgba(120,180,40,.10), transparent 60%),linear-gradient(180deg,var(--bg-2),var(--bg) 26%);
+  }
+  .label-frame{width:100%;max-width:412px;text-align:center;color:#8b9683;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 8px;flex:none;}
+  .brand{display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .brand:active{transform:scale(.97);}
+  .brand .logo{width:40px;height:40px;flex:none;display:block;}
+  .brand .bx{display:flex;flex-direction:column;line-height:1.05;}
+  .brand .mark{font-weight:700;font-size:19px;letter-spacing:-.5px;}
+  .brand .mark b{color:var(--accent-text);}
+  .brand .tag{font-size:8.5px;font-weight:600;letter-spacing:1.4px;color:var(--muted-2);text-transform:uppercase;margin-top:2px;}
+  .rightbar{display:flex;align-items:center;gap:10px;}
+  .hi{font-size:12px;font-weight:600;color:var(--muted);}
+  .hi b{color:var(--accent-text);}
+
+  .scroll{flex:1;overflow-y:auto;padding:8px 18px 24px;-webkit-overflow-scrolling:touch;}
+  .scroll::-webkit-scrollbar{width:0;}
+
+  .lead{margin:10px 2px 16px;}
+  .lead h1{font-size:27px;line-height:1.08;margin:0;letter-spacing:-1px;font-weight:700;}
+  .lead h1 .accent{color:var(--accent-text);}
+  .lead p{margin:7px 0 0;color:var(--muted);font-size:13.5px;line-height:1.4;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .card{
+    position:relative;border:1px solid var(--line);background:var(--surface);
+    border-radius:18px;padding:15px 14px 14px;cursor:pointer;text-align:left;
+    font-family:inherit;color:inherit;display:flex;flex-direction:column;gap:9px;min-height:150px;
+    transition:transform .18s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease);
+  }
+  .card:active{transform:scale(.975);}
+  .card.sel{border-color:var(--accent-text);box-shadow:var(--glow);background:var(--surface-2);}
+  .card .ic{width:40px;height:40px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);}
+  .card.sel .ic{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .card .ic svg{width:22px;height:22px;}
+  .card .nm{font-size:15.5px;font-weight:700;letter-spacing:-.3px;line-height:1.12;}
+  .card .tg{font-size:11px;color:var(--muted);line-height:1.3;flex:1;}
+  .card .pr{display:flex;align-items:baseline;gap:4px;margin-top:2px;}
+  .card .pr b{font-size:17px;font-weight:800;letter-spacing:-.5px;color:var(--ink);}
+  .card .pr small{font-size:10.5px;color:var(--muted-2);font-weight:600;}
+  .card .from{font-size:9px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.8px;font-weight:700;}
+  .pill{position:absolute;top:11px;right:11px;background:var(--lime);color:#0c0f0b;font-size:8.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:7px;}
+  .pill.soft{background:var(--surface-2);color:var(--accent-text);border:1px solid var(--line);}
+
+  /* Fruit Dish Pack: purple + red accent (stands apart from the lime tracks) */
+  .card[data-key="fruit"]{border-color:rgba(168,85,247,.40);background:linear-gradient(150deg, rgba(139,92,246,.16), rgba(239,68,68,.13));}
+  .card[data-key="fruit"] .ic{background:linear-gradient(135deg,#8b5cf6,#ef4444);border-color:transparent;color:#fff;}
+  .card[data-key="fruit"] .pill{background:linear-gradient(135deg,#8b5cf6,#ef4444);color:#fff;border:0;}
+  .card[data-key="fruit"] .pr b{color:var(--ink);}
+  .card[data-key="fruit"].sel{border-color:#a855f7;background:linear-gradient(150deg, rgba(139,92,246,.24), rgba(239,68,68,.18));box-shadow:0 0 0 1px #a855f7, 0 12px 30px rgba(168,85,247,.28);}
+  .card[data-key="fruit"].sel .ic{background:linear-gradient(135deg,#8b5cf6,#ef4444);color:#fff;}
+  .sheet .shead .ic.fruit{background:linear-gradient(135deg,#8b5cf6,#ef4444);color:#fff;}
+
+  /* full-width fruit card */
+  .card.wide{grid-column:1 / -1;flex-direction:row;align-items:center;min-height:0;gap:13px;}
+  .card.wide .ic{width:46px;height:46px;}
+  .card.wide .wtxt{flex:1;display:flex;flex-direction:column;gap:3px;}
+  .card.wide .pr{margin:0;}
+
+  .foot{margin:18px 2px 4px;text-align:center;color:var(--muted-2);font-size:11px;}
+
+  /* detail sheet */
+  .sheet-scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s var(--ease);z-index:40;}
+  .sheet-scrim.on{opacity:1;pointer-events:auto;}
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:50;background:var(--surface);
+    border-radius:24px 24px 0 0;border-top:1px solid var(--line);
+    padding:8px 20px calc(20px + env(safe-area-inset-bottom));transform:translateY(110%);
+    transition:transform .34s var(--ease);box-shadow:0 -20px 50px rgba(0,0,0,.4);
+  }
+  .sheet.on{transform:translateY(0);}
+  .grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:6px auto 14px;}
+  .sheet .shead{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
+  .sheet .shead .ic{width:44px;height:44px;border-radius:13px;background:var(--lime);color:#0c0f0b;display:grid;place-items:center;}
+  .sheet .shead .ic svg{width:24px;height:24px;}
+  .sheet .shead .nm{font-size:20px;font-weight:700;letter-spacing:-.5px;}
+  .sheet .shead .tg{font-size:12px;color:var(--muted);margin-top:1px;}
+  .sheet .note{margin:13px 0 4px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 13px;font-size:12px;color:var(--muted);line-height:1.4;}
+  .sheet .note b{color:var(--accent-text);}
+  .plans{display:flex;flex-direction:column;gap:11px;margin:15px 0 4px;}
+  .plan{
+    border:1.5px solid var(--line);background:var(--surface);border-radius:16px;padding:15px 16px;
+    display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+    transition:border-color .2s var(--ease),box-shadow .2s var(--ease),background .2s var(--ease);
+  }
+  .plan.sel{border-color:var(--accent-text);box-shadow:var(--glow);background:var(--surface-2);}
+  .plan .pl{display:flex;flex-direction:column;gap:2px;}
+  .plan .pl b{font-size:16px;font-weight:700;letter-spacing:-.3px;}
+  .plan .pl span{font-size:11.5px;color:var(--muted);}
+  .plan .pr{text-align:right;}
+  .plan .pr b{font-size:22px;font-weight:800;letter-spacing:-1px;}
+  .plan .pr em{font-style:normal;font-size:13px;color:var(--muted-2);}
+  .plan .pr small{display:block;font-size:10px;color:var(--muted-2);font-weight:600;margin-top:1px;}
+  .badge{display:inline-block;background:var(--lime);color:#0c0f0b;font-size:8.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;}
+  .cta{width:100%;border:0;border-radius:14px;padding:16px;font-size:16px;font-weight:700;color:#0c0f0b;cursor:pointer;background:var(--lime);margin-top:16px;}
+  .cta:active{transform:scale(.99);}
+
+  /* ---- days + add-ons screen ---- */
+  .scroll.days{display:none;padding-bottom:158px;}
+  .dhead{display:flex;align-items:center;gap:11px;margin:8px 2px 4px;}
+  .backb{width:34px;height:34px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;}
+  .backb svg{width:18px;height:18px;}
+  .dhead .dt b{font-size:21px;font-weight:700;letter-spacing:-.5px;display:block;line-height:1.1;}
+  .dhead .dt span{font-size:12px;color:var(--muted);}
+  .sect{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin:20px 2px 11px;display:flex;justify-content:space-between;align-items:baseline;}
+  .sect em{font-style:normal;font-size:10px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted-2);}
+  .daygrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+  .day{border:1.5px solid var(--line);background:var(--surface);border-radius:13px;padding:11px 0;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:2px;align-items:center;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
+  .day b{font-size:15px;font-weight:700;}
+  .day small{font-size:8.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted-2);}
+  .day.on{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .day.on small{color:var(--accent-text);}
+  .addons{display:flex;flex-direction:column;gap:7px;}
+  .addon{display:flex;align-items:center;gap:10px;border:1.3px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 11px;cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
+  .addon .aic{width:30px;height:30px;flex:none;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);}
+  .addon .aic svg{width:16px;height:16px;}
+  .addon .atx{flex:1;min-width:0;}
+  .addon .atx b{display:block;font-size:13px;font-weight:700;letter-spacing:-.2px;}
+  .addon .atx span{font-size:9.5px;color:var(--muted);line-height:1.25;}
+  .addon .apr{text-align:right;font-size:12px;font-weight:800;white-space:nowrap;}
+  .addon .apr small{display:block;font-size:8px;color:var(--muted-2);font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+  .addon .chk{width:20px;height:20px;flex:none;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;color:transparent;}
+  .addon .chk svg{width:12px;height:12px;}
+  .addon.on{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .addon.on .aic{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .addon.on .chk{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .addon.dis{opacity:.6;pointer-events:none;}
+  .addon .inc{font-size:9.5px;font-weight:700;color:var(--accent-text);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+
+  .totalbar{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:13px 18px calc(15px + env(safe-area-inset-bottom));display:none;flex-direction:column;gap:11px;z-index:30;box-shadow:0 -14px 30px rgba(0,0,0,.3);}
+  .totalbar.on{display:flex;}
+  .totalbar .trow{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+  .totalbar .tk{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);flex:1;min-width:0;}
+  .totalbar .tk small{display:block;font-size:10.5px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--muted-2);margin-top:3px;}
+  .totalbar .tv{font-size:27px;font-weight:800;letter-spacing:-1.2px;white-space:nowrap;flex:none;}
+  .totalbar .cta{margin-top:0;}
+
+  /* plan page (full screen, replaces the old popup) */
+  .scroll.plan{display:none;}
+  .note{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:12px;color:var(--muted);line-height:1.4;margin:14px 2px 4px;}
+  .note b{color:var(--accent-text);}
+  .planScroll-pad{height:8px;}
+
+  /* days screen: header top, days centered, add-ons pinned at bottom */
+  .scroll.days{flex-direction:column;}
+  .scroll.days .dmid{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;}
+  .scroll.days .dbottom{margin-top:auto;}
+
+  /* small add-on boxes */
+  .aboxes{display:grid;gap:8px;}
+  .aboxes.n1{grid-template-columns:1fr;}
+  .aboxes.n2{grid-template-columns:1fr 1fr;}
+  .aboxes.n3{grid-template-columns:1fr 1fr 1fr;}
+  .abox{position:relative;border:1.3px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 8px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);}
+  .abox .aic{width:32px;height:32px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent-text);}
+  .abox .aic svg{width:17px;height:17px;}
+  .abox b{font-size:11.5px;font-weight:700;letter-spacing:-.2px;line-height:1.1;text-align:center;}
+  .abox .ap{font-size:11px;font-weight:800;color:var(--ink);}
+  .abox .ap small{color:var(--muted-2);font-weight:600;font-size:8.5px;}
+  .abox .tick{position:absolute;top:7px;right:7px;width:17px;height:17px;border-radius:6px;border:1.4px solid var(--line);display:grid;place-items:center;color:transparent;}
+  .abox .tick svg{width:11px;height:11px;}
+  .abox.on{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
+  .abox.on .aic{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .abox.on .tick{background:var(--lime);border-color:var(--lime);color:#0c0f0b;}
+  .ahint{font-size:10px;color:var(--muted-2);margin:9px 2px 0;text-align:center;line-height:1.3;}
+</style>
+</head>
+<body>
+
+<div style="display:flex;flex-direction:column;align-items:center;">
+  <div class="label-frame">Home after login &middot; tap a category</div>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2bb6c4"/><stop offset=".5" stop-color="#4cbf6a"/><stop offset="1" stop-color="#a7d94a"/></linearGradient></defs>
+            <circle cx="50" cy="50" r="49" fill="url(#ring)"/><circle cx="50" cy="50" r="40" fill="#ffffff"/>
+            <path d="M50 64 C44 50 45 36 51 27 C57 37 56 52 50 64 Z" fill="#3aa356"/>
+            <path d="M50 60 C56 48 66 40 74 37 C71 51 61 60 50 60 Z" fill="#7cc242"/>
+            <path d="M50 64 C44 56 35 51 28 49 C33 60 42 65 50 64 Z" fill="#2f8f4d"/>
+            <rect x="48.5" y="52" width="3" height="14" rx="1.5" fill="#3aa356"/>
+          </svg>
+        </div>
+        <div class="bx"><div class="mark">NOSH<b>7</b></div><div class="tag">Fresh meal plans</div></div>
+      </div>
+      <div class="rightbar"><div class="hi">Hi, <b>Altaf</b></div></div>
+    </div>
+
+    <div class="scroll" id="homeScroll">
+      <div class="lead">
+        <h1>What are you <span class="accent">eating for</span>?</h1>
+        <p>Pick a meal track. Same fresh kitchen, tuned to your goal.</p>
+      </div>
+
+      <div class="grid" id="grid"></div>
+
+      <div class="foot">Every meal 20g+ protein &middot; 280 to 380 cal &middot; Regular or Jain</div>
+    </div>
+
+    <div class="scroll plan" id="planScroll"></div>
+    <div class="scroll days" id="daysScroll"></div>
+    <div class="totalbar" id="totalbar"></div>
+  </div>
+</div>
+
+<script>
+  // SVG icons (no emoji, line + fill to match app)
+  var I = {
+    fresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"/><path d="M5 16h14"/><path d="M12 4c-1.5 1.5-1.5 4 0 5"/><path d="M12 4c1.5 1.5 3.5 1.5 4.5 0"/></svg>',
+    protein:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 17.5 17.5"/><path d="M4 9l1.5-1.5L7 9 9 7 7 5 8.5 3.5"/><path d="M20 15l-1.5 1.5L17 15l-2 2 2 2-1.5 1.5"/><path d="M3 12l1 1"/><path d="M20 11l1 1"/></svg>',
+    lowsugar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0C6.5 9 12 3 12 3Z"/><path d="M5 19 19 5"/></svg>',
+    pcod:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg>',
+    weightloss:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M17 7h4v4"/></svg>',
+    fruit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-2-3-7-2-7 3 0 5 4 9 7 9s7-4 7-9c0-5-5-6-7-3Z"/><path d="M12 7V4c0-1 1-2 2.5-2"/></svg>',
+    drink:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1.4 16.2A2 2 0 0 1 14.6 21H9.4a2 2 0 0 1-2-1.8L6 3Z"/><path d="M6.5 8h11"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>',
+    back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>'
+  };
+
+  var CATS = [
+    {key:'fresh',     name:'Healthy Fresh', tag:'Light, high-energy meals for office or a simple daily diet', fromMeal:200, std:true},
+    {key:'protein',   name:'High Protein',  tag:'Fulfil your protein need, 40g+ per meal', fromMeal:280, std:false, monthly:6999, pill:'40g+ protein'},
+    {key:'lowsugar',  name:'Low Sugar',     tag:'For pre-diabetic & diabetic',    fromMeal:200, std:true},
+    {key:'weightloss',name:'Weight Loss',   tag:'Stay full on fewer calories',     fromMeal:239, std:false, monthly:5974, weekly:1445, wkMeal:289, pill:'30g+ protein'},
+    {key:'pcod',      name:'PCOD / PCOS',   tag:'Hormone-friendly meals',          fromMeal:200, std:true},
+    {key:'fruit',     name:'Fruit Dish Pack', tag:'Fresh-cut seasonal fruit bowls', fromMeal:200, std:true, noJain:true, pill:'New'}
+  ];
+
+  // weekly = per-meal+50 x5 (or override) ; monthly = per-meal x25 (4999 for std, or override)
+  function plansFor(c){
+    var moPer = c.fromMeal, wkPer = c.wkMeal || (c.fromMeal + 50);
+    var monthly = c.monthly || (c.std ? 4999 : moPer*25);
+    var weekly  = c.weekly  || wkPer*5;
+    return {wkPer:wkPer, moPer:moPer, weekly:weekly, monthly:monthly};
+  }
+  function rs(n){ return 'Rs ' + n.toLocaleString('en-IN'); }
+
+  var grid = document.getElementById('grid');
+  CATS.forEach(function(c){
+    var p = plansFor(c);
+    var b = document.createElement('button');
+    b.className = 'card' + (c.wide?' wide':'');
+    b.dataset.key = c.key;
+    var pillHtml = c.pill ? '<span class="pill'+(c.pill==='New'?' soft':'')+'">'+c.pill+'</span>' : '';
+    if(c.wide){
+      b.innerHTML = pillHtml +
+        '<div class="ic">'+I[c.key]+'</div>'+
+        '<div class="wtxt"><div class="nm">'+c.name+'</div><div class="tg">'+c.tag+'</div></div>'+
+        '<div style="text-align:right"><div class="from">from</div><div class="pr"><b>'+rs(p.moPer)+'</b><small>/ meal</small></div></div>';
+    }else{
+      b.innerHTML = pillHtml +
+        '<div class="ic">'+I[c.key]+'</div>'+
+        '<div class="nm">'+c.name+'</div>'+
+        '<div class="tg">'+c.tag+'</div>'+
+        '<div><div class="from">from</div><div class="pr"><b>'+rs(p.moPer)+'</b><small>/ meal</small></div></div>';
+    }
+    b.addEventListener('click', function(){ openPlan(c); });
+    grid.appendChild(b);
+  });
+
+  function noteFor(c){
+    if(c.key==='protein') return '<div class="note"><b>40g+ protein</b> with every meal. Fulfil your daily protein requirement. Adds <b>Rs 80 / meal</b> over a standard plan.</div>';
+    if(c.key==='weightloss') return '<div class="note"><b>30g+ protein</b> per meal to keep you full on fewer calories. Adds <b>Rs 39 / meal</b> over a standard plan.</div>';
+    if(c.noJain) return '<div class="note">Fresh-cut seasonal <b>fruit bowls</b>. No Regular or Jain choice, just pick a plan.</div>';
+    return '';
+  }
+
+  // ---------- plan page (full screen) ----------
+  function openPlan(c){
+    var p = plansFor(c);
+    planScroll.innerHTML =
+      '<div class="dhead"><button class="backb" id="planBack">'+I.back+'</button>'+
+        '<div class="dt"><b>'+c.name+'</b><span>'+c.tag+'</span></div></div>'+
+      noteFor(c)+
+      '<div class="sect">Choose a plan</div>'+
+      '<div class="plans">'+
+        '<div class="plan sel" data-plan="monthly" data-amt="'+p.monthly+'" data-units="25"><div class="pl"><b>Monthly'+(c.std?' <span class="badge">Best value</span>':'')+'</b><span>25 meals &middot; '+rs(p.moPer)+' / meal</span></div>'+
+          '<div class="pr"><b><em>Rs</em> '+p.monthly.toLocaleString('en-IN')+'</b><small>25 meals</small></div></div>'+
+        '<div class="plan" data-plan="weekly" data-amt="'+p.weekly+'" data-units="5"><div class="pl"><b>Weekly</b><span>5 meals &middot; '+rs(p.wkPer)+' / meal</span></div>'+
+          '<div class="pr"><b><em>Rs</em> '+p.weekly.toLocaleString('en-IN')+'</b><small>5 meals</small></div></div>'+
+      '</div>'+
+      '<button class="cta" id="planGo">Continue</button>';
+
+    planScroll.querySelectorAll('.plan').forEach(function(pl){
+      pl.addEventListener('click', function(){
+        planScroll.querySelectorAll('.plan').forEach(function(x){x.classList.remove('sel');});
+        pl.classList.add('sel');
+      });
+    });
+    planScroll.querySelector('#planGo').addEventListener('click', function(){
+      var sel = planScroll.querySelector('.plan.sel');
+      goDays(c, sel.dataset.plan, +sel.dataset.amt, +sel.dataset.units);
+    });
+    planScroll.querySelector('#planBack').addEventListener('click', backHome);
+
+    homeScroll.style.display = 'none';
+    daysScroll.style.display = 'none';
+    totalbar.classList.remove('on');
+    planScroll.style.display = 'block';
+    planScroll.scrollTop = 0;
+  }
+
+  // ---------- days + add-ons screen ----------
+  var ADDONS = [
+    {key:'fruit',   name:'Fruit bowl',    sub:'Fresh-cut seasonal fruit', perMeal:149, icon:I.fruit},
+    {key:'protein', name:'Extra protein', sub:'+20g, sauteed, served separately', perMeal:79, icon:I.protein},
+    {key:'drink',   name:'Healthy drink', sub:'ABC juice, mint lemonade or nimbu sharbat', perMeal:49, icon:I.drink}
+  ];
+  // which add-ons each track may pick
+  function addonsFor(c){
+    if(c.key==='fruit') return ADDONS.filter(function(a){ return a.key==='drink'; });        // fruit pack: drink only
+    if(c.key==='protein' || c.key==='weightloss') return ADDONS.filter(function(a){ return a.key!=='protein'; }); // already protein-rich
+    return ADDONS;
+  }
+  var DAYS = [['Mon','M'],['Tue','T'],['Wed','W'],['Thu','T'],['Fri','F'],['Sat','S']];
+  var homeScroll = document.getElementById('homeScroll'),
+      planScroll = document.getElementById('planScroll'),
+      daysScroll = document.getElementById('daysScroll'),
+      totalbar   = document.getElementById('totalbar');
+  var ST = null;
+
+  function goDays(c, planKey, amt, units){
+    ST = { cat:c, planKey:planKey, base:amt, units:units, picked:{} };
+    var dayChips = DAYS.map(function(d){ return '<div class="day on" data-d="'+d[0]+'"><b>'+d[1]+'</b><small>'+d[0]+'</small></div>'; }).join('');
+    var list = addonsFor(c);
+    var aboxes = list.map(function(a){
+      return '<div class="abox" data-a="'+a.key+'"><div class="tick">'+I.check+'</div>'+
+        '<div class="aic">'+a.icon+'</div>'+
+        '<b>'+a.name+'</b>'+
+        '<div class="ap">Rs '+a.perMeal+' <small>/ meal</small></div></div>';
+    }).join('');
+    var hint = list.some(function(a){return a.key==='drink';})
+      ? '<div class="ahint">Drink choices: ABC juice, mint lemonade or nimbu sharbat</div>' : '';
+
+    daysScroll.innerHTML =
+      '<div class="dhead"><button class="backb" id="daysBack">'+I.back+'</button>'+
+        '<div class="dt"><b>'+c.name+'</b><span>'+(planKey==='monthly'?'Monthly, 25 meals':'Weekly, 5 meals')+'</span></div></div>'+
+      '<div class="dmid">'+
+        '<div class="sect">Delivery days <em>Mon to Sat, tap to skip</em></div>'+
+        '<div class="daygrid">'+dayChips+'</div>'+
+      '</div>'+
+      '<div class="dbottom">'+
+        '<div class="sect">Add-ons <em>optional, per meal</em></div>'+
+        '<div class="aboxes n'+list.length+'">'+aboxes+'</div>'+ hint +
+      '</div>';
+
+    // day toggles
+    daysScroll.querySelectorAll('.day').forEach(function(d){
+      d.addEventListener('click', function(){ d.classList.toggle('on'); });
+    });
+    // add-on toggles
+    daysScroll.querySelectorAll('.abox[data-a]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var k = el.dataset.a;
+        ST.picked[k] = !ST.picked[k];
+        el.classList.toggle('on', ST.picked[k]);
+        renderTotal();
+      });
+    });
+    daysScroll.querySelector('#daysBack').addEventListener('click', function(){ backToPlan(c); });
+
+    homeScroll.style.display = 'none';
+    planScroll.style.display = 'none';
+    daysScroll.style.display = 'flex';
+    daysScroll.scrollTop = 0;
+    renderTotal();
+  }
+
+  function renderTotal(){
+    var addPerMeal = 0;
+    ADDONS.forEach(function(a){ if(ST.picked[a.key]) addPerMeal += a.perMeal; });
+    var addTotal = addPerMeal * ST.units;
+    var grand = ST.base + addTotal;
+    var sub = addTotal>0
+      ? 'Plan Rs '+ST.base.toLocaleString('en-IN')+' + add-ons Rs '+addTotal.toLocaleString('en-IN')
+      : ST.units+' meals, no add-ons';
+    totalbar.innerHTML =
+      '<div class="trow"><div class="tk">Total<small>'+sub+'</small></div>'+
+      '<div class="tv">Rs '+grand.toLocaleString('en-IN')+'</div></div>'+
+      '<button class="cta">Continue to address</button>';
+    totalbar.classList.add('on');
+  }
+
+  function backHome(){
+    planScroll.style.display = 'none';
+    daysScroll.style.display = 'none';
+    totalbar.classList.remove('on');
+    homeScroll.style.display = 'block';
+  }
+  function backToPlan(c){
+    daysScroll.style.display = 'none';
+    totalbar.classList.remove('on');
+    openPlan(c);
+  }
+
+  // tapping the NOSH7 header returns to the home page from anywhere
+  document.querySelector('.brand').addEventListener('click', backHome);
+</script>
+</body>
+</html>

@@ -1720,17 +1720,17 @@ function sendOrder(status, reason){
     orderType:EXPRESS?"EXPRESS-MONTHLY (call to confirm address + slot)":""
   };
   const body=JSON.stringify(payload);
-  // sendBeacon is built for exactly this: it hands the request to the OS and it goes
-  // through even if the page navigates/closes right after (WhatsApp/Instagram in-app
-  // browsers drop plain fetches). Fall back to keepalive fetch if beacon is unavailable
-  // or refuses the payload.
+  // Reliable delivery, SAME transport as the portal write (sendPlatform). The full-order
+  // pre-write fires the instant before the Razorpay overlay opens, and a navigator.sendBeacon
+  // fired at that moment was being DROPPED by in-app browsers — money taken, order saved to the
+  // portal but NO Excel row (this was the NOSH-641430 loss). A real keepalive fetch completes
+  // while the page is still alive (the pre-write, and the paid/failed writes on the confirm
+  // screen) and survives the tab closing right after. sendBeacon is only a last-resort fallback
+  // if the fetch itself throws. no-cors keeps it a simple request (the Apps Script has no CORS).
+  const beacon=function(){ try{ if(navigator.sendBeacon){ navigator.sendBeacon(CONFIG.ORDER_WEBHOOK, new Blob([body],{type:'text/plain;charset=utf-8'})); } }catch(e){} };
   try{
-    if(navigator.sendBeacon){
-      const blob=new Blob([body],{type:'text/plain;charset=utf-8'});
-      if(navigator.sendBeacon(CONFIG.ORDER_WEBHOOK, blob)) return;
-    }
-  }catch(e){}
-  try{ fetch(CONFIG.ORDER_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body}); }catch(e){}
+    fetch(CONFIG.ORDER_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body}).catch(beacon);
+  }catch(e){ beacon(); }
 }
 
 msgBtn.addEventListener('click', ()=>{

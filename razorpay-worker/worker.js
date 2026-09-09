@@ -66,7 +66,9 @@ async function portalQuoteRupees(body) {
 // would, so n7-ingest verifies it and activates the subscription. This closes the gap where a
 // dropped post-payment beacon left the order in Excel but missing from the portal. Idempotent:
 // n7_ingest_funnel_order flips the pre-written pending order to paid and dedups the payment/
-// ledger/deliveries, so redelivered webhooks are safe. Returns true on a 2xx.
+// ledger/deliveries, so redelivered webhooks are safe. Returns { ok, order } — `order` is the
+// finalized portal record (the ONLY place the delivery ADDRESS lives, since Razorpay never has
+// it), which the caller mirrors into the Excel sheet so both sinks carry the full details.
 async function portalIngestPaid(env, o) {
   try {
     const ticket = env.ORDER_TICKET_SECRET
@@ -80,8 +82,10 @@ async function portalIngestPaid(env, o) {
         status: "paid", paymentId: o.paymentId || "", ticket, total: o.amountRupees || 0,
       }),
     });
-    return r.ok;
-  } catch (_e) { return false; }
+    let order = null;
+    try { const d = await r.json(); order = d && d.order ? d.order : null; } catch (_e) { /* ignore */ }
+    return { ok: r.ok, order };
+  } catch (_e) { return { ok: false, order: null }; }
 }
 
 function haversineKm(la1, lo1, la2, lo2) {
@@ -210,9 +214,11 @@ export default {
         const pay = evt && evt.payload && evt.payload.payment && evt.payload.payment.entity;
         // Act only on a captured (money-in-hand) payment. Ignore authorized/failed/others.
         if (evt && evt.event === "payment.captured" && pay) {
-          let orderNo = (pay.notes && pay.notes.order) ? String(pay.notes.order) : "";
+          const pn = (pay.notes && typeof pay.notes === "object") ? pay.notes : {};
+          let orderNo = pn.order ? String(pn.order) : "";
           let phone = pay.contact ? String(pay.contact) : "";
-          let name = (pay.notes && pay.notes.name) ? String(pay.notes.name) : "";
+          let name = pn.name ? String(pn.name) : "";
+          let on = {}; // Razorpay ORDER notes (name/phone at create-order time)
           // Read the order to recover the receipt (=orderNo) and the {name,phone} notes we set at
           // create-order time. The order notes carry the exact phone the customer typed on the
           // funnel, which is the most reliable key for the portal customer upsert.
@@ -222,24 +228,51 @@ export default {
               const or = await fetch("https://api.razorpay.com/v1/orders/" + pay.order_id, { headers: { Authorization: auth } });
               if (or.ok) {
                 const od = await or.json();
+                on = (od.notes && typeof od.notes === "object") ? od.notes : {};
                 if (!orderNo) orderNo = String(od.receipt || "");
-                if (od.notes && od.notes.phone) phone = String(od.notes.phone);
-                if (od.notes && od.notes.name) name = String(od.notes.name);
+                if (on.phone) phone = String(on.phone);
+                if (on.name) name = String(on.name);
               }
             } catch (e) { /* fall through with what we have */ }
           }
           if (orderNo) {
-            // Mint the same signed ticket the browser path would, so both sinks mark this
-            // "verified" (the webhook signature already proved the payment is genuine).
+            // Mint the same signed ticket the browser path would, so the sheet marks this
+            // row "verified" (the webhook signature already proved the payment is genuine).
             const ticket = env.ORDER_TICKET_SECRET
               ? await hmacHex(env.ORDER_TICKET_SECRET, `${orderNo}|${pay.id || ""}`)
               : "";
-            // (a) Excel sheet (unchanged): merges by Order No, flips status/paymentId on the
-            // row the browser pre-wrote; creates a partial row if none exists yet.
+            // (a) Portal (Supabase) backfill FIRST — flips the pre-written pending subscription to
+            // paid/active (or self-heals a last-resort record from Razorpay). It returns the
+            // finalized portal row, which is the ONLY source of the delivery ADDRESS (Razorpay
+            // never stores it), so we run it before the sheet write and feed its address in.
+            const portal = await portalIngestPaid(env, {
+              orderNo, phone, name, paymentId: pay.id || "",
+              amountRupees: Math.round((pay.amount || 0) / 100),
+            });
+            const o = portal.order || {};
+            // (b) Excel sheet — write the FULL row so a browser-death order lands complete, not a
+            // bare "paid" stub. Friendly labels come from the Razorpay payment notes the checkout
+            // set (plan/slot/diet/days/instructions); name/phone from the order notes; the address
+            // and delivery/geo fields from the portal record above. The collector MERGES by Order
+            // No, so when the browser pre-wrote the row this only fills blanks (address) + flips
+            // status/paymentId/verified without clobbering the customer-entered values.
             let sheetOk = true;
             if (env.ORDER_WEBHOOK) {
               sheetOk = false;
-              const update = { orderNo, status: "paid", paymentId: pay.id || "", ticket, payment: "razorpay" };
+              const nz = (v) => (v === undefined || v === null) ? "" : v;
+              const update = {
+                orderNo, status: "paid", ticket, payment: "razorpay", paymentId: pay.id || "",
+                name: name || nz(o.name), phone: phone || nz(o.phone),
+                plan: nz(pn.plan) || nz(o.plan_label), deliveries: nz(o.units_total),
+                slot: nz(pn.slot) || nz(o.slot), preference: nz(pn.diet) || nz(o.diet),
+                days: nz(pn.days) || (Array.isArray(o.delivery_days) ? o.delivery_days.join(", ") : ""),
+                startDate: nz(o.start_date), instructions: nz(pn.instructions) || nz(o.instructions),
+                house: nz(o.house), building: nz(o.building), area: nz(o.area), pincode: nz(o.pincode),
+                address: nz(o.address), lat: nz(o.lat), lng: nz(o.lng),
+                distanceKm: (o.distance_km != null ? o.distance_km : ""),
+                deliveryFeePerMeal: nz(o.dist_fee_per_delivery), deliveryFeeTotal: nz(o.delivery_fee_total),
+                total: Math.round((pay.amount || 0) / 100) || nz(o.price_rupees),
+              };
               try {
                 const pr = await fetch(env.ORDER_WEBHOOK, {
                   method: "POST",
@@ -251,16 +284,10 @@ export default {
                 sheetOk = pr.ok && /"ok"\s*:\s*true/.test(txt);
               } catch (e) { sheetOk = false; }
             }
-            // (b) Portal (Supabase) backfill — the missing half of this safety net. Flips the
-            // pre-written pending subscription to paid/active (or creates a last-resort record).
-            const portalOk = await portalIngestPaid(env, {
-              orderNo, phone, name, paymentId: pay.id || "",
-              amountRupees: Math.round((pay.amount || 0) / 100),
-            });
             // Both writes are idempotent, so a failure here MUST NOT be swallowed: return non-2xx
             // so Razorpay redelivers the webhook (~24h). The already-written sink simply no-ops on
             // retry. This is how orders went missing before (money taken, nothing recorded).
-            if (!sheetOk || !portalOk) return json({ error: "backfill incomplete; retry" }, 502);
+            if (!sheetOk || !portal.ok) return json({ error: "backfill incomplete; retry" }, 502);
           }
         }
         // 200 for genuinely-ignored events (non-captured) and successful writes, so Razorpay

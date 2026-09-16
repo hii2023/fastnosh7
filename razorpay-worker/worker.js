@@ -315,6 +315,23 @@ export default {
         }
       }
 
+      // Proxy the portal's public config (delivery + promos) server-side. The live site's CSP
+      // connect-src allows this worker but NOT the NOSH7 Supabase host, so a direct browser fetch
+      // to n7_public_config is blocked. Funnel calls this as a simple request (no preflight).
+      if (url.pathname === "/portal-config" && (request.method === "POST" || request.method === "GET")) {
+        try {
+          const r = await fetch(SB_URL + "/rest/v1/rpc/n7_public_config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: SB_ANON, Authorization: "Bearer " + SB_ANON },
+            body: "{}",
+          });
+          const t = await r.text();
+          return new Response(t, { status: r.status, headers: { ...cors, "Content-Type": "application/json" } });
+        } catch (e) {
+          return json({ ok: false, error: "portal_config_failed" }, 502);
+        }
+      }
+
       return json({ error: "not found" }, 404);
     } catch (e) {
       return json({ error: "server error" }, 500);

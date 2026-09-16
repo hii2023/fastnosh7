@@ -975,7 +975,7 @@ const CONFIG = {
 
   // Portal config (delivery charge + promo codes, managed in the admin Settings). Read on load
   // and merged over the defaults below; if it fails, the hardcoded defaults are used unchanged.
-  PLATFORM_CONFIG: "https://xoiksbtxoxrifkgvupqp.supabase.co/rest/v1/rpc/n7_public_config",
+  PLATFORM_CONFIG: "https://nosh7-pay.altafsimavatwala1991.workers.dev/portal-config",
   SB_ANON: "sb_publishable_UwUNp74KFKUlbqQ7aY0s7Q_toy7kUiD",
 
   BUSINESS_NAME: "Nosh7",
@@ -1441,7 +1441,7 @@ function promoOffFor(plan){
 // Pull delivery config + promos from the portal; merge over the defaults. Best-effort, non-blocking.
 (function loadPlatformConfig(){
   try{
-    fetch(CONFIG.PLATFORM_CONFIG,{method:'POST',headers:{'Content-Type':'application/json',apikey:CONFIG.SB_ANON,Authorization:'Bearer '+CONFIG.SB_ANON},body:'{}'})
+    fetch(CONFIG.PLATFORM_CONFIG,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:'{}'})
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(cfg){
         if(!cfg || cfg.ok!==true) return;

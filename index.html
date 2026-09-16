@@ -686,6 +686,19 @@
     section[data-step="2"] .abox .aic svg{width:16px;height:16px;}
   }
 
+  /* desktop: move the "Powered by Axiotrix" credit from the right strip to a full-width bottom bar */
+  @media (min-width:900px) and (min-height:560px){
+    body{ padding-bottom:48px; }
+    .axiotrix-credit{ position:fixed; left:0; right:0; bottom:0; z-index:6; }
+  }
+  /* wide desktop only: put "Questions? Chat with us" (WhatsApp) on the right edge, vertically centered.
+     Gated at >=1500px because below that the brand panel + app card leave no room without overlap. */
+  @media (min-width:1500px) and (min-height:560px){
+    .deskpanel .dp-trust{ position:fixed; right:20px; top:50%; transform:translateY(-50%); width:140px; margin:0; justify-content:center; z-index:5; }
+    .deskpanel .dp-wa{ flex-direction:column; text-align:center; gap:8px; white-space:normal; line-height:1.3; }
+    .deskpanel .dp-wa svg{ width:22px; height:22px; }
+  }
+
 </style>
 </head>
 <body>

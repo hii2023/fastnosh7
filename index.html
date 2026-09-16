@@ -438,6 +438,23 @@
   .promo-chip{align-self:flex-start;background:var(--surface-2);border:1px dashed var(--accent-text);color:var(--accent-text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12px;padding:8px 13px;border-radius:10px;cursor:pointer;}
   .promo-chip b{font-weight:800;letter-spacing:.6px;}
   .promo-chip:active{transform:scale(.98);}
+  /* quick offer flash card (review page) */
+  .quick-offer{position:relative;display:flex;align-items:center;gap:10px;background:var(--lime);color:#0c0f0b;border-radius:14px;padding:11px 12px 13px;overflow:hidden;animation:qoIn .4s var(--ease) both;}
+  .quick-offer.qo-out{opacity:.55;filter:grayscale(.4);}
+  .qo-main{flex:1;min-width:0;}
+  .qo-head{display:flex;align-items:center;gap:5px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:12px;letter-spacing:.4px;text-transform:uppercase;}
+  .qo-head svg{width:14px;height:14px;flex:none;}
+  .qo-sub{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;margin-top:2px;}
+  .qo-sub b{font-weight:800;}
+  .qo-side{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .qo-timer{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13px;line-height:1;padding:4px 8px;border-radius:8px;background:rgba(12,15,11,.14);min-width:44px;text-align:center;font-variant-numeric:tabular-nums;}
+  .qo-timer.qo-urgent{animation:qoPulse .8s ease-in-out infinite;}
+  .qo-apply{border:0;border-radius:10px;padding:8px 16px;background:#0c0f0b;color:var(--lime);font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13px;cursor:pointer;}
+  .qo-apply:active{transform:scale(.96);}
+  .qo-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:rgba(12,15,11,.12);}
+  .qo-bar i{display:block;height:100%;width:100%;background:#0c0f0b;transform-origin:left;transition:transform 1s linear;}
+  @keyframes qoIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes qoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
   .promo-hint{color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;}
   .promo-hint b{color:var(--accent-text);font-weight:800;letter-spacing:.6px;}
   .promo-row{display:flex;gap:8px;}
@@ -877,7 +894,17 @@
         <div class="summary" id="summary"></div>
         <div class="promo">
           <div class="promo-title" id="promoTitle">Have a promo code?</div>
-          <button class="promo-chip" id="promoChip" type="button" style="display:none;">Tap to apply <b>HEALTHY</b></button>
+          <div class="quick-offer" id="quickOffer" style="display:none;">
+            <div class="qo-main">
+              <div class="qo-head"><svg viewBox="0 0 24 24" fill="#0c0f0b" stroke="none"><path d="M13 2L3 14h7l-1 8 11-13h-8l1-7z"/></svg> Quick offer</div>
+              <div class="qo-sub">Apply <b id="qoCode">HEALTHY</b> and save <b id="qoOff">Rs 150</b></div>
+            </div>
+            <div class="qo-side">
+              <div class="qo-timer" id="qoTimer">0:30</div>
+              <button class="qo-apply" id="qoApply" type="button">Apply</button>
+            </div>
+            <div class="qo-bar"><i id="qoBar"></i></div>
+          </div>
           <div class="promo-row" id="promoRow">
             <input class="field promo-input" id="f-promo" type="text" placeholder="Promo code" autocomplete="off" autocapitalize="characters" />
             <button class="promo-apply" id="promoApply" type="button">Apply</button>
@@ -1435,6 +1462,60 @@ function promoOffFor(plan){
   }catch(e){}
 })();
 function reviewTotal(){ buildSummary(); payBtn.textContent = 'Pay '+rupee(grandTotal()); }
+// ---- Quick offer flash timer (review page): one-tap apply, 30s urgency countdown ----
+const QUICK_OFFER_SECS = 30;
+let qoState = 'idle';   // idle | running | applied | expired
+let qoInterval = null, qoLeft = 0, qoActiveCode = null;
+function qoEl(id){ return document.getElementById(id); }
+function qoFmt(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+// best applicable portal promo for the current order (highest discount), or null
+function qoBestPromo(){
+  if(order.promo || !(PROMO_LIST && PROMO_LIST.length)) return null;
+  let best=null;
+  PROMO_LIST.forEach(function(p){ const d=dbPromoDiscount(p); if(d>0 && (!best || d>best.off)) best={code:String(p.code||'').toUpperCase(), off:d}; });
+  return best;
+}
+function maybeStartQuickOffer(){
+  if(qoState!=='idle' || cur!==REVIEW) return;               // only a fresh review visit
+  const best=qoBestPromo(); if(!best) return;                // only when a code applies + none applied
+  const card=qoEl('quickOffer'); if(!card) return;
+  qoActiveCode=best.code;
+  const cEl=qoEl('qoCode'); if(cEl) cEl.textContent=best.code;
+  const oEl=qoEl('qoOff'); if(oEl) oEl.textContent='Rs '+best.off;
+  qoState='running'; qoLeft=QUICK_OFFER_SECS;
+  const btn=qoEl('qoApply'); if(btn){ btn.disabled=false; btn.textContent='Apply'; }
+  card.classList.remove('qo-out'); card.style.display='flex';
+  const bar=qoEl('qoBar'); if(bar){ bar.style.transition='none'; bar.style.transform='scaleX(1)'; void bar.offsetWidth; bar.style.transition='transform 1s linear'; }
+  qoRender();
+  clearInterval(qoInterval); qoInterval=setInterval(qoTick,1000);
+}
+function qoTick(){ qoLeft--; qoRender(); if(qoLeft<=0) expireQuickOffer(); }
+function qoRender(){
+  const t=qoEl('qoTimer'); if(t){ t.textContent=qoFmt(Math.max(0,qoLeft)); t.classList.toggle('qo-urgent', qoLeft<=10 && qoLeft>0); }
+  const bar=qoEl('qoBar'); if(bar) bar.style.transform='scaleX('+Math.max(0,qoLeft/QUICK_OFFER_SECS)+')';
+}
+function expireQuickOffer(){
+  clearInterval(qoInterval); qoInterval=null; qoState='expired';
+  const card=qoEl('quickOffer'); if(!card) return;
+  card.classList.add('qo-out');
+  const t=qoEl('qoTimer'); if(t){ t.classList.remove('qo-urgent'); t.textContent='Ended'; }
+  const btn=qoEl('qoApply'); if(btn){ btn.disabled=true; btn.textContent='Ended'; }
+  setTimeout(()=>{ if(qoState==='expired'){ card.style.display='none'; } }, 3500);
+}
+function stopQuickOffer(){   // hide without burning the window (e.g. offer no longer applies)
+  clearInterval(qoInterval); qoInterval=null;
+  const card=qoEl('quickOffer'); if(card) card.style.display='none';
+  if(qoState==='running') qoState='idle';
+}
+function quickOfferApplied(){
+  clearInterval(qoInterval); qoInterval=null; qoState='applied';
+  const card=qoEl('quickOffer'); if(card) card.style.display='none';
+}
+function resetQuickOffer(){   // new review visit / promo removed: allow a fresh 30s window
+  clearInterval(qoInterval); qoInterval=null; qoState='idle';
+  const btn=qoEl('qoApply'); if(btn){ btn.disabled=false; btn.textContent='Apply'; }
+  const card=qoEl('quickOffer'); if(card){ card.classList.remove('qo-out'); card.style.display='none'; }
+}
 // keep the applied label showing the right amount for the selected plan
 function refreshPromoLabels(){
   const hint=document.getElementById('promoHint');
@@ -1444,12 +1525,8 @@ function refreshPromoLabels(){
       ? 'Have code <b>HEALTHY</b>? Tap the chip above, or type it and Apply.'
       : 'Have a promo code? Type it below and tap Apply.';
   }
-  const chip=document.getElementById('promoChip');
-  if(chip){
-    // show the tap-to-apply chip only when a code applies to this plan and none is applied yet
-    if(off>0 && !order.promo){ chip.innerHTML='Tap to apply <b>HEALTHY</b> &middot; Rs '+off+' off'; chip.style.display=''; }
-    else chip.style.display='none';
-  }
+  // start the quick offer if a portal promo applies (won't restart a running/expired one)
+  if(qoBestPromo()){ maybeStartQuickOffer(); } else { stopQuickOffer(); }
   if(order.promo && promoDiscount()>0){
     const o=document.getElementById('promoOffLabel'); if(o) o.textContent = rupee(promoDiscount())+' off';
   }
@@ -1472,7 +1549,7 @@ function applyPromo(raw){
     document.getElementById('promoOffLabel').textContent = rupee(promoDiscount())+' off';
     document.getElementById('promoRow').style.display = 'none';
     const t1=document.getElementById('promoTitle'); if(t1) t1.style.display='none';
-    const chip=document.getElementById('promoChip'); if(chip) chip.style.display='none';
+    quickOfferApplied();
     const ok = document.getElementById('promoOk');
     ok.classList.remove('show'); void ok.offsetWidth; ok.classList.add('show');  // restart animation
     reviewTotal(); haptic();
@@ -1489,7 +1566,8 @@ function removePromo(){
   document.getElementById('promoRow').style.display = 'flex';
   const t2=document.getElementById('promoTitle'); if(t2) t2.style.display='';
   document.getElementById('f-promo').value = '';
-  refreshPromoLabels();   // brings the tap-to-apply chip back if a code applies
+  resetQuickOffer();      // allow a fresh quick-offer window after removing a code
+  refreshPromoLabels();   // brings the quick offer back if a code applies
   reviewTotal();
 }
 function resetPromoUI(){
@@ -1500,10 +1578,11 @@ function resetPromoUI(){
   const t3=document.getElementById('promoTitle'); if(t3) t3.style.display='';
   const inp=document.getElementById('f-promo'); if(inp) inp.value='';
   const err=document.getElementById('promoErr'); if(err) err.classList.remove('show');
+  resetQuickOffer();
   refreshPromoLabels();
 }
 document.getElementById('promoApply').addEventListener('click', ()=> applyPromo(document.getElementById('f-promo').value));
-document.getElementById('promoChip').addEventListener('click', ()=>{ const inp=document.getElementById('f-promo'); if(inp) inp.value='HEALTHY'; applyPromo('HEALTHY'); });
+document.getElementById('qoApply').addEventListener('click', ()=>{ const code=qoActiveCode||'HEALTHY'; const inp=document.getElementById('f-promo'); if(inp) inp.value=code; applyPromo(code); });
 // tap anywhere else closes an open benefit-info strip
 document.addEventListener('click', function(e){
   if(e.target.closest && e.target.closest('.benefit')) return;
@@ -1576,11 +1655,13 @@ function refreshFooter(){
   nextBtn.style.display='none'; payBtn.style.display='none'; payHint.style.display='none';
   msgBtn.style.display='none'; restartBtn.style.display='none'; seemenuBtn.style.display='none';
   backBtn.style.display = (cur<CONFIRM) ? 'block':'none';
+  if(cur!==REVIEW) stopQuickOffer();                                  // leaving review hides the offer (no window burned)
   if(cur===REVIEW){
     buildSummary();
     payBtn.textContent = 'Pay '+rupee(grandTotal()); payBtn.style.display='flex';
     payHint.textContent = (CONFIG.PAYMENT_METHOD==='razorpay') ? 'Secure checkout, cards and UPI' : 'GPay, PhonePe, Paytm, any UPI app';
     payHint.style.display='block';
+    if(!order.promo){ resetQuickOffer(); maybeStartQuickOffer(); }   // fresh 30s flash offer on each review visit
   } else if(cur===CONFIRM){
     msgBtn.style.display='flex'; restartBtn.style.display='flex'; seemenuBtn.style.display='flex'; backBtn.style.display='none';
   } else {
@@ -2347,5 +2428,10 @@ refreshFooter();
   document.addEventListener('focusout', function(){ setTimeout(apply, 280); });
 })();
 </script>
+<!-- axiotrix:credit START -->
+<div class="axiotrix-credit" aria-label="Powered by Axiotrix" style="box-sizing:border-box;width:100%;margin:0;padding:12px 16px;background:#0c0c0d;color:#9aa0a6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.5;text-align:center;border-top:1px solid rgba(255,255,255,.08);">
+  Powered by <a href="https://www.axiotrix.com/digital-solutions#website-creation" target="_blank" rel="noopener" style="color:#fff;font-weight:600;text-decoration:none;">Axiotrix</a>
+</div>
+<!-- axiotrix:credit END -->
 </body>
 </html>

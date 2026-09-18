@@ -476,6 +476,19 @@
   /* ============== desktop (web) layout: split screen, mobile untouched ============== */
   .deskpanel{display:none;}
   .doodles{display:none;}
+  /* The "Powered by Axiotrix" credit is appended as a direct <body> child, and <body> is a
+     flex row. It must stay out of flow or it becomes a flex sibling of .app and steals its
+     width (mobile funnel collapsed to ~180px). Fixed bottom bar on every width. */
+  .axiotrix-credit{ position:fixed; left:0; right:0; bottom:0; z-index:6; }
+  /* the block ships with inline padding, so the home-indicator inset needs !important */
+  .axiotrix-credit{ padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important; }
+  /* mobile: the funnel fills 100dvh and pins its own CTA + Back to the bottom, so the bar
+     would sit on top of them. Show it only on the home screen, which scrolls. */
+  @media (max-width:899px), (max-height:559px){
+    .axiotrix-credit{ display:none; }
+    .app.home-mode ~ .axiotrix-credit{ display:block; }
+    .app.home-mode .homescreen{ padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  }
   @media (min-width:900px) and (min-height:560px){
     body{
       align-items:center;justify-content:center;gap:64px;padding:0 56px;
@@ -686,10 +699,9 @@
     section[data-step="2"] .abox .aic svg{width:16px;height:16px;}
   }
 
-  /* desktop: move the "Powered by Axiotrix" credit from the right strip to a full-width bottom bar */
+  /* desktop: reserve room for the full-width "Powered by Axiotrix" bottom bar */
   @media (min-width:900px) and (min-height:560px){
     body{ padding-bottom:48px; }
-    .axiotrix-credit{ position:fixed; left:0; right:0; bottom:0; z-index:6; }
   }
   /* desktop: compact round WhatsApp icon button pinned to the right edge, vertically centered.
      Gated at >=1200px (below that the brand panel + app card already fill the row, no right room). */

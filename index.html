@@ -87,6 +87,9 @@
   .step.scroll{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:14px;}
   .step.scroll h1{margin-bottom:18px;}
   .step.scroll .body{flex:0 0 auto;gap:20px;}
+  /* review: the promo field needs a scroller while the keyboard is open (see keyboard-aware
+     fields below); shrink-to-fit keeps it from scrolling at any other time */
+  section[data-step="4"] .body{overflow-y:auto;min-height:0;}
   .notebox.picked{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .addr-clear{flex:none;background:transparent;border:1px solid var(--line);color:var(--accent-text);border-radius:8px;padding:5px 11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:11px;cursor:pointer;}
   .addr-extra{display:none;flex-direction:column;gap:20px;}
@@ -332,7 +335,8 @@
   .app.home-mode .progress,.app.home-mode .steps,.app.home-mode .footer{display:none;}
   .app.home-mode .counter{display:none;}
 
-  .homescreen{display:none;flex-direction:column;flex:1;min-height:0;padding:6px 20px 26px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .homescreen{display:none;flex-direction:column;flex:1;min-height:0;padding:6px 20px 26px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    transform:scale(var(--fit,1));}
   .app.home-mode .homescreen{display:flex;}
   .homescreen .lead{margin:6px 2px 12px;flex:none;}
   .homescreen .lead h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;line-height:1.08;margin:0;letter-spacing:-1px;font-weight:700;}
@@ -487,7 +491,8 @@
   @media (max-width:899px), (max-height:559px){
     .axiotrix-credit{ display:none; }
     .app.home-mode ~ .axiotrix-credit{ display:block; }
-    .app.home-mode .homescreen{ padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    /* margin, not padding: it shrinks the fit box so the bar gets its own strip */
+    .app.home-mode .homescreen{ margin-bottom: calc(44px + env(safe-area-inset-bottom)); }
   }
   @media (min-width:900px) and (min-height:560px){
     body{
@@ -697,6 +702,40 @@
     section[data-step="2"] .abox{padding:6px 30px 6px 8px;}
     section[data-step="2"] .abox .aic{width:30px;height:30px;}
     section[data-step="2"] .abox .aic svg{width:16px;height:16px;}
+  }
+
+  /* shorter screens: compact the home grid so all six tracks stay on one page. The JS
+     shrink-to-fit still guarantees it, but it should have as little left to scale as possible. */
+  @media (max-height:760px){
+    .homescreen{padding:4px 16px 14px;}
+    .homescreen .lead{margin:2px 2px 9px;}
+    .homescreen .lead h1{font-size:23px;}
+    .homescreen .lead p{font-size:12px;margin-top:4px;}
+    .grid{gap:8px;}
+    .card{padding:11px 12px 10px;gap:5px;border-radius:15px;}
+    .card .ic{width:33px;height:33px;border-radius:9px;}
+    .card .ic svg{width:19px;height:19px;}
+    .card .nm{font-size:15.5px;}
+    .card .tg{font-size:11px;}
+    .card .cardfoot{margin-top:4px;}
+    .card .from{font-size:8.5px;}
+    .card .pr b{font-size:21px;}
+    .card .pr small{font-size:10px;}
+    .pill{font-size:8.5px;padding:2px 6px;top:9px;right:9px;}
+  }
+  @media (max-height:640px){
+    .homescreen{padding:2px 14px 10px;}
+    .homescreen .lead{margin:0 2px 7px;}
+    .homescreen .lead h1{font-size:20px;}
+    .homescreen .lead p{font-size:11.5px;margin-top:3px;}
+    .grid{gap:7px;}
+    .card{padding:9px 10px 8px;gap:4px;border-radius:13px;}
+    .card .ic{width:28px;height:28px;border-radius:8px;}
+    .card .ic svg{width:16px;height:16px;}
+    .card .nm{font-size:14px;}
+    .card .tg{font-size:10.5px;-webkit-line-clamp:1;}
+    .card .from{font-size:8px;}
+    .card .pr b{font-size:18.5px;}
   }
 
   /* desktop: reserve room for the full-width "Powered by Axiotrix" bottom bar */
@@ -912,7 +951,7 @@
     <section class="step top" data-step="4">
       <div class="eyebrow">Review</div>
       <h1>Confirm &amp; <span class="accent">pay</span></h1>
-      <div class="body" style="justify-content:flex-start;gap:0;overflow-y:auto;min-height:0;">
+      <div class="body" style="justify-content:flex-start;gap:0;">
         <div class="summary" id="summary"></div>
         <div class="promo">
           <div class="promo-title" id="promoTitle">Have a promo code?</div>
@@ -1628,45 +1667,94 @@ function go(to){
   }
 }
 
-/* ---- auto-fit: after the CSS lays a step out, if it STILL overflows the screen (unusual zoom,
-   device height, or font metrics), scale that step down just enough so everything stays visible
-   with no scroll. This is the universal safety net on top of the per-size CSS. ---- */
-function fitActiveStep(){
-  var step=document.querySelector('.step.active');
-  if(!step) return;
-  var body=step.querySelector('.body');
-  var daysmid=step.querySelector('.daysmid');           // days step centres this flex:1 block
-  var st=step.getAttribute('data-step');
-  // clear any previous fit state
-  step.style.removeProperty('--fit'); step.style.justifyContent=''; step.style.overflow='';
-  if(body){ body.style.flex=''; body.style.overflow=''; body.style.minHeight=''; }
-  if(daysmid){ daysmid.style.flex=''; }
-  // only the plan/slot/days steps use the flex-fill body; review/address/confirm manage their
-  // own height (they scroll), so leave those alone
-  if(!body || !step.offsetParent || (st!=='0'&&st!=='1'&&st!=='2')) return;
-  // neutralise the flex-fill so the content reports its TRUE natural height (flex children
-  // otherwise shrink and hide the overflow), then measure the whole step
-  body.style.flex='0 0 auto'; body.style.overflow='visible'; body.style.minHeight='0';
-  if(daysmid) daysmid.style.flex='0 0 auto';
-  var avail=step.clientHeight, natural=step.scrollHeight;
+/* ---- shrink-to-fit: this app is a single page, never a scroller. After the CSS lays a screen
+   out, if the content STILL does not fit (short phone, in-app browser chrome, desktop window,
+   large system font), scale that screen down just enough that everything stays visible with no
+   scroll. Runs on every funnel step AND the home grid. ---- */
+
+/* Flex children hide overflow by shrinking and some panes scroll, so both have to be neutralised
+   before measuring or the box reports its own height back instead of the content's true height. */
+function fitNeutralise(box){
+  var touched=[];
+  var all=box.querySelectorAll('*');
+  for(var i=0;i<all.length;i++){
+    var el=all[i], cs=getComputedStyle(el);
+    if(cs.position==='absolute'||cs.position==='fixed') continue;   // dropdowns/tooltips: not part of the flow
+    if(cs.overflowY==='auto'||cs.overflowY==='scroll'||el.classList.contains('body')||el.classList.contains('daysmid')){
+      el.style.flex='0 0 auto'; el.style.overflowY='visible'; el.style.minHeight='0';
+      touched.push(el);
+    }
+  }
+  return touched;
+}
+function fitClear(box){
+  box.style.removeProperty('--fit'); box.style.justifyContent=''; box.style.overflow=''; box.style.transformOrigin='';
+  var prev=box._fitNodes;
+  if(prev) for(var i=0;i<prev.length;i++){ prev[i].style.flex=''; prev[i].style.overflowY=''; prev[i].style.minHeight=''; }
+  box._fitNodes=null;
+}
+function fitBox(box){
+  if(!box) return;
+  fitClear(box);                                      // always measure from the untouched layout
+  if(!box.offsetParent) return;
+  var touched=fitNeutralise(box);
+  var avail=box.clientHeight, natural=box.scrollHeight;
+  // scrollHeight stops at the last child's border box, so a trailing margin (the promo block,
+  // the confirmation note) still spills past the screen. Measure the real content extent too.
+  var top=box.getBoundingClientRect().top, pad=parseFloat(getComputedStyle(box).paddingBottom)||0, low=0;
+  var kids=box.querySelectorAll('*');
+  for(var k=0;k<kids.length;k++){
+    var el=kids[k];
+    if(getComputedStyle(el).position==='fixed') continue;
+    var rb=el.getBoundingClientRect();
+    if(rb.height>0 && rb.bottom>low) low=rb.bottom;
+  }
+  if(low>0) natural=Math.max(natural, Math.ceil(low-top+pad));
   if(natural>avail+2){
-    var s=Math.max(avail/natural, 0.5);                 // scale the whole step down to fit
-    step.style.overflow='visible';                      // let the full content render; the scale keeps it in bounds
-    step.style.justifyContent='flex-start';             // top-align so nothing spills off-screen
-    step.style.setProperty('--fit', s.toFixed(4));
+    var s=Math.max(avail/natural, 0.45);              // scale the whole screen down to fit
+    box._fitNodes=touched;                            // keep it neutralised while scaled
+    box.style.overflow='visible';                     // let the full content render; the scale keeps it in bounds
+    box.style.justifyContent='flex-start';            // top-align so nothing spills off-screen
+    box.style.transformOrigin='top center';           // ...and scale toward the top, not the middle
+    box.style.setProperty('--fit', s.toFixed(4));
   }else{
-    // it already fits: restore the natural flex-fill layout (centring, pinned add-ons, etc.)
-    body.style.flex=''; body.style.overflow=''; body.style.minHeight='';
-    if(daysmid) daysmid.style.flex='';
+    for(var i=0;i<touched.length;i++){ touched[i].style.flex=''; touched[i].style.overflowY=''; touched[i].style.minHeight=''; }
   }
 }
-function scheduleFit(){ requestAnimationFrame(function(){ requestAnimationFrame(fitActiveStep); }); }
+function fitActiveStep(){
+  var app=document.querySelector('.app');
+  if(app && app.classList.contains('home-mode')) return fitBox(document.getElementById('homeScreen'));
+  var step=document.querySelector('.step.active');
+  if(!step) return;
+  // keyboard open: the keyboard-aware block owns the layout (it adds bottom room and scrolls the
+  // focused field into view), so leave the step alone until the keyboard closes
+  if(step.classList.contains('kb-open')){ fitClear(step); return; }
+  fitBox(step);
+}
+var _fitT=null,_fitT2=null;
+function scheduleFit(){
+  clearTimeout(_fitT); clearTimeout(_fitT2);
+  _fitT=setTimeout(function(){ requestAnimationFrame(fitActiveStep); }, 50);
+  // late pass: step transitions run 420ms and some content (slots, summary, portal prices)
+  // lands after the first measure, so settle the final size in one go instead of drifting
+  _fitT2=setTimeout(fitActiveStep, 520);
+}
 (function(){
   var t=null;
   window.addEventListener('resize', function(){ clearTimeout(t); t=setTimeout(fitActiveStep, 120); }, {passive:true});
   window.addEventListener('orientationchange', function(){ clearTimeout(t); t=setTimeout(fitActiveStep, 250); }, {passive:true});
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleFit);
   window.addEventListener('load', scheduleFit);
+  // content arrives late and changes height (portal plans, order summary, address fields, promo
+  // and distance notes), so re-fit whenever the app's contents change. Only class/content changes
+  // are watched, never style, so our own --fit writes cannot feed back in.
+  if(window.MutationObserver){
+    var app=document.querySelector('.app');
+    // class changes matter too (kb-open going away, the address fields opening up), and the fit
+    // itself only ever writes styles, so watching classes cannot feed back into this
+    if(app) new MutationObserver(scheduleFit)
+      .observe(app, {childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['class']});
+  }
 })();
 
 function refreshFooter(){

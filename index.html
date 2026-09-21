@@ -942,6 +942,7 @@
             <div><div class="label">Name</div><input class="field" id="f-name" type="text" placeholder="Your name" autocomplete="name" /></div>
             <div><div class="label">Phone</div><input class="field" id="f-phone" type="tel" inputmode="numeric" placeholder="10 digit" autocomplete="tel" maxlength="10" /></div>
           </div>
+          <div id="needhint" class="notebox" style="display:none" aria-live="polite"></div>
           <div id="distfee" class="notebox" style="display:none"></div>
         </div>
       </div>
@@ -1086,10 +1087,14 @@ const REVIEW = 4, CONFIRM = 5, LAST_INPUT = 3;
    ?express=<slug>      express monthly: only Monthly + add-ons Yes/No -> name+phone -> pay (no address) */
 const Q = new URLSearchParams(location.search);
 const ALLOW_DAILY  = (Q.get('meals') === '2' || Q.has('twoplans'));
-const EXPRESS      = Q.has('express');
+// EXPRESS / MONTHLY_ONLY are let, not const: they belong to the track the link opened, and are
+// dropped (leaveLinkMode) when the visitor goes home and picks a different track
+let   EXPRESS      = Q.has('express');
 const EXPRESS_SLUG = (function(){ var s = Q.get('express'); return (s && s !== '1') ? s : 'fresh'; })();
 // express is monthly-only by nature; ?monthly=1 (or ?plan=monthly) also hides the Trial Pack
-const MONTHLY_ONLY = EXPRESS || Q.get('monthly') === '1' || Q.get('plan') === 'monthly';
+let   MONTHLY_ONLY = EXPRESS || Q.get('monthly') === '1' || Q.get('plan') === 'monthly';
+// the track a restricted link was made for (null = restriction covers the whole catalogue)
+const LINK_TRACK   = EXPRESS ? EXPRESS_SLUG : (MONTHLY_ONLY ? Q.get('track') : null);
 // step order changes for express (skip slot + days/add-ons + real address step)
 function nextIndex(i){ if(EXPRESS){ if(i===0) return LAST_INPUT; if(i===LAST_INPUT) return REVIEW; } return i+1; }
 function prevIndex(i){ if(EXPRESS){ if(i===REVIEW) return LAST_INPUT; if(i===LAST_INPUT) return 0; } return i-1; }
@@ -1419,7 +1424,26 @@ function stepValid(i){
     default: return true;
   }
 }
-function validate(){ nextBtn.disabled = !stepValid(cur); }
+function validate(){ nextBtn.disabled = !stepValid(cur); updateNeedHint(); }
+// details step: once the visitor has started filling it in, say which field still blocks
+// "Review order" (Building / Apartment is required but easy to skip)
+function updateNeedHint(){
+  const h=document.getElementById('needhint'); if(!h) return;
+  const need=[];
+  if(!EXPRESS){
+    if(!(order.house||'').length)    need.push('house / flat no');
+    if(!(order.building||'').length) need.push('building / apartment');
+  }
+  if(order.name.length<2)     need.push('your name');
+  if(order.phone.length!==10) need.push('a 10-digit phone number');
+  const started = [order.house, order.building, order.name, order.phone].some(v=>(v||'').length>0);
+  const addrOk  = EXPRESS || order.lat!=null;   // an unconfirmed address is covered by the pick hint
+  const show = cur===LAST_INPUT && started && addrOk && need.length>0;
+  const was = h.style.display==='block';
+  h.style.display = show ? 'block' : 'none';
+  if(show) h.innerHTML='To continue, add '+need.join(', ')+'.';
+  if(show!==was) scheduleFit();   // the fit observer ignores style changes, so re-fit on show/hide
+}
 
 function addonsPerMeal(){ let s=0; Object.values(order.addons).forEach(a=> s+=a.price); return s; }
 function deliveryFeeTotal(){ return (order.distanceFee||0) * order.deliveries; }
@@ -2064,7 +2088,7 @@ function buildHome(){
       '<div class="nm">'+c.name+'</div>'+
       '<div class="tg">'+c.tag+'</div>'+
       '<div class="cardfoot"><div class="from">from</div><div class="pr"><b>'+rupee(p.moPer)+'</b><small>/ meal</small></div></div>';
-    b.addEventListener('click', function(){ startWizard(c); });
+    b.addEventListener('click', function(){ pickTrack(c); });
     catGrid.appendChild(b);
   });
 }
@@ -2225,6 +2249,43 @@ function goHome(){
   steps.forEach(s=>s.classList.remove('active','leaving'));
   steps[0].classList.add('active'); cur=0;
   dpReset();
+  if(!EXPRESS && !MONTHLY_ONLY) setUrlTrack(null);   // refresh on home stays on home
+}
+
+/* ---- link modes follow the track the link was made for ----
+   A monthly-only or express link restricts only its own track. Going home and picking a
+   different track drops the restriction (Trial Pack back, full address flow back), and the
+   URL is kept in step with the screen so a refresh reopens what the visitor was looking at. */
+function trackMatches(c, slug){ return !!slug && (c.slug===slug || c.key===slug); }
+function setUrlTrack(slug){
+  try{
+    var u=new URL(location.href);
+    if(slug) u.searchParams.set('track', slug); else u.searchParams.delete('track');
+    history.replaceState(history.state, '', u.pathname+u.search+u.hash);
+  }catch(e){}
+}
+function teardownExpressUI(){
+  var t=document.getElementById('addrTitle'); if(t) t.innerHTML='Delivery <span class="accent">address</span>';
+  ['addr-search-block','addr-picked'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display=''; });
+  var row=document.querySelector('.addr-row'); if(row) row.style.display='';
+  var extra=document.getElementById('addr-extra'); if(extra) extra.classList.toggle('show', !!order.area);
+  var sec=document.querySelector('.step[data-step="3"]'); if(sec) sec.classList.remove('express-details');
+  var np=document.querySelector('#addr-extra .row2:not(.addr-row)'); if(np) np.classList.remove('stack');
+  computeDistanceFee();   // hides the fee note again until an address is picked
+}
+function leaveLinkMode(){
+  if(EXPRESS) teardownExpressUI();
+  EXPRESS=false; MONTHLY_ONLY=false;
+  try{
+    var u=new URL(location.href);
+    ['express','monthly','plan'].forEach(function(k){ u.searchParams.delete(k); });
+    history.replaceState(history.state, '', u.pathname+u.search+u.hash);
+  }catch(e){}
+}
+function pickTrack(c){
+  if((EXPRESS || MONTHLY_ONLY) && LINK_TRACK && !trackMatches(c, LINK_TRACK)) leaveLinkMode();
+  if(!EXPRESS && !MONTHLY_ONLY) setUrlTrack(c.slug);   // a restricted link keeps its own URL
+  startWizard(c);
 }
 document.getElementById('brandHome').addEventListener('click', goHome);
 

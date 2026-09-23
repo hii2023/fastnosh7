@@ -1753,6 +1753,11 @@ function fitActiveStep(){
   // keyboard open: the keyboard-aware block owns the layout (it adds bottom room and scrolls the
   // focused field into view), so leave the step alone until the keyboard closes
   if(step.classList.contains('kb-open')){ fitClear(step); return; }
+  // address step already scrolls internally (.step.scroll) so the keyboard-aware block can bring
+  // a focused field into view. Scaling it down on top of that scroll (esp. during the brief window
+  // before kb-open is detected, when the keyboard has already shrunk the viewport) made it shrink
+  // far more than needed - let it scroll instead of scaling.
+  if(step.classList.contains('scroll')){ fitClear(step); return; }
   fitBox(step);
 }
 var _fitT=null,_fitT2=null;

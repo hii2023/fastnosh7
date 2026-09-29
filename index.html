@@ -2071,8 +2071,9 @@ const ADDONS=[
 const PANEER_KEYS=['paneer50','paneer100'];
 function addonsFor(c){
   if(c.key==='fruit') return ADDONS.filter(a=>a.key==='drink');
-  // Muscle Gain and Weight Loss already include paneer in the meal, so no paneer add-on there.
-  if(c.key==='protein'||c.key==='weightloss') return ADDONS.filter(a=>PANEER_KEYS.indexOf(a.key)<0);
+  // No paneer add-on on these three: Muscle Gain and Weight Loss already include it in the
+  // meal, and Vegan is 100% dairy-free (the track's own copy promises no milk, paneer or ghee).
+  if(c.key==='protein'||c.key==='weightloss'||c.key==='vegan') return ADDONS.filter(a=>PANEER_KEYS.indexOf(a.key)<0);
   return ADDONS;
 }
 // One paneer size per meal: picking 50g clears 100g and the other way round.

@@ -28,7 +28,9 @@ const UNITS = { monthly: 25, trial: 5, monthly2: 50, trial2: 10 };
 // (must match index.html plansFor / DAILY_DISCOUNT)
 const DAILY = { monthly2: "monthly", trial2: "trial" };
 const DAILY_DISCOUNT = 0.07;
-const ADDON_PRICE = { fruit: 169, protein: 80, drink: 49 }; // per meal
+// Per meal. Keys must match the front-end ADDONS and the portal catalogue (n7_addons).
+// 'protein' is the pre-split paneer key, kept so an old cached page still prices at 100g.
+const ADDON_PRICE = { fruit: 169, paneer50: 40, paneer100: 80, protein: 80, drink: 49 };
 // Promos are managed in the portal and applied by n7_quote (the authoritative quote below).
 // The local price tables here are ONLY a fallback for when the portal quote is unreachable, and
 // in that same outage the funnel is fail-closed (offers no promo), so the fallback applies NO

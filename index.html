@@ -391,6 +391,7 @@
   .abox b{font-size:13px;font-weight:700;line-height:1.15;}
   .abox .ap{font-size:11.5px;font-weight:800;color:var(--ink);}
   .abox .ap small{color:var(--muted-2);font-weight:600;font-size:9px;}
+  .abox .anote{font-size:9.5px;font-weight:600;color:var(--accent-text);line-height:1.2;}
   .abox .tick{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:18px;height:18px;border-radius:6px;border:1.4px solid var(--line);display:grid;place-items:center;color:transparent;}
   .abox .tick svg{width:11px;height:11px;}
   .abox.on{border-color:var(--accent-text);background:var(--surface-2);box-shadow:var(--glow);}
@@ -401,6 +402,7 @@
   #aboxes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
   #aboxes.n1{grid-template-columns:minmax(0,170px);justify-content:center;}
   #aboxes.n2{grid-template-columns:repeat(2,1fr);}
+  #aboxes.n4{grid-template-columns:repeat(2,1fr);}
   #aboxes .abox{flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;text-align:center;padding:11px 8px 9px;border-radius:13px;}
   #aboxes .abox .aic{width:32px;height:32px;border-radius:9px;}
   #aboxes .abox .aic svg{width:18px;height:18px;}
@@ -408,6 +410,7 @@
   #aboxes .abox b{font-size:11.5px;}
   #aboxes .abox .ap{font-size:10px;}
   #aboxes .abox .ap small{font-size:8px;}
+  #aboxes .abox .anote{font-size:8.5px;}
   #aboxes .abox .tick{top:6px;right:6px;transform:none;width:15px;height:15px;border-radius:5px;}
   #aboxes .abox .tick svg{width:9px;height:9px;}
   /* express add-ons header (shown and selectable by default, no Yes/No gate) */
@@ -426,6 +429,7 @@
   #expAddonBox b{font-size:14px;}
   #expAddonBox .ap{font-size:12.5px;}
   #expAddonBox .ap small{font-size:9.5px;}
+  #expAddonBox .anote{font-size:10.5px;}
   #expAddonBox .tick{width:20px;height:20px;border-radius:6px;top:8px;right:8px;}
   #expAddonBox .tick svg{width:13px;height:13px;}
   /* express details step: name + phone stacked, one below the other, centered on the page */
@@ -1203,28 +1207,7 @@ document.querySelectorAll('#diet button').forEach(b=>{
   });
 });
 
-/* ---- add ons ---- */
-function paneerSel(){ const b=document.querySelector('#paneer-size button.on'); return {label:'Paneer ('+b.dataset.size+')', price:+b.dataset.price}; }
-
-document.querySelectorAll('.opt.addon').forEach(card=>{
-  card.addEventListener('click', ()=>{
-    const k=card.dataset.addon;
-    if(order.addons[k]){ delete order.addons[k]; card.classList.remove('sel'); }
-    else { order.addons[k]=(k==='paneer'? paneerSel() : {label:'Healthy Drink', price:49}); card.classList.add('sel'); }
-    haptic();
-  });
-});
-document.querySelectorAll('#paneer-size button').forEach(b=>{
-  b.addEventListener('click', e=>{
-    e.stopPropagation();
-    document.querySelectorAll('#paneer-size button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');
-    document.getElementById('paneer-price').textContent='+'+b.dataset.price+' / meal';
-    order.addons.paneer=paneerSel();
-    document.querySelector('.opt.addon[data-addon="paneer"]').classList.add('sel');
-    haptic();
-  });
-});
+/* ---- add ons ---- (rendered from the ADDONS catalogue, see renderAddons below) */
 
 /* ---- inputs ---- */
 // When the customer taps a browser autofill / keyboard suggestion (not manual typing),
@@ -2076,15 +2059,40 @@ function plansFor(c){
   var d2=function(x){ return Math.round(2*x*(1-DAILY_DISCOUNT)/100)*100; };   // 2 meals a day, rounded to the nearest Rs 100
   return {moPer:moPer, wkPer:wkPer, monthly:monthly, weekly:weekly, monthly2:d2(monthly), trial2:d2(weekly)};
 }
+// Keys MUST match the portal add-on catalogue (n7_addons) and n7_config.funnel_catalog.addons,
+// because the kitchen packs and the admin console bill off these keys. Paneer is sold in two
+// sizes and the size has to travel with the order, never a bare "paneer".
 const ADDONS=[
-  {key:'fruit',   name:'Fruit bowl',    label:'Fruit bowl',          price:169, icon:ICON.fruitbowl},
-  {key:'protein', name:'Low-fat Paneer', label:'Low-fat paneer',price:80,  icon:ICON.protein},
-  {key:'drink',   name:'Healthy drink', label:'Healthy drink',       price:49,  icon:ICON.drink}
+  {key:'fruit',     name:'Fruit bowl',    label:'Fruit bowl',    price:169, icon:ICON.fruitbowl},
+  {key:'paneer50',  name:'Paneer 50g',    label:'Paneer 50g',    price:40,  icon:ICON.protein, note:'+10g protein'},
+  {key:'paneer100', name:'Paneer 100g',   label:'Paneer 100g',   price:80,  icon:ICON.protein, note:'+20g protein'},
+  {key:'drink',     name:'Healthy drink', label:'Healthy drink', price:49,  icon:ICON.drink}
 ];
+const PANEER_KEYS=['paneer50','paneer100'];
 function addonsFor(c){
   if(c.key==='fruit') return ADDONS.filter(a=>a.key==='drink');
-  if(c.key==='protein'||c.key==='weightloss') return ADDONS.filter(a=>a.key!=='protein');
+  // Muscle Gain and Weight Loss already include paneer in the meal, so no paneer add-on there.
+  if(c.key==='protein'||c.key==='weightloss') return ADDONS.filter(a=>PANEER_KEYS.indexOf(a.key)<0);
   return ADDONS;
+}
+// One paneer size per meal: picking 50g clears 100g and the other way round.
+function toggleAddon(k){
+  var a=ADDONS.find(function(x){ return x.key===k; });
+  if(!a) return;
+  if(order.addons[k]){ delete order.addons[k]; return; }
+  if(PANEER_KEYS.indexOf(k)>=0) PANEER_KEYS.forEach(function(p){ delete order.addons[p]; });
+  order.addons[k]={label:a.label, price:a.price};
+}
+// Repaint every box from order.addons (a paneer tap can turn a second box off).
+function syncAddonUI(box){
+  box.querySelectorAll('.abox').forEach(function(el){
+    el.classList.toggle('on', !!order.addons[el.dataset.a]);
+  });
+}
+function addonBoxHTML(a, on){
+  return '<div class="abox'+(on?' on':'')+'" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div>'+
+         '<div class="atext"><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div>'+
+         (a.note?'<div class="anote">'+a.note+'</div>':'')+'</div></div>';
 }
 
 const catGrid=document.getElementById('catGrid');
@@ -2216,17 +2224,11 @@ function renderExpressAddons(c){
   if(!box) return;
   var list=addonsFor(c);
   box.className='aboxes n'+list.length;
-  box.innerHTML=list.map(function(a){
-    var on=order.addons[a.key]?' on':'';
-    return '<div class="abox'+on+'" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><div class="atext"><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div></div>';
-  }).join('');
+  box.innerHTML=list.map(function(a){ return addonBoxHTML(a, !!order.addons[a.key]); }).join('');
   if(hint) hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade, nimbu sharbat, chia fresca or green apple detox' : '';
   box.querySelectorAll('.abox').forEach(function(el){
     el.addEventListener('click', function(){
-      var k=el.dataset.a, a=ADDONS.find(x=>x.key===k);
-      if(order.addons[k]){ delete order.addons[k]; el.classList.remove('on'); }
-      else { order.addons[k]={label:a.label, price:a.price}; el.classList.add('on'); }
-      haptic();
+      toggleAddon(el.dataset.a); syncAddonUI(box); haptic();
     });
   });
 }
@@ -2242,16 +2244,11 @@ function renderAddons(c){
   var wrap=document.getElementById('aboxes'), hint=document.getElementById('ahint');
   var list=addonsFor(c);
   wrap.className='aboxes n'+list.length;
-  wrap.innerHTML=list.map(function(a){
-    return '<div class="abox" data-a="'+a.key+'"><div class="tick">'+ICON.check+'</div><div class="aic">'+a.icon+'</div><div class="atext"><b>'+a.name+'</b><div class="ap">Rs '+a.price+' <small>/ meal</small></div></div></div>';
-  }).join('');
+  wrap.innerHTML=list.map(function(a){ return addonBoxHTML(a, !!order.addons[a.key]); }).join('');
   hint.textContent = list.some(a=>a.key==='drink') ? 'Drink: ABC juice, mint lemonade, nimbu sharbat, chia fresca or green apple detox' : '';
   wrap.querySelectorAll('.abox').forEach(function(el){
     el.addEventListener('click', function(){
-      var k=el.dataset.a, a=ADDONS.find(x=>x.key===k);
-      if(order.addons[k]){ delete order.addons[k]; el.classList.remove('on'); }
-      else { order.addons[k]={label:a.label, price:a.price}; el.classList.add('on'); }
-      haptic();
+      toggleAddon(el.dataset.a); syncAddonUI(wrap); haptic();
     });
   });
 }

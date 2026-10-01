@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>NOSH7 Order Links</title>
-<meta name="description" content="Tap-to-copy directory of every start.nosh7.in order link, grouped by when to send it." />
+<meta name="description" content="Tap-to-copy directory of every app.nosh7.com/start.html order link, grouped by when to send it." />
 <meta name="robots" content="noindex, nofollow" />
 <meta name="theme-color" content="#f5f8ef" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#0c100b" media="(prefers-color-scheme: dark)" />
@@ -136,18 +136,18 @@
     </div>
 
     <h1>Send the right order link for what each customer needs.</h1>
-    <p class="lead">Every link below opens <b>start.nosh7.in</b> straight to a specific funnel. Tap <b>Copy</b> and paste it into WhatsApp. Each group notes when to use it.</p>
+    <p class="lead">Every link below opens <b>app.nosh7.com/start.html</b> straight to a specific funnel. Tap <b>Copy</b> and paste it into WhatsApp. Each group notes when to use it.</p>
 
     <div class="groups" id="groups"></div>
 
-    <p class="foot">All links point to <code>start.nosh7.in</code>. You can combine options too, e.g. <code>?track=healthy-fresh&monthly=1&meals=2</code> for a monthly-only, two-meals page.</p>
+    <p class="foot">All links point to <code>app.nosh7.com/start.html</code>. You can combine options too, e.g. <code>?track=healthy-fresh&monthly=1&meals=2</code> for a monthly-only, two-meals page.</p>
   </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite">Link copied</div>
 
 <script>
-  const BASE = "https://start.nosh7.in";
+  const BASE = "https://app.nosh7.com/start.html";
   const TRACKS = [
     ["Healthy Fresh","healthy-fresh"],
     ["Muscle Gain (high protein)","high-protein"],
@@ -156,7 +156,7 @@
     ["Vegan","vegan"],
     ["Fruit Dish Pack","fruit-pack"]
   ];
-  const trackLinks = suffix => TRACKS.map(([n,s]) => [n, BASE + "/?track=" + s + suffix]);
+  const trackLinks = suffix => TRACKS.map(([n,s]) => [n, BASE + "?track=" + s + suffix]);
 
   const GROUPS = [
     { eyebrow:"Everything", title:"Main page",
@@ -170,10 +170,10 @@
       links: trackLinks("&monthly=1") },
     { eyebrow:"Fast checkout", title:"Express monthly",
       note:"Only the Monthly plan and add-ons, then name and phone, then pay. No address is asked, so confirm it on WhatsApp afterwards.",
-      links: TRACKS.map(([n,s]) => [n, BASE + "/?express=" + s]) },
+      links: TRACKS.map(([n,s]) => [n, BASE + "?express=" + s]) },
     { eyebrow:"2 meals a day", title:"Two meals a day",
       note:"Locked to two meals a day with two-meal pricing. The customer picks their two delivery slots on the next step.",
-      links: [["All plans (home)", BASE + "/?meals=2"], ...trackLinks("&meals=2")] }
+      links: [["All plans (home)", BASE + "?meals=2"], ...trackLinks("&meals=2")] }
   ];
 
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -244,5 +244,10 @@
     showToast(ok ? "All links copied" : "Could not copy");
   });
 </script>
+<!-- axiotrix:credit START -->
+<div class="axiotrix-credit" aria-label="Powered by Axiotrix" style="box-sizing:border-box;width:100%;margin:0;padding:12px 16px;background:#0c0c0d;color:#9aa0a6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.5;text-align:center;border-top:1px solid rgba(255,255,255,.08);">
+  Powered by <a href="https://www.axiotrix.com/digital-solutions#website-creation" target="_blank" rel="noopener" style="color:#fff;font-weight:600;text-decoration:none;">Axiotrix</a>
+</div>
+<!-- axiotrix:credit END -->
 </body>
 </html>
